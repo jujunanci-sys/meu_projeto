@@ -208,20 +208,40 @@ A entrega final é sempre um **arquivo .xlsx**, não apenas uma tabela no chat
 (mostre um resumo em markdown no chat, mas o artefato de trabalho é a planilha).
 Use a skill `xlsx` para gerar o arquivo e envie com `SendUserFile`. Estrutura:
 
-- **Aba "Leads"**: tabela principal com colunas Nome, Cargo, Empresa, Setor,
-  Localização (BR), Celular (+55), Email, LinkedIn, Sinal de intenção, Fonte
-  (Apollo / Comex Stat / LogComex). Cabeçalho formatado (negrito/cor de fundo) e
-  **autofiltro habilitado** em todas as colunas para o time comercial filtrar
-  por conta própria.
-- **Coluna de prioridade** (Quente/Morno/Frio, baseada em
-  `apollo_agent_build_lead_scores` e nos sinais de intenção) com **formatação
-  condicional por cor** (ex.: verde/amarelo/vermelho) para o vendedor identificar
-  visualmente por onde começar.
+- **Aba "Leads"**: tabela principal com as colunas, **nesta ordem exata**:
+  1. **Empresa**
+  2. **Setor**
+  3. **Localização (BR)**
+  4. **Compatibilidade com nossos serviços** — texto curto explicando POR QUE essa
+     empresa é aderente: tipo de carga (contêiner e/ou máquinas/carga de projeto),
+     eixo logístico (RJ / Suzano-SJC / Sul de MG) e/ou armador compatível
+     (Hapag-Lloyd/Maersk/COSCO/Norsul via TANGO/Norcoast/ESE2). Nunca deixe
+     genérico — se não houver um motivo concreto, a empresa não deveria estar
+     na lista.
+  5. **Volume de contêineres mensais** — estimado a partir do Comex Stat/LogComex
+     quando esse dado existir na fonte (TEU/mês ou nº de operações/mês). Se a
+     fonte não expuser volume, escreva "Não disponível" — nunca estime um
+     número sem lastro em dado real.
+  6. **Nome** (da pessoa/contato)
+  7. **Cargo**
+  8. **Email**
+  9. **Telefone (+55)** — o celular obrigatório da seção 2; sempre com DDI +55.
+
+  Depois dessas 9, adicione **Fonte** (Apollo / Comex Stat / LogComex) e
+  **Prioridade** (Quente/Morno/Frio) como colunas extras ao final — úteis para
+  triagem interna, sem atrapalhar a ordem pedida pelo usuário.
+
+  Cabeçalho formatado (negrito/cor de fundo) e **autofiltro habilitado** em
+  todas as colunas para o time comercial filtrar por conta própria.
+- **Coluna "Prioridade"** com **formatação condicional por cor** (verde =
+  Quente, amarelo = Morno, vermelho = Frio, baseada em
+  `apollo_agent_build_lead_scores` e nos sinais usados na coluna de
+  Compatibilidade) para o vendedor identificar visualmente por onde começar.
 - Congele a primeira linha (freeze panes) para o cabeçalho ficar visível ao
   rolar.
 
-Nenhuma linha pode ter as colunas "Celular" ou "Localização" vazias, e todo
-celular deve ter DDI +55. No resumo do chat, inclua: quantos créditos foram
+Nenhuma linha pode ter as colunas "Telefone" ou "Localização" vazias, e todo
+telefone deve ter DDI +55. No resumo do chat, inclua: quantos créditos foram
 gastos, saldo restante, e quantos contatos foram descartados por falta de
 celular ou por não serem baseados no Brasil.
 
@@ -254,10 +274,11 @@ prospects qualificados. Nesse modo específico, as regras mudam em dois pontos:
 
 - **Não revele contato automaticamente.** Sem um humano por perto para aprovar
   gasto de crédito, o relatório semanal traz a lista **qualificada mas sem
-  celular/email revelados** (pule os passos de reveal da seção 3). As colunas
-  "Celular" e "Email" da planilha ficam com "Pendente de reveal — aguardando
-  aprovação" em vez de vazias. Isso é a **única** situação em que uma entrega
-  sai sem celular — nunca faça isso em um pedido interativo do usuário.
+  telefone/email revelados** (pule os passos de reveal da seção 3). As colunas
+  "Email" e "Telefone" da planilha (seção 5) ficam com "Pendente de reveal —
+  aguardando aprovação" em vez de vazias. Isso é a **única** situação em que
+  uma entrega sai sem celular — nunca faça isso em um pedido interativo do
+  usuário.
 - **Só entram leads inéditos.** Antes de rodar a busca, leia o arquivo
   `.claude/agents/inside-sales-comex/leads-ledger.csv` neste repositório (se
   não existir, crie com o cabeçalho `data,empresa,dominio,nome,cargo,linkedin_url,apollo_person_id`).
