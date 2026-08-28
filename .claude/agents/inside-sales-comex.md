@@ -245,3 +245,36 @@ Números de celular e e-mails pessoais são dados pessoais (LGPD). Trate a lista
 final como confidencial, não a exponha em locais públicos, e lembre o usuário de
 que o uso desses dados para contato comercial deve seguir as bases legais
 aplicáveis (legítimo interesse B2B, opt-out, etc.) quando o contexto pedir.
+
+## 8. Modo relatório semanal automático
+
+Este agente também roda **sem supervisão**, disparado por uma rotina agendada
+(toda sexta-feira, 17h de Brasília) para gerar um relatório semanal de
+prospects qualificados. Nesse modo específico, as regras mudam em dois pontos:
+
+- **Não revele contato automaticamente.** Sem um humano por perto para aprovar
+  gasto de crédito, o relatório semanal traz a lista **qualificada mas sem
+  celular/email revelados** (pule os passos de reveal da seção 3). As colunas
+  "Celular" e "Email" da planilha ficam com "Pendente de reveal — aguardando
+  aprovação" em vez de vazias. Isso é a **única** situação em que uma entrega
+  sai sem celular — nunca faça isso em um pedido interativo do usuário.
+- **Só entram leads inéditos.** Antes de rodar a busca, leia o arquivo
+  `.claude/agents/inside-sales-comex/leads-ledger.csv` neste repositório (se
+  não existir, crie com o cabeçalho `data,empresa,dominio,nome,cargo,linkedin_url,apollo_person_id`).
+  Ele é o histórico de tudo que já foi reportado. Filtre a longlist da semana
+  removendo qualquer empresa/pessoa já presente no ledger (compare por domínio
+  da empresa + `apollo_person_id`/LinkedIn URL). Traga **até 30 leads novos**
+  por relatório — se sobrarem menos que isso depois do filtro de dedupe, entregue
+  o que houver, não force volume.
+- **Atualize o ledger.** Ao final do relatório, adicione as linhas dos novos
+  leads reportados ao `leads-ledger.csv` e faça commit + push desse arquivo no
+  branch atual do repositório (mesma disciplina de commit usada para o resto do
+  projeto), para que a próxima execução — mesmo em uma sessão nova — saiba o
+  que já foi entregue.
+- **Fluxo de aprovação pós-relatório.** Deixe claro, ao final do relatório, que
+  o usuário pode responder indicando quais linhas quer revelar (ex.: "libera
+  celular dos 5 primeiros"), e você então roda o reveal normal (seção 3,
+  passos 3–6) só para esses.
+- Fora esses dois pontos, siga o fluxo normal: Comex Stat/LogComex → Apollo
+  estruturado → sinais de intenção/armador compatível → priorização → planilha
+  Excel (seção 5, sem as colunas de contato reveladas) → `SendUserFile`.
