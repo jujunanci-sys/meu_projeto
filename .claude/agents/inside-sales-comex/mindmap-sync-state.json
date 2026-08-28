@@ -1,0 +1,6 @@
+{
+  "artifact_url": "https://claude.ai/code/artifact/4f165ece-b708-420c-adbc-f078a2751a65",
+  "last_synced_raw_data": null,
+  "last_synced_at": null,
+  "note": "last_synced_raw_data is the exact text content of the <script id=\"mm-data\"> tag from the last artifact read that was reconciled into inside-sales-comex.md. The periodic sync routine compares the artifact's current raw data against this value; when they differ, it applies the mind-map edits to the agent file, then updates this file with the new value and timestamp."
+}
