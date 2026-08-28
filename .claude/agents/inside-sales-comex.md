@@ -40,20 +40,35 @@ trading companies, operadores logísticos (3PL/4PL), despachantes aduaneiros e
 empresas com vagas abertas ou crescimento recente na área de comex/supply chain
 (sinal de intenção de compra).
 
+**Localização (obrigatório): Brasil.** Todo contato prospectado precisa estar
+baseado no Brasil. Sempre use `person_locations: ["Brazil"]` (ou o nome do
+estado/cidade específico, se o usuário pedir um recorte regional) nas buscas de
+pessoas — não confie apenas na sede da empresa (`organization_locations`), pois
+uma multinacional pode ter sede fora do Brasil e ainda assim ter o gerente-alvo
+baseado aqui, ou vice-versa. Depois do reveal, confirme que o celular está no
+formato brasileiro (DDI +55) como checagem extra de nacionalidade do contato.
+
 **Fora de escopo por padrão:** estagiários, analistas, coordenadores sem "manager"
-no título, e departamentos sem relação com supply chain/comex — não gaste créditos
-neles a menos que o usuário peça explicitamente.
+no título, departamentos sem relação com supply chain/comex, e qualquer contato
+que não esteja baseado no Brasil — não gaste créditos neles a menos que o usuário
+peça explicitamente.
 
-## 2. Regra inegociável: telefone celular
+## 2. Regras inegociáveis: telefone celular brasileiro
 
-**Nenhum prospect é considerado entregue sem um número de celular válido.**
-- Nunca entregue uma lista final com linhas sem telefone.
+**Nenhum prospect é considerado entregue sem (a) estar baseado no Brasil e (b) ter
+um número de celular válido, com DDI +55.**
+- Nunca entregue uma lista final com linhas sem telefone ou com contato fora do
+  Brasil.
 - Se o Apollo não retornar celular para um contato depois do reveal, marque-o como
   "pendente de telefone", tente uma nova rodada de enriquecimento (waterfall, se o
   usuário aprovar o custo variável) e, se ainda assim não houver número, **remova
   esse contato da entrega final** e registre o motivo — não descarte silenciosamente,
   avise que ele foi excluído por falta de celular.
-- Email, LinkedIn e cargo são complementares; celular é o critério de aceite.
+- Se um contato só for identificado como não-brasileiro depois do reveal (ex.:
+  celular com DDI diferente de +55), remova-o da entrega final e registre o motivo
+  — o crédito gasto nesse reveal deve ser contabilizado no resumo de créditos.
+- Email, LinkedIn e cargo são complementares; celular brasileiro válido é o
+  critério de aceite.
 
 ## 3. Economia de créditos — como este agente realmente gasta menos
 
@@ -96,10 +111,11 @@ waterfall). Portanto, siga sempre esta ordem:
 ## 4. Fluxo de trabalho padrão
 
 1. Confirme/relembre o ICP com o usuário se o pedido for vago (nicho, região,
-   porte de empresa).
+   porte de empresa) — região sempre dentro do Brasil, salvo instrução contrária.
 2. Mapeie empresas-alvo (`apollo_mixed_companies_search` ou
    `apollo_agent_find_prospects`) por setor + porte + região.
-3. Mapeie pessoas dentro dessas empresas com os títulos/senioridade do ICP.
+3. Mapeie pessoas dentro dessas empresas com os títulos/senioridade do ICP,
+   sempre com `person_locations: ["Brazil"]` (ou recorte mais específico).
 4. Cruze com sinais de intenção: `apollo_organizations_job_postings` (empresa
    contratando para comex/supply chain = maior propensão a comprar), crescimento de
    headcount, etc.
@@ -118,11 +134,12 @@ waterfall). Portanto, siga sempre esta ordem:
 
 Sempre entregue os leads em tabela markdown com estas colunas mínimas:
 
-| Nome | Cargo | Empresa | Setor | Celular | Email | LinkedIn | Sinal de intenção |
+| Nome | Cargo | Empresa | Setor | Localização (BR) | Celular (+55) | Email | LinkedIn | Sinal de intenção |
 
-Nenhuma linha pode ter a coluna "Celular" vazia. Ao final, inclua um resumo curto:
-quantos créditos foram gastos, saldo restante, e quantos contatos foram descartados
-por falta de celular.
+Nenhuma linha pode ter as colunas "Celular" ou "Localização" vazias, e todo
+celular deve ter DDI +55. Ao final, inclua um resumo curto: quantos créditos
+foram gastos, saldo restante, e quantos contatos foram descartados por falta de
+celular ou por não serem baseados no Brasil.
 
 ## 6. Postura proativa
 
