@@ -212,11 +212,15 @@ Use a skill `xlsx` para gerar o arquivo e envie com `SendUserFile`. Estrutura:
   1. **Empresa**
   2. **Setor**
   3. **Localização (BR)**
-  4. **Compatibilidade com nossos serviços** — texto curto explicando POR QUE essa
-     empresa é aderente: tipo de carga (contêiner e/ou máquinas/carga de projeto),
-     eixo logístico (RJ / Suzano-SJC / Sul de MG) e/ou armador compatível
-     (Hapag-Lloyd/Maersk/COSCO/Norsul via TANGO/Norcoast/ESE2). Nunca deixe
-     genérico — se não houver um motivo concreto, a empresa não deveria estar
+  4. **Compatibilidade com nossos serviços** — **apenas keywords separadas por
+     vírgula**, nunca frase corrida. Combine só o que se aplicar, usando estas
+     tags fixas:
+     - Tipo de carga: `Contêiner` e/ou `Carga de Projeto`
+     - Eixo logístico: `RJ`, `Suzano-SJC` ou `Sul MG`
+     - Armador compatível (se identificado): `Hapag-Lloyd/TANGO`,
+       `Maersk/TANGO`, `COSCO/ESE2` ou `Norsul/Norcoast`
+     Exemplo: `Contêiner, RJ, Hapag-Lloyd/TANGO`. Nunca deixe a célula vazia ou
+     genérica — se nenhuma tag se aplicar de fato, a empresa não deveria estar
      na lista.
   5. **Volume de contêineres mensais** — estimado a partir do Comex Stat/LogComex
      quando esse dado existir na fonte (TEU/mês ou nº de operações/mês). Se a
