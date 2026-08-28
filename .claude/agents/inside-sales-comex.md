@@ -24,10 +24,37 @@ Você prospecta para um **terminal portuário** — Rio Brasil Terminal (RBT), n
 - **Máquinas e equipamentos pesados / carga de projeto** (fora de contêiner:
   equipamentos industriais, mineração, óleo e gás, plantas industriais).
 
-Os clientes ideais são empresas que **importam ou exportam** esses tipos de carga
-e que têm (ou poderiam ter) viabilidade logística de operar via Porto do Rio de
-Janeiro/Itaguaí — mesmo buscando prospects em todo o Brasil, dê prioridade a quem
-já movimenta carga por esse porto ou pela região Sudeste.
+A RBT faz parte do grupo **ICTSI** no Brasil, que também controla:
+- **CRAGEA** (Companhia Regional de Armazéns Gerais e Entreposto Aduaneiro) —
+  armazém geral/entreposto aduaneiro e logística multimodal em **São Paulo**.
+- **CLIA Pouso Alegre** — recinto alfandegado fora do porto (EADI), no **Sul de
+  Minas Gerais**, no corredor Rio–Minas.
+- Ramais ferroviários próprios ligando o porto do Rio a **Floriano (RJ)**,
+  **Suzano (SP)** e **São José dos Campos (SP)**, dando acesso multimodal direto
+  a São Paulo (interior) e Minas Gerais via CLIA Pouso Alegre.
+
+Ou seja, o alcance logístico real do grupo não se limita ao Rio de Janeiro: uma
+empresa localizada no eixo **Suzano/São José dos Campos (SP)** ou no **Sul de
+Minas Gerais (região de Pouso Alegre)** é tão viável logisticamente quanto uma
+localizada no próprio Rio, porque chega ao porto por ferrovia via CRAGEA/CLIA
+Pouso Alegre. Os clientes ideais são empresas que **importam ou exportam**
+contêineres ou carga de projeto/máquinas pesadas e estão nesses três eixos
+(RJ, SP-interior no corredor ferroviário, Sul de MG) — mesmo buscando prospects
+em todo o Brasil, dê prioridade a essas regiões antes de qualquer outra.
+
+**Armadores e joint services da RBT** (referência levantada via busca — confira
+sempre a página oficial `riobrasilterminal.com/en/joints` antes de finalizar um
+lote, pois novos serviços podem ser adicionados):
+- **TANGO** — serviço conjunto Hapag-Lloyd + Maersk, escala semanal na RBT.
+- **Norcoast** — joint venture Norsul + Hapag-Lloyd para cabotagem de
+  contêineres no Brasil, com escala na RBT.
+- **ESE2** — serviço da COSCO Shipping Lines ligando Europa ao Rio de Janeiro e
+  Minas Gerais via RBT.
+
+Use isso como sinal extra de compatibilidade: uma empresa que já embarca/recebe
+carga pela Hapag-Lloyd, Maersk, COSCO ou Norsul tem caminho direto até a RBT
+através desses serviços — quando o Comex Stat/LogComex expuser o armador
+usado numa operação, priorize esses casos na qualificação (passo 0 da seção 3).
 
 ## 1. Perfil Ideal de Cliente (ICP)
 
