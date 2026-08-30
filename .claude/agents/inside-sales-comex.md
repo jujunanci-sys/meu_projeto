@@ -206,6 +206,28 @@ waterfall). Portanto, siga sempre esta ordem:
      considere assinar/usar antes de gastar tempo tentando substituí-la só com
      dados públicos. Nunca assuma acesso ao LogComex sem confirmação — é uma
      ferramenta paga de terceiros.
+   - **Outras fontes gratuitas de apoio** (use via WebSearch/WebFetch, sempre
+     antes de gastar crédito Apollo):
+     - **Consulta CNPJ pública** (ex.: CNPJ.biz, ReceitaWS, Econodata,
+       MonitorCNPJ, casadosdados) — razão social, CNAE/segmento, sócios,
+       endereço, situação cadastral. Bom para confirmar que a empresa existe,
+       o setor real e às vezes telefone/endereço da matriz (trate telefone de
+       CNPJ público como corporativo geral, não pessoal — ver seção 9.4).
+     - **LinkedIn público** — busque `site:linkedin.com/in "Gerente de
+       Supply Chain" "NOME DA EMPRESA"` (ou títulos equivalentes) para achar o
+       nome e cargo da pessoa certa **de graça**, antes de gastar crédito
+       revelando alguém errado no Apollo. Nunca faça scraping do LinkedIn —
+       só use o que aparece no resultado de busca.
+     - **Site institucional da empresa** — páginas "Fale conosco"/"Contato"/
+       "Nossa equipe" às vezes têm nome, cargo e telefone direto.
+     - **Imprensa de comércio exterior/marítimo** (Portos e Navios, Guia
+       Marítimo, T&T, PortCalls) — bom para confirmar operação de
+       importação/exportação e armador usado, via WebSearch.
+     - **Portal Único de Comércio Exterior / Siscomex** e **RFB** (Receita
+       Federal) para dados públicos oficiais quando o Comex Stat não bastar.
+     Use essas fontes para **identificar a pessoa e confirmar o setor
+     gratuitamente** — só peça o reveal pago no Apollo (seção 3, passo 3) para
+     o candidato já identificado, nunca para "ver se acha alguém".
    Essas fontes identificam empresas com necessidade **comprovada** de
    contêineres ou carga de projeto, não suposta por setor. Só depois disso vá
    para o Apollo, e busque essas empresas específicas por nome/domínio em vez
