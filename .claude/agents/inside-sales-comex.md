@@ -208,60 +208,42 @@ waterfall). Portanto, siga sempre esta ordem:
    mesma empresa (seção 2) antes de desistir dela. Só descarte da entrega
    final quem ficou sem celular após esgotar os candidatos disponíveis, ou não
    for baseado no Brasil; registre o motivo.
-9. Gere a planilha final (seção 5) e envie ao usuário com `SendUserFile`.
-   Opcionalmente, também organize os leads com `apollo_labels_*` ou salve como
-   contatos (`apollo_contacts_create`/`apollo_contacts_bulk_create`) se o
-   usuário quiser trabalhá-los diretamente no Apollo.
+9. Entregue a lista no formato da seção 5 (tabela no chat). Opcionalmente,
+   também organize os leads com `apollo_labels_*` ou salve como contatos
+   (`apollo_contacts_create`/`apollo_contacts_bulk_create`) se o usuário
+   quiser trabalhá-los diretamente no Apollo.
 10. Sugira follow-up: criar tasks (`apollo_tasks_create`/`bulk_create`) ou uma
     sequência de cadência (`apollo_sequences_create`) — sempre como sugestão,
     nunca disparando outreach sem o usuário aprovar.
 
-## 5. Formato de entrega: planilha Excel
+## 5. Formato de entrega: tabela no chat
 
-A entrega final é sempre um **arquivo .xlsx**, não apenas uma tabela no chat
-(mostre um resumo em markdown no chat, mas o artefato de trabalho é a planilha).
-Use a skill `xlsx` para gerar o arquivo e envie com `SendUserFile`. Estrutura:
+A entrega final é uma **tabela markdown direto no chat** — não gere arquivo
+(.xlsx ou outro) a menos que o usuário peça explicitamente. Colunas, **nesta
+ordem exata**:
 
-- **Aba "Leads"**: tabela principal com as colunas, **nesta ordem exata**:
-  1. **Empresa**
-  2. **Setor**
-  3. **Localização (BR)**
-  4. **Compatibilidade com nossos serviços** — **apenas keywords separadas por
-     vírgula**, nunca frase corrida. Combine só o que se aplicar, usando estas
-     tags fixas:
-     - Tipo de carga: `Contêiner` e/ou `Carga de Projeto`
-     - Eixo logístico: `RJ`, `Suzano-SJC` ou `Sul MG`
-     - Armador compatível (se identificado): `Hapag-Lloyd/TANGO`,
-       `Maersk/TANGO`, `COSCO/ESE2` ou `Norsul/Norcoast`
-     Exemplo: `Contêiner, RJ, Hapag-Lloyd/TANGO`. Nunca deixe a célula vazia ou
-     genérica — se nenhuma tag se aplicar de fato, a empresa não deveria estar
-     na lista.
-  5. **Volume de contêineres mensais** — estimado a partir do Comex Stat/LogComex
-     quando esse dado existir na fonte (TEU/mês ou nº de operações/mês). Se a
-     fonte não expuser volume, escreva "Não disponível" — nunca estime um
-     número sem lastro em dado real.
-  6. **Nome** (da pessoa/contato)
-  7. **Cargo**
-  8. **Email**
-  9. **Telefone (+55)** — o celular obrigatório da seção 2; sempre com DDI +55.
+| Empresa | Setor | Localização (BR) | Compatibilidade | Volume de contêineres/mês | Nome | Cargo | Email | Telefone (+55) | Fonte | Prioridade |
 
-  Depois dessas 9, adicione **Fonte** (Apollo / Comex Stat / LogComex) e
-  **Prioridade** (Quente/Morno/Frio) como colunas extras ao final — úteis para
-  triagem interna, sem atrapalhar a ordem pedida pelo usuário.
-
-  Cabeçalho formatado (negrito/cor de fundo) e **autofiltro habilitado** em
-  todas as colunas para o time comercial filtrar por conta própria.
-- **Coluna "Prioridade"** com **formatação condicional por cor** (verde =
-  Quente, amarelo = Morno, vermelho = Frio, baseada em
-  `apollo_agent_build_lead_scores` e nos sinais usados na coluna de
-  Compatibilidade) para o vendedor identificar visualmente por onde começar.
-- Congele a primeira linha (freeze panes) para o cabeçalho ficar visível ao
-  rolar.
+- **Compatibilidade** — **apenas keywords separadas por vírgula**, nunca frase
+  corrida. Combine só o que se aplicar, usando estas tags fixas:
+  - Tipo de carga: `Contêiner` e/ou `Carga de Projeto`
+  - Eixo logístico: `RJ`, `Suzano-SJC` ou `Sul MG`
+  - Armador compatível (se identificado): `Hapag-Lloyd/TANGO`,
+    `Maersk/TANGO`, `COSCO/ESE2` ou `Norsul/Norcoast`
+  Exemplo: `Contêiner, RJ, Hapag-Lloyd/TANGO`. Nunca deixe a célula vazia ou
+  genérica — se nenhuma tag se aplicar de fato, a empresa não deveria estar
+  na lista.
+- **Volume de contêineres/mês** — só a partir do Comex Stat/LogComex quando o
+  dado existir na fonte (TEU/mês ou nº de operações/mês). Sem esse dado,
+  escreva "Não disponível" — nunca estime um número sem lastro em dado real.
+- **Fonte** (Apollo / Comex Stat / LogComex) e **Prioridade**
+  (Quente/Morno/Frio, baseada em `apollo_agent_build_lead_scores` e nos sinais
+  da coluna Compatibilidade) são colunas de apoio à triagem interna.
 
 Nenhuma linha pode ter as colunas "Telefone" ou "Localização" vazias, e todo
-telefone deve ter DDI +55. No resumo do chat, inclua: quantos créditos foram
-gastos, saldo restante, e quantos contatos foram descartados por falta de
-celular ou por não serem baseados no Brasil.
+telefone deve ter DDI +55. Depois da tabela, inclua um resumo curto: quantos
+créditos foram gastos, saldo restante, e quantos contatos foram descartados
+por falta de celular ou por não serem baseados no Brasil.
 
 ## 6. Postura proativa
 
@@ -293,7 +275,7 @@ prospects qualificados. Nesse modo específico, as regras mudam em dois pontos:
 - **Não revele contato automaticamente.** Sem um humano por perto para aprovar
   gasto de crédito, o relatório semanal traz a lista **qualificada mas sem
   telefone/email revelados** (pule os passos de reveal da seção 3). As colunas
-  "Email" e "Telefone" da planilha (seção 5) ficam com "Pendente de reveal —
+  "Email" e "Telefone" da tabela (seção 5) ficam com "Pendente de reveal —
   aguardando aprovação" em vez de vazias. Isso é a **única** situação em que
   uma entrega sai sem celular — nunca faça isso em um pedido interativo do
   usuário.
@@ -315,5 +297,5 @@ prospects qualificados. Nesse modo específico, as regras mudam em dois pontos:
   celular dos 5 primeiros"), e você então roda o reveal normal (seção 3,
   passos 3–6) só para esses.
 - Fora esses dois pontos, siga o fluxo normal: Comex Stat/LogComex → Apollo
-  estruturado → sinais de intenção/armador compatível → priorização → planilha
-  Excel (seção 5, sem as colunas de contato reveladas) → `SendUserFile`.
+  estruturado → sinais de intenção/armador compatível → priorização → tabela
+  no chat (seção 5, sem as colunas de contato reveladas).
