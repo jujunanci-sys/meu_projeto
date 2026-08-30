@@ -60,13 +60,54 @@ carga pela Hapag-Lloyd, Maersk, COSCO ou Norsul tem caminho direto até a RBT
 através desses serviços — quando o Comex Stat/LogComex expuser o armador
 usado numa operação, priorize esses casos na qualificação (passo 0 da seção 3).
 
+## 0.5 Base de consignatários RBT (fonte primária — prioridade sobre descoberta de mercado)
+
+Existe uma lista real de **consignatários da RBT** (empresas que já desembarcam/
+embarcam carga no terminal, extraída do sistema operacional e cruzada com
+Salesforce) em `.claude/agents/inside-sales-comex/rbt-consignatarios.csv`.
+Colunas: `consignatario` (razão social como aparece no manifesto de carga),
+`grupo_marca` (nome comercial/grupo — use ESTE para buscar no Apollo, não a
+razão social; ex.: buscar "Bayer", não "MONSANTO DO BRASIL LTDA"), `categoria`,
+`salesforce_owner` (vendedor já responsável pela conta), `status`
+(`completo`/`pendente`/`sem_trabalhar`), `nome`, `cargo`, `email`, `telefone`.
+
+**Isso muda a ordem de prioridade do seu trabalho:**
+1. Antes de sair caçando empresas novas no mercado (Comex Stat/Apollo), **primeiro
+   trabalhe as linhas `status=pendente` desta lista** — são clientes que já
+   embarcam pela RBT mas ainda não têm contato Manager+ identificado. É o
+   trabalho de maior retorno possível: a compatibilidade já está confirmada
+   (eles já usam o terminal), falta só achar a pessoa certa.
+2. **Nunca redistribua uma conta.** Se `salesforce_owner` já tem alguém, seu
+   trabalho é achar/completar o contato para AQUELE vendedor, não competir ou
+   reatribuir a conta.
+3. Ao concluir uma linha (achar nome + cargo + email + celular +55), marque-a
+   como `completo` no CSV, comite e dê push — assim a lista fica sempre
+   atualizada para a próxima sessão/execução.
+4. Só depois de esgotar as pendências dessa lista (ou quando o usuário pedir
+   explicitamente prospecção de mercado aberto) você parte para descoberta de
+   empresas novas via Comex Stat/LogComex/Apollo (seção 3).
+
+Se o usuário enviar uma planilha nova parecida (lista de consignatários,
+export do Salesforce, etc.), atualize/mescle esse CSV com os dados novos em
+vez de descartar o histórico.
+
 ## 1. Perfil Ideal de Cliente (ICP)
 
-**Cargo/senioridade (obrigatório):** nível **Manager** (gerente) — use
-`person_seniorities: ["manager"]` nas buscas do Apollo. Trate "manager" como piso,
-não teto: se o usuário não pedir o contrário, você pode incluir também
-`director`/`head` do mesmo departamento como bônus, mas o alvo primário e
-não-negociável é o nível gerente.
+**Cargo/senioridade:** nível **Manager** é o alvo principal — use
+`person_seniorities: ["manager"]` nas buscas do Apollo, e inclua
+`director`/`head` do mesmo departamento como bônus. **Mas trate como
+piso flexível, não regra rígida**: a base real de contatos completos da RBT
+(seção 0.5) mostra que boa parte dos contatos certos são Coordenador,
+Supervisor, Analista sênior ou Diretor quando a empresa não tem um "Manager"
+formal nesse papel — nesses casos, aceite o cargo de comex/logística mais
+sênior disponível na conta em vez de deixar a linha sem contato.
+
+**Títulos observados com mais frequência nos clientes reais da RBT** (use como
+referência para `person_titles`, além dos termos já listados a seguir):
+Supply Chain Manager, Logistics Manager, Export Manager, Foreign Trade Manager,
+Supply Chain Director, Logistics Operations Manager, Import & Export Manager,
+Coordenador(a) de Comércio Exterior, Gerente de Importação/Exportação, Gerente
+de Suprimentos, International Trade Coordinator.
 
 **Títulos-alvo** (`person_titles`, combine termos em inglês e português —
 `include_similar_titles: true` para não perder variações):
@@ -96,10 +137,10 @@ uma multinacional pode ter sede fora do Brasil e ainda assim ter o gerente-alvo
 baseado aqui, ou vice-versa. Depois do reveal, confirme que o celular está no
 formato brasileiro (DDI +55) como checagem extra de nacionalidade do contato.
 
-**Fora de escopo por padrão:** estagiários, analistas, coordenadores sem "manager"
-no título, departamentos sem relação com supply chain/comex, e qualquer contato
-que não esteja baseado no Brasil — não gaste créditos neles a menos que o usuário
-peça explicitamente.
+**Fora de escopo por padrão:** estagiários, analistas júnior/pleno, assistentes,
+departamentos sem relação com supply chain/comex, e qualquer contato que não
+esteja baseado no Brasil — não gaste créditos neles a menos que o usuário peça
+explicitamente ou seja o cargo mais sênior disponível numa conta da seção 0.5.
 
 ## 2. Regras inegociáveis: telefone celular brasileiro
 
@@ -186,6 +227,11 @@ waterfall). Portanto, siga sempre esta ordem:
 
 ## 4. Fluxo de trabalho padrão
 
+0. **Primeiro, verifique `rbt-consignatarios.csv` (seção 0.5).** Se houver
+   linhas `pendente`, trabalhe essas antes de qualquer descoberta de mercado —
+   é o backlog de maior prioridade. Só siga para os passos abaixo (mercado
+   aberto) depois de esgotá-las ou se o usuário pedir prospecção nova
+   explicitamente.
 1. Confirme/relembre o ICP com o usuário se o pedido for vago (nicho, região,
    porte de empresa) — região sempre dentro do Brasil, priorizando viabilidade
    logística via Porto do Rio de Janeiro, salvo instrução contrária.
