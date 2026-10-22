@@ -3,206 +3,196 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Minha Lista de Tarefas</title>
+<title>To-do</title>
 <style>
   :root {
-    --bg: #f4f1ec; --card: #ffffff; --text: #2b2b2b; --muted: #8a8580;
-    --line: #e7e2da; --accent: #6c63ff; --accent-soft: #ecebff;
-    --alta: #e5534b; --media: #e0a33a; --baixa: #4caf7a;
+    --glass: rgba(246, 245, 243, .72); --text: #5d5a56; --muted: #a5a19b;
+    --line: rgba(0, 0, 0, .08); --tab-on: #fff; --hover: rgba(0, 0, 0, .04);
   }
   @media (prefers-color-scheme: dark) {
-    :root { --bg: #17161a; --card: #222127; --text: #eeeae4; --muted: #9b968f;
-      --line: #34323a; --accent-soft: #2e2b4a; }
+    :root { --glass: rgba(40, 39, 43, .72); --text: #dcd8d2; --muted: #85817b;
+      --line: rgba(255, 255, 255, .1); --tab-on: rgba(255, 255, 255, .12); --hover: rgba(255, 255, 255, .05); }
   }
   * { box-sizing: border-box; }
-  body { margin: 0; font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
-    background: var(--bg); color: var(--text); }
-  .wrap { max-width: 560px; margin: 0 auto; padding: 32px 16px 64px; }
-  header h1 { margin: 0; font-size: 28px; }
-  header p { margin: 4px 0 20px; color: var(--muted); }
+  html, body { height: 100%; }
+  body { margin: 0; font-family: "Courier New", ui-monospace, Menlo, monospace; color: var(--text);
+    background: linear-gradient(135deg, #d9c9b6, #8fa58a); display: grid; place-items: start center; }
+  body.pip { background: var(--glass); display: block; }
 
-  .progress-card { background: var(--card); border-radius: 16px; padding: 16px;
-    margin-bottom: 16px; border: 1px solid var(--line); }
-  .progress-top { display: flex; justify-content: space-between; font-size: 14px; margin-bottom: 8px; }
-  .bar { height: 10px; background: var(--accent-soft); border-radius: 99px; overflow: hidden; }
-  .bar span { display: block; height: 100%; width: 0; background: var(--accent);
-    border-radius: 99px; transition: width .4s ease; }
+  .widget { width: min(360px, calc(100vw - 32px)); margin: 48px 16px; padding: 14px 16px 16px;
+    background: var(--glass); border: 1px solid var(--line); border-radius: 14px;
+    backdrop-filter: blur(24px) saturate(1.4); -webkit-backdrop-filter: blur(24px) saturate(1.4);
+    box-shadow: 0 12px 40px rgba(0, 0, 0, .15); font-size: 13px; }
+  body.pip .widget { width: auto; margin: 0; min-height: 100vh; border: 0; border-radius: 0; box-shadow: none; }
 
-  form { background: var(--card); border: 1px solid var(--line); border-radius: 16px;
-    padding: 12px; display: grid; gap: 8px; margin-bottom: 16px; }
-  form .row { display: flex; gap: 8px; flex-wrap: wrap; }
-  input, select, button { font: inherit; color: inherit; }
-  input[type=text], input[type=date], select { background: var(--bg); border: 1px solid var(--line);
-    border-radius: 10px; padding: 10px 12px; min-width: 0; }
-  input[type=text] { width: 100%; }
-  form .row > * { flex: 1 1 120px; }
-  button.add { background: var(--accent); color: #fff; border: 0; border-radius: 10px;
-    padding: 10px 16px; font-weight: 600; cursor: pointer; }
+  .top { display: flex; justify-content: center; position: relative; margin-bottom: 12px; }
+  .date { color: var(--muted); font-size: 12px; }
+  .pin { position: absolute; right: 0; top: -2px; background: none; border: 0; cursor: pointer;
+    color: var(--muted); font: inherit; font-size: 13px; padding: 2px 4px; border-radius: 6px; }
+  .pin:hover { background: var(--hover); color: var(--text); }
 
-  .filters { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 12px; }
-  .filters button { background: transparent; border: 1px solid var(--line); border-radius: 99px;
-    padding: 6px 14px; cursor: pointer; font-size: 14px; }
-  .filters button.on { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .tabs { display: flex; gap: 2px; margin-bottom: 14px; }
+  .tabs button { flex: 1; background: none; border: 0; font: inherit; font-size: 11px; color: var(--muted);
+    padding: 5px 0; border-radius: 6px; cursor: pointer; }
+  .tabs button.on { background: var(--tab-on); color: var(--text); box-shadow: 0 1px 2px rgba(0, 0, 0, .06); }
 
-  ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
-  li { background: var(--card); border: 1px solid var(--line); border-radius: 14px;
-    padding: 12px; display: flex; align-items: center; gap: 12px;
-    border-left: 5px solid var(--p); animation: pop .2s ease; }
-  @keyframes pop { from { transform: scale(.97); opacity: 0; } }
-  li.done .title { text-decoration: line-through; color: var(--muted); }
-  li .check { width: 22px; height: 22px; accent-color: var(--accent); flex: none; cursor: pointer; }
-  li .info { flex: 1; min-width: 0; }
-  li .title { overflow-wrap: anywhere; }
-  li .meta { font-size: 12px; color: var(--muted); margin-top: 4px; display: flex; gap: 8px; flex-wrap: wrap; }
-  li .tag { background: var(--accent-soft); border-radius: 6px; padding: 1px 8px; }
-  li .late { color: var(--alta); font-weight: 600; }
-  li .del { background: none; border: 0; color: var(--muted); font-size: 18px; cursor: pointer; padding: 4px; }
-  li .del:hover { color: var(--alta); }
-  .empty { text-align: center; color: var(--muted); padding: 32px 0; }
-  .clear { margin-top: 16px; background: none; border: 0; color: var(--muted);
-    text-decoration: underline; cursor: pointer; font-size: 14px; }
+  .group { margin-bottom: 12px; }
+  .group h3 { margin: 0 0 4px; font-size: 12px; font-weight: 600; }
+  ul { list-style: none; margin: 0; padding: 0; }
+  li { display: flex; align-items: center; gap: 6px; padding: 3px 4px 3px 12px; border-radius: 6px; font-size: 12px; }
+  li:hover { background: var(--hover); }
+  li .t { flex: 1; overflow-wrap: anywhere; }
+  .done .t, .cancelled .t { text-decoration: line-through; color: var(--muted); }
+  li .acts { display: none; gap: 2px; }
+  li:hover .acts, li:focus-within .acts { display: flex; }
+  .acts button { background: none; border: 0; cursor: pointer; color: var(--muted); font: inherit;
+    font-size: 12px; padding: 0 3px; }
+  .acts button:hover { color: var(--text); }
+
+  .empty { color: var(--muted); text-align: center; font-size: 12px; padding: 16px 0; }
+  form { margin-top: 6px; border-top: 1px solid var(--line); padding-top: 10px; }
+  form input { width: 100%; background: none; border: 0; outline: none; font: inherit; font-size: 12px; color: var(--text); }
+  form input::placeholder { color: var(--muted); }
 </style>
 </head>
 <body>
-<div class="wrap">
-  <header>
-    <h1>Minhas tarefas ✨</h1>
-    <p id="today"></p>
-  </header>
-
-  <div class="progress-card">
-    <div class="progress-top"><strong>Progresso</strong><span id="count">0/0</span></div>
-    <div class="bar"><span id="bar"></span></div>
+<div class="widget" id="widget">
+  <div class="top">
+    <span class="date" id="date"></span>
+    <button class="pin" id="pin" title="Fixar por cima de todas as janelas">📌</button>
   </div>
-
+  <div class="tabs" id="tabs">
+    <button data-s="todo" class="on">To-do</button>
+    <button data-s="pending">Pending</button>
+    <button data-s="done">Completed</button>
+    <button data-s="cancelled">Cancelled</button>
+  </div>
+  <div id="list"></div>
   <form id="form">
-    <input type="text" id="title" placeholder="O que você precisa fazer?" required autocomplete="off">
-    <div class="row">
-      <select id="priority" aria-label="Prioridade">
-        <option value="alta">🔴 Alta</option>
-        <option value="media" selected>🟡 Média</option>
-        <option value="baixa">🟢 Baixa</option>
-      </select>
-      <select id="category" aria-label="Categoria">
-        <option>Pessoal</option><option>Trabalho</option><option>Estudos</option>
-        <option>Casa</option><option>Saúde</option>
-      </select>
-      <input type="date" id="due" aria-label="Prazo">
-      <button class="add" type="submit">Adicionar</button>
-    </div>
+    <input id="input" placeholder="+ categoria: tarefa" title="Ex: work: weekly report" autocomplete="off">
   </form>
-
-  <div class="filters" id="filters">
-    <button data-f="todas" class="on">Todas</button>
-    <button data-f="pendentes">Pendentes</button>
-    <button data-f="concluidas">Concluídas</button>
-    <button data-f="hoje">Hoje</button>
-  </div>
-
-  <ul id="list"></ul>
-  <button class="clear" id="clear">Limpar concluídas</button>
 </div>
 
 <script>
-  const KEY = 'todo-list-v1';
-  const order = { alta: 0, media: 1, baixa: 2 };
-  const colors = { alta: 'var(--alta)', media: 'var(--media)', baixa: 'var(--baixa)' };
-  let filter = 'todas';
+  const KEY = 'todo-widget-v1';
+  const ACTIONS = {
+    todo:      [['✓', 'done', 'Concluir'], ['⏸', 'pending', 'Mover para pendentes'], ['✕', 'cancelled', 'Cancelar']],
+    pending:   [['✓', 'done', 'Concluir'], ['↺', 'todo', 'Voltar para to-do'], ['✕', 'cancelled', 'Cancelar']],
+    done:      [['↺', 'todo', 'Voltar para to-do']],
+    cancelled: [['↺', 'todo', 'Voltar para to-do']],
+  };
+  let tab = 'todo';
   let tasks = load();
 
   function load() {
-    try { return JSON.parse(localStorage.getItem(KEY)) || []; } catch { return []; }
+    try {
+      const saved = JSON.parse(localStorage.getItem(KEY));
+      if (saved) return saved;
+    } catch {}
+    return [
+      ['work', 'weekly report'], ['work', 'traffic analysis'],
+      ['life', 'get groceries'], ['life', 'buy iphone duo cases'], ['life', 'book flight ticket 10/26'],
+      ['content', 'organize raw clips'], ['study', 'Hw 6 - ddl 10/25'],
+    ].map(([cat, text], i) => ({ id: i + 1, cat, text, status: 'todo' }));
   }
   function save() {
     try { localStorage.setItem(KEY, JSON.stringify(tasks)); } catch {}
   }
-  const todayStr = () => new Date().toLocaleDateString('en-CA');
 
-  const hoje = new Date().toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' });
-  document.getElementById('today').textContent = hoje[0].toUpperCase() + hoje.slice(1);
+  function showDate() {
+    const d = new Date();
+    const dia = d.toLocaleDateString('pt-BR', { day: 'numeric', month: 'long' });
+    const sem = d.toLocaleDateString('pt-BR', { weekday: 'long' }).split('-')[0];
+    document.getElementById('date').textContent = `${dia}, ${sem}`;
+  }
 
-  document.getElementById('form').addEventListener('submit', e => {
-    e.preventDefault();
-    const title = document.getElementById('title');
-    if (!title.value.trim()) return;
-    tasks.push({
-      id: Date.now(),
-      title: title.value.trim(),
-      priority: document.getElementById('priority').value,
-      category: document.getElementById('category').value,
-      due: document.getElementById('due').value,
-      done: false,
-    });
-    title.value = '';
-    title.focus();
-    save(); render();
-  });
-
-  document.getElementById('filters').addEventListener('click', e => {
-    if (!e.target.dataset.f) return;
-    filter = e.target.dataset.f;
-    document.querySelectorAll('#filters button').forEach(b => b.classList.toggle('on', b === e.target));
+  document.getElementById('tabs').addEventListener('click', e => {
+    if (!e.target.dataset.s) return;
+    tab = e.target.dataset.s;
+    document.querySelectorAll('#tabs button').forEach(b => b.classList.toggle('on', b === e.target));
     render();
   });
 
-  document.getElementById('clear').addEventListener('click', () => {
-    tasks = tasks.filter(t => !t.done);
+  document.getElementById('form').addEventListener('submit', e => {
+    e.preventDefault();
+    const input = document.getElementById('input');
+    const raw = input.value.trim();
+    if (!raw) return;
+    const m = raw.match(/^([^:]{1,24}):\s*(.+)$/);
+    const cat = m ? m[1].trim().toLowerCase() : 'geral';
+    tasks.push({ id: Date.now(), cat, text: m ? m[2] : raw, status: 'todo' });
+    input.value = '';
+    if (tab !== 'todo') document.querySelector('#tabs [data-s=todo]').click();
     save(); render();
   });
 
   function render() {
     const list = document.getElementById('list');
-    const today = todayStr();
-    const visible = tasks
-      .filter(t => filter === 'todas' || (filter === 'pendentes' && !t.done) ||
-        (filter === 'concluidas' && t.done) || (filter === 'hoje' && t.due === today))
-      .sort((a, b) => a.done - b.done || order[a.priority] - order[b.priority] ||
-        (a.due || '9999').localeCompare(b.due || '9999'));
-
     list.innerHTML = '';
-    if (!visible.length) list.innerHTML = '<p class="empty">Nada por aqui 🎉</p>';
-
-    for (const t of visible) {
-      const li = document.createElement('li');
-      li.className = t.done ? 'done' : '';
-      li.style.setProperty('--p', colors[t.priority]);
-
-      const check = document.createElement('input');
-      check.type = 'checkbox'; check.className = 'check'; check.checked = t.done;
-      check.addEventListener('change', () => { t.done = check.checked; save(); render(); });
-
-      const info = document.createElement('div');
-      info.className = 'info';
-      const title = document.createElement('div');
-      title.className = 'title'; title.textContent = t.title;
-      const meta = document.createElement('div');
-      meta.className = 'meta';
-      const tag = document.createElement('span');
-      tag.className = 'tag'; tag.textContent = t.category;
-      meta.append(tag);
-      if (t.due) {
-        const d = document.createElement('span');
-        const late = !t.done && t.due < today;
-        d.className = late ? 'late' : '';
-        d.textContent = (late ? '⚠ Atrasada · ' : '📅 ') +
-          new Date(t.due + 'T00:00').toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' });
-        meta.append(d);
-      }
-      info.append(title, meta);
-
-      const del = document.createElement('button');
-      del.className = 'del'; del.textContent = '✕'; del.setAttribute('aria-label', 'Excluir');
-      del.addEventListener('click', () => { tasks = tasks.filter(x => x !== t); save(); render(); });
-
-      li.append(check, info, del);
-      list.append(li);
+    const visible = tasks.filter(t => t.status === tab);
+    if (!visible.length) {
+      list.innerHTML = '<p class="empty">nada por aqui</p>';
+      return;
     }
-
-    const done = tasks.filter(t => t.done).length;
-    document.getElementById('count').textContent = `${done}/${tasks.length}`;
-    document.getElementById('bar').style.width = tasks.length ? (done / tasks.length * 100) + '%' : '0';
+    const groups = new Map();
+    for (const t of visible) {
+      if (!groups.has(t.cat)) groups.set(t.cat, []);
+      groups.get(t.cat).push(t);
+    }
+    for (const [cat, items] of groups) {
+      const g = document.createElement('div');
+      g.className = 'group';
+      const h = document.createElement('h3');
+      h.textContent = cat;
+      const ul = document.createElement('ul');
+      for (const t of items) {
+        const li = document.createElement('li');
+        li.className = t.status;
+        const span = document.createElement('span');
+        span.className = 't';
+        span.textContent = t.text;
+        const acts = document.createElement('span');
+        acts.className = 'acts';
+        for (const [icon, to, label] of ACTIONS[t.status]) {
+          acts.append(button(icon, label, () => { t.status = to; save(); render(); }));
+        }
+        acts.append(button('🗑', 'Excluir', () => { tasks = tasks.filter(x => x !== t); save(); render(); }));
+        li.append(span, acts);
+        ul.append(li);
+      }
+      g.append(h, ul);
+      list.append(g);
+    }
   }
 
+  function button(icon, label, onClick) {
+    const b = document.createElement('button');
+    b.type = 'button'; b.textContent = icon; b.title = label; b.setAttribute('aria-label', label);
+    b.addEventListener('click', onClick);
+    return b;
+  }
+
+  // Fixar: abre a lista numa janelinha que fica por cima de todos os apps (Chrome/Edge)
+  document.getElementById('pin').addEventListener('click', async () => {
+    if (!('documentPictureInPicture' in window)) {
+      alert('Para fixar a lista por cima das outras janelas, abra esta página no Google Chrome ou no Microsoft Edge.');
+      return;
+    }
+    const widget = document.getElementById('widget');
+    const pip = await documentPictureInPicture.requestWindow({ width: 340, height: 460 });
+    document.querySelectorAll('style').forEach(s => pip.document.head.append(s.cloneNode(true)));
+    pip.document.title = 'To-do';
+    pip.document.body.className = 'pip';
+    pip.document.body.append(widget);
+    document.getElementById('pin').hidden = true;
+    pip.addEventListener('pagehide', () => {
+      document.body.append(widget);
+      document.getElementById('pin').hidden = false;
+    });
+  });
+
+  showDate();
+  setInterval(showDate, 60000);
   render();
 </script>
 </body>
