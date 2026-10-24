@@ -1,0 +1,258 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>To-do</title>
+<style>
+  /* Layout: um único widget de vidro fosco, centralizado, sobre um fundo de gradiente suave */
+  :root {
+    --bg-a: #d9c9b6; --bg-b: #8fa58a;
+    --glass: rgba(246, 245, 243, .74); --text: #5d5a56; --muted: #9a958f;
+    --line: rgba(0, 0, 0, .08); --tab-on: #ffffff; --hover: rgba(0, 0, 0, .045);
+    --mono: "Courier Prime", "Courier New", ui-monospace, Menlo, monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg-a: #2b2622; --bg-b: #1d2a20; --glass: rgba(40, 39, 43, .74); --text: #dcd8d2;
+      --muted: #8a867f; --line: rgba(255, 255, 255, .1); --tab-on: rgba(255, 255, 255, .12);
+      --hover: rgba(255, 255, 255, .06); color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg-a: #2b2622; --bg-b: #1d2a20; --glass: rgba(40, 39, 43, .74); --text: #dcd8d2;
+    --muted: #8a867f; --line: rgba(255, 255, 255, .1); --tab-on: rgba(255, 255, 255, .12);
+    --hover: rgba(255, 255, 255, .06); color-scheme: dark;
+  }
+  * { box-sizing: border-box; }
+  html, body { min-height: 100%; margin: 0; }
+  body { font-family: var(--mono); color: var(--text); background: var(--bg-a);
+    background-image: linear-gradient(135deg, var(--bg-a), var(--bg-b)); background-attachment: fixed;
+    padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
+    padding-block: 48px; }
+  body.pip { background: var(--glass); padding: 0; }
+
+  .widget { max-width: 380px; margin: 0 auto; padding: 14px 16px 16px; background: var(--glass);
+    border: 1px solid var(--line); border-radius: 16px;
+    backdrop-filter: blur(24px) saturate(1.4); -webkit-backdrop-filter: blur(24px) saturate(1.4);
+    box-shadow: 0 12px 40px rgba(0, 0, 0, .15); font-size: 14px; }
+  body.pip .widget { max-width: none; min-height: 100vh; border: 0; border-radius: 0; box-shadow: none; }
+
+  .top { display: flex; justify-content: center; position: relative; margin-bottom: 12px; min-height: 22px; align-items: center; }
+  .date { color: var(--muted); font-size: 13px; }
+  .pin { position: absolute; right: 0; background: none; border: 0; cursor: pointer; color: var(--muted);
+    font: inherit; padding: 2px 6px; border-radius: 6px; }
+  .pin:hover { background: var(--hover); }
+
+  .tabs { display: flex; gap: 2px; margin-bottom: 14px; }
+  .tabs button { flex: 1; background: none; border: 0; font: inherit; font-size: 12px; color: var(--muted);
+    padding: 7px 0; border-radius: 7px; cursor: pointer; min-width: 0; }
+  .tabs button.on { background: var(--tab-on); color: var(--text); box-shadow: 0 1px 2px rgba(0, 0, 0, .06); }
+  .tabs .n { opacity: .7; }
+
+  .group { margin-bottom: 12px; }
+  .group h3 { margin: 0 0 4px; font-size: 13px; font-weight: 700; }
+  ul { list-style: none; margin: 0; padding: 0; }
+  li { display: flex; align-items: center; gap: 6px; padding: 6px 4px 6px 12px; border-radius: 7px;
+    font-size: 13px; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+  li:hover, li.open { background: var(--hover); }
+  li .t { flex: 1; min-width: 0; overflow-wrap: anywhere; }
+  .done .t, .cancelled .t { text-decoration: line-through; color: var(--muted); }
+  li .acts { display: none; gap: 2px; }
+  li.open .acts { display: flex; }
+  @media (hover: hover) { li:hover .acts { display: flex; } }
+  .acts button { background: none; border: 0; cursor: pointer; color: var(--muted); font: inherit;
+    font-size: 15px; min-width: 30px; min-height: 30px; border-radius: 6px; }
+  .acts button:hover, .acts button:focus-visible { color: var(--text); background: var(--hover); }
+
+  .empty { color: var(--muted); text-align: center; font-size: 13px; padding: 18px 0; display: grid; gap: 10px; justify-items: center; }
+  .empty button { font: inherit; font-size: 12px; color: var(--text); background: var(--tab-on);
+    border: 1px solid var(--line); border-radius: 7px; padding: 6px 10px; cursor: pointer; }
+  form { margin-top: 6px; border-top: 1px solid var(--line); padding-top: 10px; }
+  form input { width: 100%; background: none; border: 0; outline: none; font: inherit; font-size: 16px; color: var(--text); }
+  form input::placeholder { color: var(--muted); }
+  .hint { margin: 10px auto 0; max-width: 380px; text-align: center; color: var(--text); opacity: .75; font-size: 12px; }
+  :focus-visible { outline: 2px solid var(--muted); outline-offset: 1px; }
+</style>
+</head>
+<body>
+<div class="widget" id="widget">
+  <div class="top">
+    <span class="date" id="date"></span>
+    <button class="pin" id="pin" type="button" title="Fixar por cima de todas as janelas" hidden>📌</button>
+  </div>
+  <div class="tabs" id="tabs">
+    <button type="button" data-s="todo" class="on">To-do</button>
+    <button type="button" data-s="pending">Pending</button>
+    <button type="button" data-s="done">Completed</button>
+    <button type="button" data-s="cancelled">Cancelled</button>
+  </div>
+  <div id="list"></div>
+  <form id="form">
+    <input id="input" placeholder="+ categoria: tarefa" enterkeyhint="done" autocomplete="off" aria-label="Nova tarefa, no formato categoria: tarefa">
+  </form>
+</div>
+<p class="hint" id="hint">toque numa tarefa para ver as opções</p>
+
+<script>
+  const LOCAL_KEY = 'todo-widget-v1';
+  const ACTIONS = {
+    todo:      [['✓', 'done', 'Concluir'], ['⏸', 'pending', 'Mover para pendentes'], ['✕', 'cancelled', 'Cancelar']],
+    pending:   [['✓', 'done', 'Concluir'], ['↺', 'todo', 'Voltar para to-do'], ['✕', 'cancelled', 'Cancelar']],
+    done:      [['↺', 'todo', 'Voltar para to-do']],
+    cancelled: [['↺', 'todo', 'Voltar para to-do']],
+  };
+  const EXAMPLE = [
+    ['work', 'weekly report'], ['work', 'traffic analysis'],
+    ['life', 'get groceries'], ['life', 'buy iphone duo cases'], ['life', 'book flight ticket 10/26'],
+    ['content', 'organize raw clips'], ['study', 'Hw 6 - ddl 10/25'],
+  ];
+  let tab = 'todo';
+  let openId = null;
+  let tasks = loadLocal();
+  let remote = null; // documento do usuário no db, quando disponível
+
+  function loadLocal() {
+    try { return JSON.parse(localStorage.getItem(LOCAL_KEY)) || []; } catch { return []; }
+  }
+  function save() {
+    try { localStorage.setItem(LOCAL_KEY, JSON.stringify(tasks)); } catch {}
+    if (remote) remote.set({ tasks, updatedAt: Date.now() }).catch(() => {});
+  }
+
+  // Salva na conta (funciona em qualquer aparelho); sem conta, fica só no navegador
+  (async () => {
+    if (!window.claude?.use) return;
+    const [db, user] = await Promise.all([claude.use('db'), claude.use('user')]);
+    const id = user && await user.id();
+    if (!db || !id) return;
+    const ref = db.collection('data/users/' + id).doc('todo');
+    try {
+      const snap = await ref.get();
+      const data = snap.exists && snap.data();
+      if (data && Array.isArray(data.tasks)) tasks = data.tasks;
+      remote = ref;
+      if (!data && tasks.length) save();
+      render();
+    } catch {}
+  })();
+
+  function showDate() {
+    const d = new Date();
+    const dia = d.toLocaleDateString('pt-BR', { day: 'numeric', month: 'long' });
+    const sem = d.toLocaleDateString('pt-BR', { weekday: 'long' }).split('-')[0];
+    document.getElementById('date').textContent = `${dia}, ${sem}`;
+  }
+
+  document.getElementById('tabs').addEventListener('click', e => {
+    const b = e.target.closest('button');
+    if (!b) return;
+    tab = b.dataset.s;
+    openId = null;
+    render();
+  });
+
+  document.getElementById('form').addEventListener('submit', e => {
+    e.preventDefault();
+    const input = document.getElementById('input');
+    const raw = input.value.trim();
+    if (!raw) return;
+    const m = raw.match(/^([^:]{1,24}):\s*(.+)$/);
+    tasks.push({ id: Date.now(), cat: m ? m[1].trim().toLowerCase() : 'geral', text: m ? m[2] : raw, status: 'todo' });
+    input.value = '';
+    tab = 'todo';
+    save(); render();
+  });
+
+  function render() {
+    document.querySelectorAll('#tabs button').forEach(b => {
+      b.classList.toggle('on', b.dataset.s === tab);
+      const n = tasks.filter(t => t.status === b.dataset.s).length;
+      b.textContent = b.dataset.s === 'todo' ? 'To-do' : b.dataset.s === 'pending' ? 'Pending'
+        : b.dataset.s === 'done' ? 'Completed' : 'Cancelled';
+      if (n && b.dataset.s !== 'todo') {
+        const s = document.createElement('span'); s.className = 'n'; s.textContent = ' ' + n; b.append(s);
+      }
+    });
+
+    const list = document.getElementById('list');
+    list.innerHTML = '';
+    const visible = tasks.filter(t => t.status === tab);
+    if (!visible.length) {
+      const p = document.createElement('div');
+      p.className = 'empty';
+      p.textContent = tab === 'todo' ? 'nada pra fazer. escreva abaixo, ex: work: weekly report' : 'nada por aqui';
+      if (tab === 'todo' && !tasks.length) {
+        p.append(button('carregar exemplo do vídeo', 'Carregar exemplo', () => {
+          tasks = EXAMPLE.map(([cat, text], i) => ({ id: Date.now() + i, cat, text, status: 'todo' }));
+          save(); render();
+        }));
+      }
+      list.append(p);
+      return;
+    }
+    const groups = new Map();
+    for (const t of visible) {
+      if (!groups.has(t.cat)) groups.set(t.cat, []);
+      groups.get(t.cat).push(t);
+    }
+    for (const [cat, items] of groups) {
+      const g = document.createElement('div');
+      g.className = 'group';
+      const h = document.createElement('h3');
+      h.textContent = cat;
+      const ul = document.createElement('ul');
+      for (const t of items) {
+        const li = document.createElement('li');
+        li.className = t.status + (openId === t.id ? ' open' : '');
+        li.addEventListener('click', e => {
+          if (e.target.closest('.acts')) return;
+          openId = openId === t.id ? null : t.id;
+          render();
+        });
+        const span = document.createElement('span');
+        span.className = 't';
+        span.textContent = t.text;
+        const acts = document.createElement('span');
+        acts.className = 'acts';
+        for (const [icon, to, label] of ACTIONS[t.status]) {
+          acts.append(button(icon, label, () => { t.status = to; openId = null; save(); render(); }));
+        }
+        acts.append(button('🗑', 'Excluir', () => { tasks = tasks.filter(x => x !== t); save(); render(); }));
+        li.append(span, acts);
+        ul.append(li);
+      }
+      g.append(h, ul);
+      list.append(g);
+    }
+  }
+
+  function button(label, title, onClick) {
+    const b = document.createElement('button');
+    b.type = 'button'; b.textContent = label; b.title = title; b.setAttribute('aria-label', title);
+    b.addEventListener('click', onClick);
+    return b;
+  }
+
+  // Fixar por cima de tudo (Chrome/Edge no computador)
+  if ('documentPictureInPicture' in window) {
+    document.getElementById('pin').hidden = false;
+    document.getElementById('hint').textContent = 'passe o mouse numa tarefa para ver as opções · 📌 fixa a lista na tela';
+  }
+  document.getElementById('pin').addEventListener('click', async () => {
+    const widget = document.getElementById('widget');
+    let pip;
+    try { pip = await documentPictureInPicture.requestWindow({ width: 340, height: 480 }); } catch { return; }
+    document.querySelectorAll('style').forEach(s => pip.document.head.append(s.cloneNode(true)));
+    pip.document.documentElement.style.cssText = document.documentElement.style.cssText;
+    pip.document.body.className = 'pip';
+    pip.document.body.append(widget);
+    pip.addEventListener('pagehide', () => document.body.prepend(widget));
+  });
+
+  showDate();
+  setInterval(showDate, 60000);
+  render();
+</script>
+</body>
+</html>
