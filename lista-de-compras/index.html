@@ -146,6 +146,7 @@ dialog.sheet::backdrop{background:rgba(0,0,0,.35)}
 .act[hidden]{display:none}
 .act[hidden] + .row::before{display:none}
 #shMsg:empty{display:none}
+.row[hidden]{display:none}
 .sh-acts + .sh-acts{margin-top:20px}
 .thumb.ld{display:block;animation:pulse 1.2s ease-in-out infinite;background:var(--fill)}
 @keyframes pulse{50%{opacity:.4}}
@@ -182,6 +183,7 @@ dialog.sheet::backdrop{background:rgba(0,0,0,.35)}
       <div class="row"><label for="newStore">Loja</label>
         <span class="sel"><select id="newStore"></select>
           <svg viewBox="0 0 8 13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1.5 1.5l5 5-5 5"/></svg></span></div>
+      <div class="row" id="newStoreRow" hidden><input id="newStoreName" type="text" placeholder="Nome da nova loja" aria-label="Nome da nova loja" maxlength="40" enterkeyhint="done"></div>
       <div class="row"><input id="newUrl" type="url" inputmode="url" placeholder="Link do produto (opcional)" aria-label="Link do produto (opcional)" maxlength="500"></div>
     </div>
     <div class="actions">
@@ -193,7 +195,7 @@ dialog.sheet::backdrop{background:rgba(0,0,0,.35)}
   </form>
 
   <div id="groups"></div>
-  <p class="foot" style="text-align:center;margin-top:24px">Deslize um item para a esquerda para apagar. Toque no círculo para marcar como comprado e no item para ver a foto.<br><span style="color:var(--ink3)">Versão 8</span></p>
+  <p class="foot" style="text-align:center;margin-top:24px">Deslize um item para a esquerda para apagar. Toque no círculo para marcar como comprado e no item para ver a foto.<br><span style="color:var(--ink3)">Versão 9</span></p>
 </main>
 <dialog class="sheet" id="sheet" aria-labelledby="shName">
   <div class="sh-bar"><span class="grab" aria-hidden="true"></span><button type="button" class="sh-ok" id="shOk">OK</button></div>
@@ -215,24 +217,14 @@ dialog.sheet::backdrop{background:rgba(0,0,0,.35)}
 <div class="toast" id="toast" role="status" aria-live="polite"><span id="toastMsg"></span><button type="button" id="undo">Desfazer</button></div>
 
 <script>
-const STORES=["Levi's","Uniqlo","Abercrombie","Polo Ralph Lauren","New Balance","On","DJI","RingConn","Outra loja"];
-const SEED=[
-["Levi's","Jaqueta trucker jeans"],["Levi's","Jeans 501 azul médio"],["Levi's","Jeans reto azul-escuro"],["Levi's","Jeans reto preto"],["Levi's","Jeans baggy lavagem clara"],
-["Uniqlo","Camiseta de algodão branca"],["Uniqlo","Camiseta preta"],["Uniqlo","Camisa oxford azul-clara"],["Uniqlo","Gola alta fina off-white"],["Uniqlo","Suéter de lã merino azul-marinho"],["Uniqlo","Suéter cinza mescla"],["Uniqlo","Cardigã preto de botões"],["Uniqlo","Blazer cinza-chumbo"],["Uniqlo","Overshirt de algodão bege"],["Uniqlo","Calça larga cinza-chumbo"],["Uniqlo","Calça preta reta"],["Uniqlo","Calça barrel de jérsei cru (Jersey Barrel Pants, ID 490451)"],
-["Abercrombie","Baby tee branca"],["Abercrombie","Suéter gola V marrom-chocolate"],["Abercrombie","Jaqueta de couro marrom"],["Abercrombie","Calça de alfaiataria larga verde-oliva"],
-["Polo Ralph Lauren","Camisa oxford branca"],["Polo Ralph Lauren","Polo de piquê azul-marinho"],["Polo Ralph Lauren","Suéter de tricô trançado cru"],["Polo Ralph Lauren","Jaqueta Harrington bege"],["Polo Ralph Lauren","Chino bege"],["Polo Ralph Lauren","Tênis de couro branco"],["Polo Ralph Lauren","Cinto de couro marrom"],["Polo Ralph Lauren","Boné azul-marinho"],["Polo Ralph Lauren","Tote de lona cru"],
-["New Balance","New Balance 204L cinza"],
-["On","Tênis On Cloud off-white"],
-["DJI","DJI Osmo Pocket 4"],
-["RingConn","RingConn (anel inteligente)"],
-["Outra loja","Sapatilha nude"]
-];
+const NO_STORE="Sem loja", NEW_STORE="__nova__";
+const STORE_KEY="lista-compras-loja";
 const KEY="lista-compras-v1";
 let items=[];
 function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,7)}
 function load(){
   try{const r=localStorage.getItem(KEY); if(r){const j=JSON.parse(r); if(Array.isArray(j))return j;}}catch(e){}
-  return SEED.map(([s,n])=>({id:uid(),s,n,d:false}));
+  return [];
 }
 function save(){try{localStorage.setItem(KEY,JSON.stringify(items))}catch(e){}}
 items=load(); save();
@@ -257,7 +249,7 @@ function render(){
   $("sub").textContent=total?`${done} de ${total} ${total===1?"item comprado":"itens comprados"}`:"Nenhum item";
   $("navTitle").textContent=total?`${done} de ${total}`:"Lista de compras";
   $("bar").style.width=total?(done/total*100)+"%":"0%";
-  const stores=[...STORES,...new Set(items.map(i=>i.s).filter(s=>!STORES.includes(s)))];
+  const stores=storeList();
   const html=stores.map(s=>{
     const list=items.filter(i=>i.s===s); if(!list.length)return"";
     const d=list.filter(i=>i.d).length;
@@ -271,11 +263,28 @@ function render(){
           ${CHEV}
         </div></div>`).join("")}</div></section>`;
   }).join("");
-  $("groups").innerHTML=html||'<p class="empty"><b>Lista vazia</b>Adicione um item acima.</p>';
+  fillStores();
+  $("groups").innerHTML=html||'<p class="empty"><b>Lista vazia</b>Escreva o primeiro item acima, escolha ou crie a loja e toque em Adicionar.</p>';
 }
 
 /* seletor de loja */
-$("newStore").innerHTML=STORES.map(s=>`<option>${esc(s)}</option>`).join("");
+function storeList(){const l=[...new Set(items.map(i=>i.s||NO_STORE))];return l.includes(NO_STORE)?[...l.filter(x=>x!==NO_STORE),NO_STORE]:l}
+function lastStore(){try{return localStorage.getItem(STORE_KEY)}catch(e){return null}}
+function fillStores(){
+  const sel=$("newStore"), keep=sel.value&&sel.value!==NEW_STORE?sel.value:lastStore();
+  const named=storeList().filter(x=>x!==NO_STORE);
+  sel.innerHTML=named.map(x=>`<option value="${esc(x)}">${esc(x)}</option>`).join("")
+    +`<option value="${NO_STORE}">${NO_STORE}</option><option value="${NEW_STORE}">Nova loja\u2026</option>`;
+  const wantNew=sel.dataset.mode==="new";
+  sel.value=wantNew?NEW_STORE:(keep&&[...sel.options].some(o=>o.value===keep)?keep:(named[0]||NO_STORE));
+  storeMode();
+}
+function storeMode(){
+  const isNew=$("newStore").value===NEW_STORE;
+  $("newStore").dataset.mode=isNew?"new":"";
+  $("newStoreRow").hidden=!isNew;
+}
+$("newStore").addEventListener("change",()=>{storeMode(); if($("newStore").value===NEW_STORE)$("newStoreName").focus()});
 
 /* adicionar */
 $("add").addEventListener("submit",e=>{
@@ -287,7 +296,15 @@ $("add").addEventListener("submit",e=>{
   if(u&&!isUrl(u))u="";
   if(!n&&u){n=nameFromUrl(u); guessed=true;}
   if(!n)return;
-  const it={id:uid(),s:$("newStore").value,n,d:false}; if(u)it.u=u;
+  let st=$("newStore").value;
+  if(st===NEW_STORE){
+    const typed=$("newStoreName").value.trim().replace(/\s+/g," ");
+    st=typed?(storeList().find(x=>x.toLowerCase()===typed.toLowerCase())||typed):NO_STORE;
+    $("newStoreName").value=""; $("newStore").dataset.mode="";
+  }
+  try{localStorage.setItem(STORE_KEY,st)}catch(e){}
+  $("newStore").value="";
+  const it={id:uid(),s:st,n,d:false}; if(u)it.u=u;
   items.push(it);
   $("newName").value=""; $("newUrl").value=""; save(); render(); netUpdate();
   if(u)photoFromLink(it.id,{rename:guessed});
@@ -455,7 +472,7 @@ function fillSheet(){
   $("shStore").textContent=it.s+(it.d?" \u00B7 Comprado":"");
   $("shFetch").hidden=!hasLink; $("shFetch").disabled=busy;
   $("shFetch").textContent=busy?"Buscando foto…":url?"Buscar de novo pelo link":"Buscar foto pelo link";
-  $("shWeb").href="https://www.google.com/search?tbm=isch&q="+encodeURIComponent((it.s==="Outra loja"?"":it.s+" ")+it.n);
+  $("shWeb").href="https://www.google.com/search?tbm=isch&q="+encodeURIComponent((it.s===NO_STORE||it.s==="Outra loja"?"":it.s+" ")+it.n);
   $("shLink").hidden=!hasLink; if(hasLink)$("shLink").href=it.u;
   $("shDel").hidden=!url;
   $("shMore").hidden=!hasLink&&!url;
