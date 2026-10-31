@@ -5,8 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Lista de compras</title>
 <link rel="stylesheet" href="leaflet.css">
-<meta name="theme-color" content="#F2F2F7" media="(prefers-color-scheme: light)">
-<meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#d9c9b6" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#2b2622" media="(prefers-color-scheme: dark)">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Compras">
@@ -17,33 +17,43 @@
 /* Layout no padrão iOS: título grande que vira barra translúcida ao rolar, listas agrupadas em cartões
    (inset grouped), separadores finos recuados e cor de destaque do sistema. Só fontes do sistema, para funcionar offline. */
 :root{
-  --bg:#F2F2F7; --surface:#FFFFFF; --fill:rgba(118,118,128,.12);
-  --ink:#000000; --ink2:rgba(60,60,67,.6); --ink3:rgba(60,60,67,.3);
-  --sep:rgba(60,60,67,.18); --tint:#007AFF; --red:#FF3B30; --green:#34C759;
-  --bar:rgba(242,242,247,.78); --sheet:#F2F2F7; --sheet-card:#FFFFFF; --toast:rgba(30,30,32,.92); --toast-ink:#fff;
+  --bg-a:#d9c9b6; --bg-b:#8fa58a; --bg:#c4baa4;
+  --glass:rgba(246,245,243,.74); --surface:var(--glass); --solid:#f1efeb; --fill:rgba(93,90,86,.1);
+  --ink:#4a4743; --ink2:#7f7a73; --ink3:rgba(93,90,86,.38);
+  --sep:rgba(0,0,0,.08); --tint:#56724f; --red:#c94a3f; --green:#56724f;
+  --bar:rgba(246,245,243,.6); --sheet:rgba(240,238,234,.88); --sheet-card:rgba(255,255,255,.62);
+  --line:rgba(0,0,0,.08); --shadow:0 10px 32px rgba(0,0,0,.12);
+  --toast:rgba(60,57,53,.92); --toast-ink:#fff; --on-tint:#fff;
   --font:-apple-system,BlinkMacSystemFont,"SF Pro Text","SF Pro Display","Helvetica Neue","Segoe UI",Roboto,Arial,sans-serif;
-  --r:12px;
+  --r:16px;
   color-scheme:light;
 }
 @media (prefers-color-scheme: dark){
   :root:not([data-theme="light"]){
-    --bg:#000000; --surface:#1C1C1E; --fill:rgba(118,118,128,.24);
-    --ink:#FFFFFF; --ink2:rgba(235,235,245,.6); --ink3:rgba(235,235,245,.3);
-    --sep:rgba(84,84,88,.6); --tint:#0A84FF; --red:#FF453A; --green:#30D158;
-    --bar:rgba(18,18,20,.78); --sheet:#1C1C1E; --sheet-card:#2C2C2E; --toast:rgba(58,58,60,.95);
+    --bg-a:#2b2622; --bg-b:#1d2a20; --bg:#23281f;
+    --glass:rgba(40,39,43,.74); --surface:var(--glass); --solid:#2c2b2f; --fill:rgba(255,255,255,.08);
+    --ink:#dcd8d2; --ink2:#a29d96; --ink3:rgba(220,216,210,.32);
+    --sep:rgba(255,255,255,.1); --tint:#a9c4a0; --red:#e0695d; --green:#a9c4a0;
+    --bar:rgba(40,39,43,.6); --sheet:rgba(36,35,39,.9); --sheet-card:rgba(255,255,255,.07);
+    --line:rgba(255,255,255,.1); --shadow:0 10px 32px rgba(0,0,0,.35);
+    --toast:rgba(70,68,72,.95); --on-tint:#1d2a20;
     color-scheme:dark;
   }
 }
 :root[data-theme="dark"]{
-  --bg:#000000; --surface:#1C1C1E; --fill:rgba(118,118,128,.24);
-  --ink:#FFFFFF; --ink2:rgba(235,235,245,.6); --ink3:rgba(235,235,245,.3);
-  --sep:rgba(84,84,88,.6); --tint:#0A84FF; --red:#FF453A; --green:#30D158;
-  --bar:rgba(18,18,20,.78); --sheet:#1C1C1E; --sheet-card:#2C2C2E; --toast:rgba(58,58,60,.95);
+  --bg-a:#2b2622; --bg-b:#1d2a20; --bg:#23281f;
+    --glass:rgba(40,39,43,.74); --surface:var(--glass); --solid:#2c2b2f; --fill:rgba(255,255,255,.08);
+    --ink:#dcd8d2; --ink2:#a29d96; --ink3:rgba(220,216,210,.32);
+    --sep:rgba(255,255,255,.1); --tint:#a9c4a0; --red:#e0695d; --green:#a9c4a0;
+    --bar:rgba(40,39,43,.6); --sheet:rgba(36,35,39,.9); --sheet-card:rgba(255,255,255,.07);
+    --line:rgba(255,255,255,.1); --shadow:0 10px 32px rgba(0,0,0,.35);
+    --toast:rgba(70,68,72,.95); --on-tint:#1d2a20;
   color-scheme:dark;
 }
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{margin:0}
-body{background:var(--bg);color:var(--ink);font:17px/1.3 var(--font);letter-spacing:-.01em;
+body::before{content:"";position:fixed;inset:0;z-index:-1;background:var(--bg-a);background-image:linear-gradient(135deg,var(--bg-a),var(--bg-b))}
+body{background:var(--bg-a);color:var(--ink);font:17px/1.3 var(--font);letter-spacing:-.01em;
   -webkit-font-smoothing:antialiased;
   padding:0 env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left)}
 button,input,select{font:inherit;color:inherit;letter-spacing:inherit}
@@ -69,7 +79,9 @@ h1{font-size:34px;line-height:41px;font-weight:700;letter-spacing:.01em;margin:0
 .bar i{display:block;height:100%;width:0;background:var(--green);border-radius:2px;transition:width .4s cubic-bezier(.2,.8,.2,1)}
 
 /* cartões agrupados */
-.card{background:var(--surface);border-radius:var(--r);overflow:hidden}
+.card{background:var(--glass);border-radius:var(--r);overflow:hidden;border:1px solid var(--line);box-shadow:var(--shadow);
+  backdrop-filter:blur(24px) saturate(1.4);-webkit-backdrop-filter:blur(24px) saturate(1.4)}
+.sheet .card{box-shadow:none;backdrop-filter:none;-webkit-backdrop-filter:none}
 .row{display:flex;align-items:center;min-height:44px;padding:0 16px;position:relative}
 .row + .row::before{content:"";position:absolute;top:0;left:16px;right:0;height:.5px;background:var(--sep)}
 .foot{color:var(--ink2);font-size:13px;line-height:18px;margin:7px 16px 0}
@@ -86,7 +98,7 @@ form.add input::placeholder{color:var(--ink3)}
 .btn{flex:1;display:flex;align-items:center;justify-content:center;gap:6px;min-height:50px;border-radius:var(--r);border:0;
   font-size:17px;font-weight:600;cursor:pointer;text-decoration:none;transition:opacity .15s,transform .15s}
 .btn:active{transform:scale(.98);opacity:.85}
-.btn.primary{background:var(--tint);color:#fff}
+.btn.primary{background:var(--tint);color:var(--on-tint)}
 .btn.tinted{background:color-mix(in srgb,var(--tint) 14%,transparent);color:var(--tint)}
 .btn svg{width:17px;height:17px}
 .btn[aria-disabled="true"]{color:var(--ink3);background:var(--fill);pointer-events:none}
@@ -101,7 +113,8 @@ form.add input::placeholder{color:var(--ink3)}
 .swipe + .swipe::before{content:"";position:absolute;z-index:2;top:0;left:54px;right:0;height:.5px;background:var(--sep)}
 .swipe .bg{position:absolute;inset:0;background:var(--red);color:#fff;display:flex;align-items:center;justify-content:flex-end;padding-right:22px;font-size:15px;font-weight:500;visibility:hidden}
 .swipe.on .bg{visibility:visible}
-.swipe .fg{position:relative;background:var(--surface);display:flex;align-items:center;gap:12px;min-height:48px;padding:10px 14px 10px 16px;
+.swipe.on .fg{background:var(--solid)}
+.swipe .fg{position:relative;background:transparent;display:flex;align-items:center;gap:12px;min-height:48px;padding:10px 14px 10px 16px;
   touch-action:pan-y;user-select:none;-webkit-user-select:none;transition:transform .25s cubic-bezier(.2,.8,.2,1)}
 .kbd .swipe .fg:focus-visible{outline-offset:-3px;border-radius:0}
 .swipe .fg.drag{transition:none}
@@ -109,7 +122,7 @@ form.add input::placeholder{color:var(--ink3)}
 .chk{width:26px;height:26px;margin:-2px;border-radius:50%;border:1.5px solid var(--ink3);background:transparent;flex:0 0 auto;
   display:grid;place-items:center;padding:0;cursor:pointer;color:transparent;transition:background .2s,border-color .2s}
 .chk svg{width:14px;height:14px;transform:scale(.4);transition:transform .25s cubic-bezier(.3,1.6,.5,1)}
-.done .chk{background:var(--tint);border-color:var(--tint);color:#fff}
+.done .chk{background:var(--tint);border-color:var(--tint);color:var(--on-tint)}
 .done .chk svg{transform:scale(1)}
 .nm{flex:1;min-width:0;overflow-wrap:anywhere;transition:color .2s}
 .done .nm{color:var(--ink2)}
@@ -122,16 +135,17 @@ form.add input::placeholder{color:var(--ink3)}
 
 /* painel do item */
 dialog.sheet{border:0;padding:0 0 calc(20px + env(safe-area-inset-bottom));margin:auto auto 0;width:100%;max-width:620px;max-height:94vh;
-  border-radius:14px 14px 0 0;background:var(--sheet);color:var(--ink);overflow:auto;overscroll-behavior:contain}
+  border-radius:16px 16px 0 0;background:var(--sheet);color:var(--ink);
+  backdrop-filter:blur(30px) saturate(1.4);-webkit-backdrop-filter:blur(30px) saturate(1.4);border:1px solid var(--line);overflow:auto;overscroll-behavior:contain}
 dialog.sheet[open]{animation:sheetUp .35s cubic-bezier(.2,.8,.2,1)}
-dialog.sheet::backdrop{background:rgba(0,0,0,.35)}
+dialog.sheet::backdrop{background:rgba(30,28,25,.3);backdrop-filter:blur(2px);-webkit-backdrop-filter:blur(2px)}
 @keyframes sheetUp{from{transform:translateY(60px);opacity:0}}
 @media (min-width:700px){dialog.sheet{margin:auto;max-width:440px;border-radius:16px;padding-bottom:20px}}
 .sh-bar{position:sticky;top:0;z-index:1;display:flex;justify-content:flex-end;align-items:center;height:52px;padding:0 8px;
-  background:var(--sheet)}
+  background:transparent}
 .grab{position:absolute;left:50%;top:6px;width:36px;height:5px;margin-left:-18px;border-radius:3px;background:var(--ink3)}
 .sh-ok{border:0;background:none;color:var(--tint);font-size:17px;font-weight:600;padding:8px 10px;cursor:pointer}
-.ph{margin:0 16px;aspect-ratio:1;border-radius:var(--r);background:var(--surface);overflow:hidden;display:grid;place-items:center}
+.ph{margin:0 16px;aspect-ratio:1;border-radius:var(--r);background:var(--sheet-card);overflow:hidden;display:grid;place-items:center}
 .ph img{width:100%;height:100%;object-fit:contain;background:#fff}
 .ph-empty{display:grid;justify-items:center;gap:6px;padding:24px;text-align:center;color:var(--ink2);font-size:15px;max-width:300px}
 .ph-empty svg{width:44px;height:44px;color:var(--ink3);margin-bottom:6px}
@@ -166,7 +180,7 @@ dialog.sheet::backdrop{background:rgba(0,0,0,.35)}
   transition:opacity .2s,transform .3s cubic-bezier(.2,.8,.2,1);font-size:15px;max-width:calc(100% - 32px);white-space:nowrap;
   box-shadow:0 8px 30px rgba(0,0,0,.18)}
 .toast.show{opacity:1;transform:translate(-50%,0);pointer-events:auto}
-.toast button{background:none;border:0;color:#64A8FF;font-weight:600;cursor:pointer;padding:4px 10px;border-radius:999px}
+.toast button{background:none;border:0;color:#c9dcc2;font-weight:600;cursor:pointer;padding:4px 10px;border-radius:999px}
 /* barra de abas */
 .tabbar{position:fixed;z-index:20;left:0;right:0;bottom:0;padding-bottom:env(safe-area-inset-bottom);
   background:var(--bar);backdrop-filter:saturate(180%) blur(20px);-webkit-backdrop-filter:saturate(180%) blur(20px);box-shadow:0 -.5px 0 var(--sep)}
@@ -177,11 +191,11 @@ dialog.sheet::backdrop{background:rgba(0,0,0,.35)}
 .tab[aria-selected="true"]{color:var(--tint)}
 
 /* lugares */
-.map-wrap{position:relative;isolation:isolate;height:clamp(380px,62vh,600px);border-radius:var(--r);overflow:hidden;background:var(--surface);margin-bottom:16px}
+.map-wrap{position:relative;isolation:isolate;height:clamp(380px,62vh,600px);border-radius:var(--r);overflow:hidden;background:var(--glass);border:1px solid var(--line);box-shadow:var(--shadow);margin-bottom:16px}
 #map{position:absolute;inset:0}
 .leaflet-container{font:inherit;background:var(--fill)}
 @media (prefers-color-scheme: dark){ .leaflet-tile-pane{filter:invert(1) hue-rotate(180deg) brightness(.9) contrast(.85) saturate(.7)} }
-.leaflet-control-attribution{font-size:10px;background:color-mix(in srgb,var(--surface) 75%,transparent)!important;color:var(--ink2)}
+.leaflet-control-attribution{font-size:10px;background:var(--bar)!important;color:var(--ink2)}
 .leaflet-control-attribution a{color:var(--ink2)}
 .map-btn{position:absolute;z-index:500;right:10px;top:68px;width:40px;height:40px;border-radius:10px;border:0;cursor:pointer;
   background:var(--bar);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);color:var(--tint);display:grid;place-items:center;
@@ -213,10 +227,10 @@ dialog.sheet::backdrop{background:rgba(0,0,0,.35)}
 .chips{display:flex;gap:8px;overflow-x:auto;margin:24px -16px 0;padding:2px 16px 4px;scrollbar-width:none;-webkit-overflow-scrolling:touch}
 .chips::-webkit-scrollbar{display:none}
 .chips[hidden]{display:none}
-.chip{flex:0 0 auto;border:0;border-radius:999px;padding:7px 13px;background:var(--surface);color:var(--ink);font-size:15px;cursor:pointer;
+.chip{flex:0 0 auto;border:1px solid var(--line);border-radius:999px;padding:7px 13px;background:var(--glass);backdrop-filter:blur(20px) saturate(1.4);-webkit-backdrop-filter:blur(20px) saturate(1.4);color:var(--ink);font-size:15px;cursor:pointer;
   display:flex;align-items:center;gap:6px;white-space:nowrap}
 .chip .n{color:var(--ink2);font-size:13px;font-variant-numeric:tabular-nums}
-.chip[aria-pressed="true"]{background:var(--ink);color:var(--bg)}
+.chip[aria-pressed="true"]{background:var(--ink);color:var(--solid)}
 .chip[aria-pressed="true"] .n{color:inherit;opacity:.7}
 .cat-dot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:7px;vertical-align:1px}
 .group h2 span.cat-h{text-transform:none;letter-spacing:0;font-size:15px;color:var(--ink);font-weight:600}
@@ -238,7 +252,7 @@ dialog.sheet::backdrop{background:rgba(0,0,0,.35)}
 .ms-x{flex:0 0 auto;width:32px;height:32px;border:0;background:none;color:var(--ink3);cursor:pointer;display:grid;place-items:center;border-radius:50%}
 .ms-x svg{width:18px;height:18px}
 .ms-x[hidden]{display:none}
-.ms-res{background:var(--surface);max-height:calc(clamp(380px,62vh,600px) - 140px);overflow:auto;overscroll-behavior:contain;border-top:.5px solid var(--sep)}
+.ms-res{background:var(--solid);max-height:calc(clamp(380px,62vh,600px) - 140px);overflow:auto;overscroll-behavior:contain;border-top:.5px solid var(--sep)}
 .ms-res[hidden]{display:none}
 .ms-res .res{position:relative;display:flex!important;gap:12px;align-items:center}
 .ms-res .res + .res::before{content:"";position:absolute;top:0;left:56px;right:0;height:.5px;background:var(--sep)}
@@ -251,7 +265,8 @@ dialog.sheet::backdrop{background:rgba(0,0,0,.35)}
 
 /* cartão do alfinete */
 .pcard{position:absolute;z-index:600;left:10px;right:10px;bottom:22px;border-radius:14px;padding:14px 16px;
-  background:var(--sheet-card);box-shadow:0 6px 24px rgba(0,0,0,.22);animation:sheetUp .3s cubic-bezier(.2,.8,.2,1)}
+  background:var(--glass);border:1px solid var(--line);backdrop-filter:blur(24px) saturate(1.4);-webkit-backdrop-filter:blur(24px) saturate(1.4);
+  box-shadow:0 8px 28px rgba(0,0,0,.22);animation:sheetUp .3s cubic-bezier(.2,.8,.2,1)}
 .pcard[hidden]{display:none}
 .pc-top{display:flex;gap:10px;align-items:flex-start}
 .pc-txt{flex:1;min-width:0}
@@ -306,7 +321,7 @@ dialog.sheet::backdrop{background:rgba(0,0,0,.35)}
   </form>
 
   <div id="groups"></div>
-  <p class="foot" style="text-align:center;margin-top:24px">Deslize um item para a esquerda para apagar. Toque no círculo para marcar como comprado e no item para ver a foto.<br><span style="color:var(--ink3)">Versão 14</span></p>
+  <p class="foot" style="text-align:center;margin-top:24px">Deslize um item para a esquerda para apagar. Toque no círculo para marcar como comprado e no item para ver a foto.<br><span style="color:var(--ink3)">Versão 15</span></p>
 </main>
 <main class="app" id="tabLugares" hidden>
   <header>
@@ -724,6 +739,7 @@ $("tabBtnLugares").addEventListener("click",()=>showTab("lugares"));
 const PL_KEY="lista-lugares-v1";
 let places=[];
 try{const r=localStorage.getItem(PL_KEY); const j=r&&JSON.parse(r); if(Array.isArray(j))places=j}catch(e){}
+places.forEach(p=>{if(p.c==="trabalho")p.c="outros"});
 function savePlaces(){try{localStorage.setItem(PL_KEY,JSON.stringify(places))}catch(e){}}
 const GEO="https://nominatim.openstreetmap.org";
 const CATS=[
@@ -737,7 +753,6 @@ const CATS=[
   {k:"viagem",n:"Viagem",e:"\u2708\uFE0F",c:"#007AFF"},
   {k:"esporte",n:"Esporte",e:"\u{1F4AA}",c:"#FFB800"},
   {k:"saude",n:"Saúde",e:"\u{1FA7A}",c:"#FF3B30"},
-  {k:"trabalho",n:"Trabalho",e:"\u{1F4BC}",c:"#8E8E93"},
   {k:"outros",n:"Outros",e:"\u{1F4CD}",c:"#636366"}
 ];
 const catOf=k=>CATS.find(c=>c.k===k)||CATS[CATS.length-1];
@@ -766,7 +781,6 @@ function guessCat(key,val){
   }
   if(key==="natural")return "natureza";
   if(key==="aeroway"||key==="railway"||(key==="place"&&has("city town village")))return "viagem";
-  if(key==="office")return "trabalho";
   if(key==="healthcare")return "saude";
   if(key==="building"&&has("house residential apartments detached"))return "casa";
   if(key==="historic")return "cultura";
