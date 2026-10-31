@@ -194,21 +194,38 @@ dialog.sheet::backdrop{background:rgba(0,0,0,.35)}
 .map-msg a{color:var(--tint);word-break:break-all}
 .pin-icon{background:none;border:0}
 /* alfinete: cabeça redonda, agulha e sombra */
-.tack{position:relative;display:block;width:30px;height:44px;--c:var(--red)}
-.tack.done{--c:var(--green)}
-.tack.prev{--c:var(--tint)}
-.tack .nd{position:absolute;left:14px;top:19px;width:2.4px;height:23px;border-radius:0 0 2px 2px;
+.tack{position:relative;display:block;width:22px;height:34px}
+.tack.done{opacity:.5}
+.tack .nd{position:absolute;left:10px;top:14px;width:2px;height:18px;border-radius:0 0 2px 2px;
   background:linear-gradient(90deg,#7c7c80,#e5e5ea 55%,#8e8e93)}
-.tack .hd{position:absolute;left:3px;top:0;width:24px;height:24px;border-radius:50%;
-  background:radial-gradient(circle at 34% 30%,rgba(255,255,255,.85) 0 2.5px,rgba(255,255,255,0) 7px),var(--c);
-  box-shadow:inset 0 -3px 5px rgba(0,0,0,.25),0 2px 5px rgba(0,0,0,.35)}
-.tack .sh{position:absolute;left:8px;top:39px;width:15px;height:6px;border-radius:50%;background:radial-gradient(rgba(0,0,0,.38),rgba(0,0,0,0) 70%)}
+.tack .hd{position:absolute;left:2px;top:0;width:18px;height:18px;border-radius:50%;
+  background:radial-gradient(circle at 34% 30%,rgba(255,255,255,.85) 0 2px,rgba(255,255,255,0) 5px),var(--c,#FF3B30);
+  box-shadow:inset 0 -2px 4px rgba(0,0,0,.25),0 1.5px 4px rgba(0,0,0,.35)}
+.tack .sh{position:absolute;left:5px;top:30px;width:12px;height:5px;border-radius:50%;background:radial-gradient(rgba(0,0,0,.38),rgba(0,0,0,0) 70%)}
 .tack.drop .hd,.tack.drop .nd{animation:tackDrop .5s cubic-bezier(.3,1.5,.6,1)}
 .tack.drop .sh{animation:tackShadow .5s ease-out}
-@keyframes tackDrop{from{transform:translateY(-46px);opacity:0}60%{opacity:1}}
+@keyframes tackDrop{from{transform:translateY(-36px);opacity:0}60%{opacity:1}}
 @keyframes tackShadow{from{transform:scale(.3);opacity:0}}
-.leaflet-dragging .tack .hd{transform:translateY(-8px)}
-.leaflet-dragging .tack .nd{transform:translateY(-8px)}
+.leaflet-dragging .tack .hd{transform:translateY(-6px)}
+.leaflet-dragging .tack .nd{transform:translateY(-6px)}
+
+/* categorias */
+.chips{display:flex;gap:8px;overflow-x:auto;margin:24px -16px 0;padding:2px 16px 4px;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+.chips::-webkit-scrollbar{display:none}
+.chips[hidden]{display:none}
+.chip{flex:0 0 auto;border:0;border-radius:999px;padding:7px 13px;background:var(--surface);color:var(--ink);font-size:15px;cursor:pointer;
+  display:flex;align-items:center;gap:6px;white-space:nowrap}
+.chip .n{color:var(--ink2);font-size:13px;font-variant-numeric:tabular-nums}
+.chip[aria-pressed="true"]{background:var(--ink);color:var(--bg)}
+.chip[aria-pressed="true"] .n{color:inherit;opacity:.7}
+.cat-dot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:7px;vertical-align:1px}
+.group h2 span.cat-h{text-transform:none;letter-spacing:0;font-size:15px;color:var(--ink);font-weight:600}
+.row .sel select{color:var(--ink2)}
+.pc-cat[hidden]{display:none}
+.pc-cat{display:flex;align-items:center;gap:8px;margin-top:10px;padding:8px 12px;border-radius:10px;background:var(--fill);position:relative}
+.pc-cat label{color:var(--ink2);font-size:15px}
+.pc-cat .sel{flex:1}
+.pc-cat select{font-size:15px;color:var(--ink)!important;font-weight:500}
 
 /* painel de busca sobre o mapa */
 .msearch{position:absolute;z-index:600;left:10px;right:10px;top:10px;border-radius:12px;overflow:hidden;
@@ -225,7 +242,7 @@ dialog.sheet::backdrop{background:rgba(0,0,0,.35)}
 .ms-res[hidden]{display:none}
 .ms-res .res{position:relative;display:flex!important;gap:12px;align-items:center}
 .ms-res .res + .res::before{content:"";position:absolute;top:0;left:56px;right:0;height:.5px;background:var(--sep)}
-.res .ri{flex:0 0 auto;width:30px;height:30px;border-radius:50%;background:var(--red);color:#fff;display:grid;place-items:center}
+.res .ri{flex:0 0 auto;width:30px;height:30px;border-radius:50%;background:var(--fill);display:grid;place-items:center;font-size:16px}
 .res .ri svg{width:15px;height:15px}
 .res .rt{min-width:0;flex:1;color:var(--ink);font-size:17px;margin:0}
 .res .ri{margin:0}
@@ -289,7 +306,7 @@ dialog.sheet::backdrop{background:rgba(0,0,0,.35)}
   </form>
 
   <div id="groups"></div>
-  <p class="foot" style="text-align:center;margin-top:24px">Deslize um item para a esquerda para apagar. Toque no círculo para marcar como comprado e no item para ver a foto.<br><span style="color:var(--ink3)">Versão 13</span></p>
+  <p class="foot" style="text-align:center;margin-top:24px">Deslize um item para a esquerda para apagar. Toque no círculo para marcar como comprado e no item para ver a foto.<br><span style="color:var(--ink3)">Versão 14</span></p>
 </main>
 <main class="app" id="tabLugares" hidden>
   <header>
@@ -314,11 +331,13 @@ dialog.sheet::backdrop{background:rgba(0,0,0,.35)}
         <div class="pc-txt"><b id="pcName"></b><span id="pcAddr"></span></div>
         <button type="button" class="pc-close" id="pcClose" aria-label="Tirar alfinete"><svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M2 2l8 8M10 2l-8 8"/></svg></button>
       </div>
+      <div class="pc-cat"><label for="pcCat">Categoria</label><span class="sel"><select id="pcCat"></select><svg viewBox="0 0 8 13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1.5 1.5l5 5-5 5"/></svg></span></div>
       <div class="pc-btns"><a class="btn tinted" id="pcRoute" target="_blank" rel="noopener noreferrer">Como chegar</a><button type="button" class="btn primary" id="pcAdd">Adicionar à lista</button></div>
     </div>
   </div>
   <p class="foot" id="plNet"></p>
-  <div id="plList" style="margin-top:30px;display:flex;flex-direction:column;gap:30px"></div>
+  <div class="chips" id="plChips" role="toolbar" aria-label="Filtrar por categoria" hidden></div>
+  <div id="plList" style="margin-top:22px;display:flex;flex-direction:column;gap:30px"></div>
   <p class="foot" style="text-align:center;margin-top:24px">Toque no círculo quando já tiver ido. Deslize um lugar para a esquerda para apagar.</p>
 </main>
 <nav class="tabbar" aria-label="Abas"><div class="tabbar-in" role="tablist">
@@ -331,6 +350,7 @@ dialog.sheet::backdrop{background:rgba(0,0,0,.35)}
   <div class="sh-bar"><span class="grab" aria-hidden="true"></span><button type="button" class="sh-ok" id="plOk">OK</button></div>
   <div class="card sh-acts">
     <div class="row"><input class="pl-in title" id="plName" maxlength="120" placeholder="Nome do lugar" aria-label="Nome do lugar"></div>
+    <div class="row"><label for="plCat">Categoria</label><span class="sel"><select id="plCat"></select><svg viewBox="0 0 8 13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1.5 1.5l5 5-5 5"/></svg></span></div>
     <div class="row"><input class="pl-in" id="plNote" maxlength="200" placeholder="Observação (ex.: ir num sábado)" aria-label="Observação"></div>
   </div>
   <p class="sh-addr" id="plAddr"></p>
@@ -706,24 +726,86 @@ let places=[];
 try{const r=localStorage.getItem(PL_KEY); const j=r&&JSON.parse(r); if(Array.isArray(j))places=j}catch(e){}
 function savePlaces(){try{localStorage.setItem(PL_KEY,JSON.stringify(places))}catch(e){}}
 const GEO="https://nominatim.openstreetmap.org";
+const CATS=[
+  {k:"casa",n:"Casa",e:"\u{1F3E0}",c:"#5856D6"},
+  {k:"compras",n:"Compras",e:"\u{1F6CD}\uFE0F",c:"#FF2D55"},
+  {k:"comida",n:"Alimentação",e:"\u{1F37D}\uFE0F",c:"#FF9500"},
+  {k:"cafe",n:"Cafés e padarias",e:"\u2615",c:"#A2845E"},
+  {k:"bares",n:"Bares e noite",e:"\u{1F378}",c:"#AF52DE"},
+  {k:"cultura",n:"Cultura",e:"\u{1F3AD}",c:"#30B0C7"},
+  {k:"natureza",n:"Natureza e praia",e:"\u{1F333}",c:"#34C759"},
+  {k:"viagem",n:"Viagem",e:"\u2708\uFE0F",c:"#007AFF"},
+  {k:"esporte",n:"Esporte",e:"\u{1F4AA}",c:"#FFB800"},
+  {k:"saude",n:"Saúde",e:"\u{1FA7A}",c:"#FF3B30"},
+  {k:"trabalho",n:"Trabalho",e:"\u{1F4BC}",c:"#8E8E93"},
+  {k:"outros",n:"Outros",e:"\u{1F4CD}",c:"#636366"}
+];
+const catOf=k=>CATS.find(c=>c.k===k)||CATS[CATS.length-1];
+/* sugere a categoria pelo tipo de lugar que a busca devolve (etiquetas do OpenStreetMap) */
+function guessCat(key,val){
+  key=key||""; val=val||"";
+  const has=(list)=>list.split(" ").includes(val);
+  if(key==="shop")return has("bakery pastry confectionery coffee")?"cafe":"compras";
+  if(key==="amenity"){
+    if(has("restaurant fast_food food_court ice_cream"))return "comida";
+    if(has("cafe"))return "cafe";
+    if(has("bar pub nightclub biergarten"))return "bares";
+    if(has("hospital clinic doctors dentist pharmacy veterinary"))return "saude";
+    if(has("theatre cinema arts_centre library community_centre"))return "cultura";
+    if(has("marketplace"))return "compras";
+    if(has("bus_station ferry_terminal car_rental"))return "viagem";
+  }
+  if(key==="tourism"){
+    if(has("museum gallery artwork attraction theme_park zoo aquarium"))return "cultura";
+    if(has("hotel hostel guest_house motel apartment camp_site"))return "viagem";
+    if(has("viewpoint picnic_site"))return "natureza";
+  }
+  if(key==="leisure"){
+    if(has("park garden nature_reserve beach_resort"))return "natureza";
+    if(has("sports_centre fitness_centre stadium pitch swimming_pool golf_course track"))return "esporte";
+  }
+  if(key==="natural")return "natureza";
+  if(key==="aeroway"||key==="railway"||(key==="place"&&has("city town village")))return "viagem";
+  if(key==="office")return "trabalho";
+  if(key==="healthcare")return "saude";
+  if(key==="building"&&has("house residential apartments detached"))return "casa";
+  if(key==="historic")return "cultura";
+  return "outros";
+}
+const catOptions=()=>CATS.map(c=>`<option value="${c.k}">${c.e} ${esc(c.n)}</option>`).join("");
+let plFilter="todos";
 
 function renderPlaces(){
   const total=places.length, done=places.filter(p=>p.v).length;
   $("plSub").textContent=total?`${done} de ${total} ${total===1?"lugar visitado":"lugares visitados"}`:"Nenhum lugar ainda";
-  const sec=(title,list)=>!list.length?"":`<section class="group"><h2><span>${title}</span><span class="c">${list.length}</span></h2><div class="card" role="list">${list.map(p=>`
+  const used=CATS.filter(c=>places.some(p=>catOf(p.c).k===c.k));
+  if(plFilter!=="todos"&&!used.some(c=>c.k===plFilter))plFilter="todos";
+  $("plChips").hidden=used.length<2;
+  $("plChips").innerHTML=`<button type="button" class="chip" data-f="todos" aria-pressed="${plFilter==="todos"}">Todos <span class="n">${total}</span></button>`
+    +used.map(c=>`<button type="button" class="chip" data-f="${c.k}" aria-pressed="${plFilter===c.k}">${c.e} ${esc(c.n)} <span class="n">${places.filter(p=>catOf(p.c).k===c.k).length}</span></button>`).join("");
+  const shown=used.filter(c=>plFilter==="todos"||c.k===plFilter);
+  $("plList").innerHTML=shown.map(c=>{
+    const list=places.filter(p=>catOf(p.c).k===c.k).sort((a,b)=>(a.v?1:0)-(b.v?1:0));
+    const d=list.filter(p=>p.v).length;
+    return `<section class="group"><h2><span class="cat-h">${c.e} ${esc(c.n)}</span><span class="c">${d} de ${list.length}</span></h2><div class="card" role="list">${list.map(p=>`
     <div class="swipe" data-id="${p.id}"><div class="bg" aria-hidden="true">Apagar</div>
       <div class="fg${p.v?" done":""}" tabindex="0" role="listitem" aria-label="${esc(p.n)}. Toque para ver detalhes. Deslize para a esquerda ou aperte Delete para apagar.">
         <button class="chk" type="button" aria-pressed="${!!p.v}" aria-label="Marcar ${esc(p.n)} como visitado">${CHECK}</button>
         <span class="nm">${esc(p.n)}${p.note||p.a?`<span class="addr">${esc(p.note||p.a)}</span>`:""}</span>
         ${CHEV}
       </div></div>`).join("")}</div></section>`;
-  $("plList").innerHTML=(sec("Quero ir",places.filter(p=>!p.v))+sec("Já fui",places.filter(p=>p.v)))
-    ||'<p class="empty"><b>Nenhum lugar ainda</b>Toque no mapa para marcar um alfinete ou busque um endereço, depois toque em \u201CAdicionar à lista\u201D.</p>';
+  }).join("")
+    ||'<p class="empty"><b>Nenhum lugar ainda</b>Toque no mapa para marcar um alfinete ou busque um endereço, escolha a categoria e toque em \u201CAdicionar à lista\u201D.</p>';
   drawMarkers();
 }
+$("plChips").addEventListener("click",e=>{
+  const b=e.target.closest(".chip"); if(!b)return;
+  plFilter=b.dataset.f; renderPlaces(); fitAll();
+});
 function plNet(t){$("plNet").textContent=t}
 function plHint(){plNet(navigator.onLine?"Toque no mapa para marcar um alfinete (dá para arrastá-lo), ou busque um endereço no painel em cima do mapa.":"Sem internet. A busca e o mapa voltam quando você se conectar.")}
-const TACK=cls=>L.divIcon({className:"pin-icon",html:`<span class="tack ${cls}"><i class="sh"></i><i class="nd"></i><i class="hd"></i></span>`,iconSize:[30,44],iconAnchor:[15,42]});
+const TACK=(cls,color)=>L.divIcon({className:"pin-icon",html:`<span class="tack ${cls}" style="--c:${color||"#FF3B30"}"><i class="sh"></i><i class="nd"></i><i class="hd"></i></span>`,iconSize:[22,34],iconAnchor:[11,32]});
+const visiblePlaces=()=>places.filter(p=>plFilter==="todos"||catOf(p.c).k===plFilter);
 
 /* mapa */
 let map=null, layer=null, meMarker=null, fitted=false;
@@ -775,17 +857,18 @@ function mapMsg(t){$("mapMsg").textContent=t; $("mapMsg").hidden=!t; delete $("m
 function drawMarkers(){
   if(!map)return;
   layer.clearLayers();
-  for(const p of places){
-    const m=L.marker([p.lat,p.lon],{icon:TACK(p.v?"done":""),title:p.n,alt:p.n,keyboard:true});
+  for(const p of visiblePlaces()){
+    const m=L.marker([p.lat,p.lon],{icon:TACK(p.v?"done":"",catOf(p.c).c),title:p.n,alt:`${p.n} (${catOf(p.c).n})`,keyboard:true});
     m.on("click",()=>openPlace(p.id));
     layer.addLayer(m);
   }
 }
 function fitAll(anim=true){
   if(!map)return;
-  if(!places.length){map.setView([-14.2,-51.9],4,{animate:anim});return}
-  if(places.length===1){map.setView([places[0].lat,places[0].lon],15,{animate:anim});return}
-  map.fitBounds(L.latLngBounds(places.map(p=>[p.lat,p.lon])),{padding:[40,40],maxZoom:15,animate:anim});
+  const list=visiblePlaces();
+  if(!list.length){map.setView([-14.2,-51.9],4,{animate:anim});return}
+  if(list.length===1){map.setView([list[0].lat,list[0].lon],15,{animate:anim});return}
+  map.fitBounds(L.latLngBounds(list.map(p=>[p.lat,p.lon])),{padding:[50,40],maxZoom:15,animate:anim});
 }
 function focusPlace(p){ if(!map)return; window.scrollTo({top:0,behavior:"smooth"}); map.flyTo([p.lat,p.lon],Math.max(map.getZoom(),16),{duration:.8}); }
 $("fitAll").addEventListener("click",()=>fitAll());
@@ -801,18 +884,17 @@ $("locate").addEventListener("click",()=>{
 
 /* busca de endereços: Photon (busca enquanto digita); Nominatim de reserva */
 const PHOTON="https://photon.komoot.io";
-const PIN_ICO='<svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M8 15s-5-4.6-5-8.3a5 5 0 0110 0C13 10.4 8 15 8 15zm0-6.3a2 2 0 100-4 2 2 0 000 4z"/></svg>';
 function fromPhoton(f){
   const p=f.properties||{}, [lon,lat]=f.geometry.coordinates;
   const street=[p.street,p.housenumber].filter(Boolean).join(", ");
   const n=p.name||street||p.district||p.city||p.state||"Lugar";
   const a=[...new Set([p.name&&street?street:"",p.district||p.locality,p.city,p.state].filter(x=>x&&x!==n))].slice(0,3).join(", ");
-  return {n,a,lat,lon};
+  return {n,a,lat,lon,c:guessCat(p.osm_key,p.osm_value)};
 }
 function fromNominatim(r){
   const parts=(r.display_name||"").split(",").map(x=>x.trim()).filter(Boolean);
   const n=r.name||parts[0]||"Lugar";
-  return {n,a:parts.filter(x=>x!==n).slice(0,3).join(", "),lat:+r.lat,lon:+r.lon};
+  return {n,a:parts.filter(x=>x!==n).slice(0,3).join(", "),lat:+r.lat,lon:+r.lon,c:guessCat(r.category,r.type)};
 }
 async function geoSearch(q,signal){
   try{
@@ -849,7 +931,7 @@ async function runSearch(q){
     results=(await geoSearch(q,mine.signal)).filter(x=>{const k=x.n+"|"+x.a; if(seen.has(k))return false; seen.add(k); return true});
     if(mine!==qCtrl)return;
     if(!results.length){resMsg("Nada encontrado. Tente com a cidade, ex.: “Rua do Ouvidor, Rio de Janeiro”.");return}
-    $("plResults").innerHTML=results.map((x,k)=>`<button type="button" class="row res" role="option" data-k="${k}"><span class="ri">${PIN_ICO}</span><span class="rt"><b>${esc(x.n)}</b>${x.a?`<span>${esc(x.a)}</span>`:""}</span></button>`).join("");
+    $("plResults").innerHTML=results.map((x,k)=>`<button type="button" class="row res" role="option" data-k="${k}"><span class="ri" aria-hidden="true">${catOf(x.c).e}</span><span class="rt"><b>${esc(x.n)}</b>${x.a?`<span>${esc(x.a)}</span>`:""}</span></button>`).join("");
     $("plResults").hidden=false; $("plResults").scrollTop=0;
   }catch(e){ if(e.name!=="AbortError"&&mine===qCtrl)resMsg(IN_FRAME?"A busca não funciona dentro do Claude. Abra o app pelo link do GitHub.":"A busca não respondeu. Tente de novo em instantes."); }
 }
@@ -883,8 +965,9 @@ function showPin(x,{fly=false}={}){
   if(!map)return;
   pin=x;
   if(pinMarker)pinMarker.remove();
-  pinMarker=L.marker([x.lat,x.lon],{icon:TACK("prev drop"),draggable:true,zIndexOffset:1000,title:"Alfinete",alt:"Alfinete marcado",keyboard:false}).addTo(map);
-  pinMarker.on("dragend",()=>{ const ll=pinMarker.getLatLng(); pinMarker.setIcon(TACK("prev")); const y={n:"Alfinete",a:"Buscando endereço…",lat:ll.lat,lon:ll.lng}; pin=y; fillPin(); fillAddress(y) });
+  x.c=x.c||"outros";
+  pinMarker=L.marker([x.lat,x.lon],{icon:TACK("prev drop",catOf(x.c).c),draggable:true,zIndexOffset:1000,title:"Alfinete",alt:"Alfinete marcado",keyboard:false}).addTo(map);
+  pinMarker.on("dragend",()=>{ const ll=pinMarker.getLatLng(); const y={n:"Alfinete",a:"Buscando endereço…",lat:ll.lat,lon:ll.lng,c:pin.c,cSet:pin.cSet}; pin=y; pinMarker.setIcon(TACK("prev",catOf(y.c).c)); fillPin(); fillAddress(y) });
   if(fly)map.flyTo([x.lat,x.lon],Math.max(map.getZoom(),16),{duration:.8});
   fillPin();
 }
@@ -894,6 +977,7 @@ function fillPin(){
   $("pcName").textContent=near?near.n:pin.n;
   $("pcAddr").textContent=near?"Já está na sua lista":(pin.a||`${pin.lat.toFixed(5)}, ${pin.lon.toFixed(5)}`);
   $("pcAdd").textContent=near?"Ver detalhes":"Adicionar à lista";
+  $("pcCat").parentNode.parentNode.hidden=!!near; $("pcCat").value=catOf(pin.c).k;
   $("pcRoute").href=/iPhone|iPad|Macintosh/.test(navigator.userAgent)
     ?`https://maps.apple.com/?daddr=${pin.lat},${pin.lon}&q=${encodeURIComponent(pin.n)}`
     :`https://www.google.com/maps/dir/?api=1&destination=${pin.lat},${pin.lon}`;
@@ -904,9 +988,11 @@ async function fillAddress(x){
   if(!navigator.onLine){ x.a=""; if(pin===x)fillPin(); return }
   let r=null; try{ r=await geoReverse(x.lat,x.lon) }catch(e){}
   if(pin!==x)return;
-  if(r){ x.n=r.n; x.a=r.a } else { x.n="Alfinete"; x.a="" }
+  if(r){ x.n=r.n; x.a=r.a; if(!x.cSet&&r.c){x.c=r.c; if(pinMarker)pinMarker.setIcon(TACK("prev",catOf(x.c).c))} } else { x.n="Alfinete"; x.a="" }
   fillPin();
 }
+$("pcCat").innerHTML=catOptions();
+$("pcCat").addEventListener("change",()=>{ if(!pin)return; pin.c=$("pcCat").value; pin.cSet=true; if(pinMarker)pinMarker.setIcon(TACK("prev",catOf(pin.c).c)) });
 function dropPin(ll){ const x={n:"Alfinete",a:"Buscando endereço…",lat:ll.lat,lon:ll.lng}; showPin(x); fillAddress(x); }
 $("pcClose").addEventListener("click",()=>{ clearPin(); $("plQuery").value=""; $("plClear").hidden=true });
 $("pcAdd").addEventListener("click",()=>{
@@ -918,7 +1004,8 @@ $("pcAdd").addEventListener("click",()=>{
 function addPlace(x){
   const near=nearPlace(x);
   if(near){focusPlace(near); return}
-  const p={id:uid(),n:x.n,a:x.a&&x.a!=="Buscando endereço…"?x.a:"",lat:x.lat,lon:x.lon,v:false};
+  const p={id:uid(),n:x.n,a:x.a&&x.a!=="Buscando endereço…"?x.a:"",lat:x.lat,lon:x.lon,v:false,c:catOf(x.c).k};
+  if(plFilter!=="todos"&&plFilter!==p.c)plFilter="todos";
   places.unshift(p); savePlaces(); renderPlaces();
   showUndo("Lugar adicionado",()=>{places=places.filter(q=>q!==p); savePlaces(); renderPlaces()});
 }
@@ -950,7 +1037,7 @@ const plSheet=$("plSheet"); let plCur=null;
 function curPlace(){return places.find(p=>p.id===plCur)}
 function fillPlace(){
   const p=curPlace(); if(!p){plSheet.close();return}
-  $("plName").value=p.n; $("plNote").value=p.note||"";
+  $("plName").value=p.n; $("plNote").value=p.note||""; $("plCat").value=catOf(p.c).k;
   $("plAddr").textContent=p.a||`${p.lat.toFixed(5)}, ${p.lon.toFixed(5)}`;
   $("plApple").href=`https://maps.apple.com/?daddr=${p.lat},${p.lon}&q=${encodeURIComponent(p.n)}`;
   $("plGoogle").href=`https://www.google.com/maps/dir/?api=1&destination=${p.lat},${p.lon}`;
@@ -965,6 +1052,8 @@ plSheet.addEventListener("click",e=>{
   if(e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom)plSheet.close();
 });
 $("plName").addEventListener("input",()=>{const p=curPlace(); if(p){p.n=$("plName").value.trim()||"Lugar"; savePlaces()}});
+$("plCat").innerHTML=catOptions();
+$("plCat").addEventListener("change",()=>{const p=curPlace(); if(p){p.c=$("plCat").value; savePlaces(); drawMarkers()}});
 $("plNote").addEventListener("input",()=>{const p=curPlace(); if(p){p.note=$("plNote").value.trim(); savePlaces()}});
 $("plShow").addEventListener("click",()=>{const p=curPlace(); plSheet.close(); if(p)focusPlace(p)});
 $("plVisit").addEventListener("click",()=>{const p=curPlace(); if(p){p.v=!p.v; savePlaces(); fillPlace(); drawMarkers()}});
