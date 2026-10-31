@@ -140,8 +140,15 @@ dialog.sheet::backdrop{background:rgba(0,0,0,.35)}
 .act{width:100%;border:0;background:none;color:var(--tint);font-size:17px;text-align:left;cursor:pointer;text-decoration:none;min-height:46px}
 .act:active{background:var(--fill)}
 .act.red{color:var(--red)}
+.act:disabled{color:var(--ink2);cursor:default}
 .act[hidden]{display:none}
+.act[hidden] + .row::before{display:none}
 #shMsg:empty{display:none}
+.sh-acts + .sh-acts{margin-top:20px}
+.thumb.ld{display:block;animation:pulse 1.2s ease-in-out infinite;background:var(--fill)}
+@keyframes pulse{50%{opacity:.4}}
+.spin{width:28px;height:28px;border-radius:50%;border:3px solid var(--fill);border-top-color:var(--ink2);animation:rot .8s linear infinite;margin-bottom:6px}
+@keyframes rot{to{transform:rotate(360deg)}}
 #shMsg{margin-top:10px;margin-left:20px;margin-right:20px}
 
 .empty{color:var(--ink2);text-align:center;padding:48px 16px;margin:0}
@@ -191,8 +198,12 @@ dialog.sheet::backdrop{background:rgba(0,0,0,.35)}
   <div class="ph" id="shPh"></div>
   <div class="sh-info"><h2 id="shName"></h2><p id="shStore"></p></div>
   <div class="card sh-acts">
-    <button class="row act" type="button" id="shPick">Escolher foto</button>
+    <button class="row act" type="button" id="shFetch">Buscar foto pelo link</button>
+    <a class="row act" id="shWeb" target="_blank" rel="noopener noreferrer">Procurar foto na web</a>
+    <button class="row act" type="button" id="shPick">Escolher foto do aparelho</button>
     <button class="row act" type="button" id="shPaste">Colar foto copiada</button>
+  </div>
+  <div class="card sh-acts" id="shMore">
     <a class="row act" id="shLink" target="_blank" rel="noopener noreferrer">Abrir no site da loja</a>
     <button class="row act red" type="button" id="shDel">Remover foto</button>
   </div>
@@ -252,7 +263,7 @@ function render(){
       <div class="swipe" data-id="${i.id}"><div class="bg" aria-hidden="true">Apagar</div>
         <div class="fg${i.d?" done":""}" tabindex="0" role="listitem" aria-label="${esc(i.n)}. Toque para ver a foto. Deslize para a esquerda ou aperte Delete para apagar.">
           <button class="chk" type="button" aria-pressed="${i.d}" aria-label="Marcar ${esc(i.n)} como comprado">${CHECK}</button>
-          ${photos[i.id]?`<img class="thumb" src="${photos[i.id]}" alt="">`:""}
+          ${photos[i.id]?`<img class="thumb" src="${photos[i.id]}" alt="">`:loading.has(i.id)?`<span class="thumb ld" aria-label="Buscando foto"></span>`:""}
           <span class="nm">${esc(i.n)}</span>
           ${i.u&&isUrl(i.u)?`<a class="lnk" href="${esc(i.u)}" target="_blank" rel="noopener noreferrer" aria-label="Abrir link de ${esc(i.n)}">${LINK}</a>`:""}
           ${CHEV}
@@ -268,14 +279,16 @@ $("newStore").innerHTML=STORES.map(s=>`<option>${esc(s)}</option>`).join("");
 $("add").addEventListener("submit",e=>{
   e.preventDefault();
   let n=$("newName").value.trim(), u=$("newUrl").value.trim();
-  if(isUrl(n)){ u=u||n; n=nameFromUrl(n); }
+  let guessed=false;
+  if(isUrl(n)){ u=u||n; n=nameFromUrl(n); guessed=true; }
   if(u&&!/^https?:\/\//i.test(u))u="https://"+u;
   if(u&&!isUrl(u))u="";
-  if(!n&&u)n=nameFromUrl(u);
+  if(!n&&u){n=nameFromUrl(u); guessed=true;}
   if(!n)return;
   const it={id:uid(),s:$("newStore").value,n,d:false}; if(u)it.u=u;
   items.push(it);
   $("newName").value=""; $("newUrl").value=""; save(); render(); netUpdate();
+  if(u)photoFromLink(it.id,{rename:guessed});
 });
 
 /* busca na internet (só com conexão) */
@@ -391,11 +404,38 @@ async function shrink(file){
   }finally{URL.revokeObjectURL(url)}
 }
 async function setPhoto(id,file){
-  if(!file||!/^image\//.test(file.type)){sheetMsg("Esse arquivo não é uma imagem. Escolha uma foto.");return}
+  if(!file||!/^image\//.test(file.type)){sheetMsg("Esse arquivo não é uma imagem. Escolha uma foto.");return false}
   let blob;
-  try{blob=await shrink(file)}catch(e){sheetMsg("Não deu para abrir essa imagem. Tente outra foto.");return}
-  setPhotoURL(id,blob); render(); fillSheet(); sheetMsg("");
-  try{await fotoDB.put(id,blob)}catch(e){sheetMsg("A foto aparece agora, mas não ficou salva neste aparelho.")}
+  try{blob=await shrink(file)}catch(e){sheetMsg("Não deu para abrir essa imagem. Tente outra foto.");return false}
+  if(!items.some(i=>i.id===id))return false;
+  setPhotoURL(id,blob); render(); if(cur===id){fillSheet(); sheetMsg("")}
+  try{await fotoDB.put(id,blob)}catch(e){if(cur===id)sheetMsg("A foto aparece agora, mas não ficou salva neste aparelho.")}
+  return true;
+}
+
+/* foto a partir do link do produto: o Microlink lê a página e acha a foto principal;
+   o weserv entrega essa imagem num formato que o app pode guardar */
+const loading=new Set();
+async function photoFromLink(id,{rename=false}={}){
+  const it=items.find(i=>i.id===id); if(!it||!it.u||loading.has(id))return;
+  const fail=t=>{if(cur===id)sheetMsg(t)};
+  if(!navigator.onLine){fail("Sem internet. Tente de novo quando se conectar.");return}
+  loading.add(id); render(); if(cur===id){fillSheet();sheetMsg("")}
+  try{
+    const r=await fetch("https://api.microlink.io/?url="+encodeURIComponent(it.u));
+    const j=await r.json();
+    const img=j&&j.data&&j.data.image&&j.data.image.url;
+    if(!img)throw new Error("sem imagem");
+    if(rename&&j.data.title){const t=String(j.data.title).split(/\s+[|\u2013\u2014-]\s+/)[0].trim().slice(0,120); if(t.length>2){it.n=t;save()}}
+    const b=await fetch("https://images.weserv.nl/?url="+encodeURIComponent(img)+"&w=1000&h=1000&fit=inside&output=jpg&q=85");
+    if(!b.ok)throw new Error("imagem");
+    const blob=await b.blob();
+    loading.delete(id);
+    if(!await setPhoto(id,new File([blob],"foto",{type:blob.type||"image/jpeg"})))throw new Error("imagem");
+  }catch(e){
+    loading.delete(id); render(); if(cur===id)fillSheet();
+    fail("Não deu para pegar a foto desse link. Use \u201CProcurar foto na web\u201D, copie a imagem e toque em \u201CColar foto copiada\u201D.");
+  }
 }
 
 /* painel do item */
@@ -405,13 +445,18 @@ function sheetMsg(t){$("shMsg").textContent=t}
 function fillSheet(){
   const it=items.find(i=>i.id===cur); if(!it){sheet.close();return}
   const url=photos[cur];
+  const hasLink=!!(it.u&&isUrl(it.u)), busy=loading.has(cur);
   $("shPh").innerHTML=url?`<img src="${url}" alt="Foto de ${esc(it.n)}">`
-    :`<div class="ph-empty">${PHOTO}<b>Sem foto</b><span>Escolha uma foto do aparelho ou copie a imagem no site da loja e toque em \u201CColar foto copiada\u201D.</span></div>`;
+    :busy?`<div class="ph-empty"><span class="spin" aria-hidden="true"></span><b>Buscando foto…</b><span>Pegando a imagem da página do produto.</span></div>`
+    :`<div class="ph-empty">${PHOTO}<b>Sem foto</b><span>${hasLink?"Toque em \u201CBuscar foto pelo link\u201D para pegar a imagem da página do produto.":"Procure a foto na web, copie a imagem e toque em \u201CColar foto copiada\u201D."}</span></div>`;
   $("shName").textContent=it.n;
   $("shStore").textContent=it.s+(it.d?" \u00B7 Comprado":"");
-  $("shPick").textContent=url?"Trocar foto":"Escolher foto";
-  const ok=it.u&&isUrl(it.u); $("shLink").hidden=!ok; if(ok)$("shLink").href=it.u;
+  $("shFetch").hidden=!hasLink; $("shFetch").disabled=busy;
+  $("shFetch").textContent=busy?"Buscando foto…":url?"Buscar de novo pelo link":"Buscar foto pelo link";
+  $("shWeb").href="https://www.google.com/search?tbm=isch&q="+encodeURIComponent((it.s==="Outra loja"?"":it.s+" ")+it.n);
+  $("shLink").hidden=!hasLink; if(hasLink)$("shLink").href=it.u;
   $("shDel").hidden=!url;
+  $("shMore").hidden=!hasLink&&!url;
 }
 function openSheet(id){
   cur=id; sheetMsg(""); fillSheet();
@@ -425,6 +470,7 @@ sheet.addEventListener("click",e=>{
   if(e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom)sheet.close();
 });
 $("shPick").addEventListener("click",()=>$("shFile").click());
+$("shFetch").addEventListener("click",()=>{if(cur)photoFromLink(cur)});
 $("shFile").addEventListener("change",e=>{const f=e.target.files[0]; e.target.value=""; if(f&&cur)setPhoto(cur,f)});
 $("shDel").addEventListener("click",()=>{if(cur){dropPhoto(cur);render();fillSheet()}});
 $("shPaste").addEventListener("click",async()=>{
