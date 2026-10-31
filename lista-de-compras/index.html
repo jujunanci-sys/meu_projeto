@@ -17,10 +17,10 @@
 /* Layout no padrão iOS: título grande que vira barra translúcida ao rolar, listas agrupadas em cartões
    (inset grouped), separadores finos recuados e cor de destaque do sistema. Só fontes do sistema, para funcionar offline. */
 :root{
-  --bg-a:#d9c9b6; --bg-b:#8fa58a; --bg:#c4baa4;
+  --bg-a:#ddd0c0; --bg-b:#a9c8e0; --bg:#c6ccd0;
   --glass:rgba(246,245,243,.74); --surface:var(--glass); --solid:#f1efeb; --fill:rgba(93,90,86,.1);
   --ink:#4a4743; --ink2:#7f7a73; --ink3:rgba(93,90,86,.38);
-  --sep:rgba(0,0,0,.08); --tint:#56724f; --red:#c94a3f; --green:#56724f;
+  --sep:rgba(0,0,0,.08); --tint:#3a78ab; --red:#c94a3f; --green:#3a78ab;
   --bar:rgba(246,245,243,.6); --sheet:rgba(240,238,234,.88); --sheet-card:rgba(255,255,255,.62);
   --line:rgba(0,0,0,.08); --shadow:0 10px 32px rgba(0,0,0,.12);
   --toast:rgba(60,57,53,.92); --toast-ink:#fff; --on-tint:#fff;
@@ -30,24 +30,24 @@
 }
 @media (prefers-color-scheme: dark){
   :root:not([data-theme="light"]){
-    --bg-a:#2b2622; --bg-b:#1d2a20; --bg:#23281f;
+    --bg-a:#2b2622; --bg-b:#1a2633; --bg:#22262a;
     --glass:rgba(40,39,43,.74); --surface:var(--glass); --solid:#2c2b2f; --fill:rgba(255,255,255,.08);
     --ink:#dcd8d2; --ink2:#a29d96; --ink3:rgba(220,216,210,.32);
-    --sep:rgba(255,255,255,.1); --tint:#a9c4a0; --red:#e0695d; --green:#a9c4a0;
+    --sep:rgba(255,255,255,.1); --tint:#9cc8ea; --red:#e0695d; --green:#9cc8ea;
     --bar:rgba(40,39,43,.6); --sheet:rgba(36,35,39,.9); --sheet-card:rgba(255,255,255,.07);
     --line:rgba(255,255,255,.1); --shadow:0 10px 32px rgba(0,0,0,.35);
-    --toast:rgba(70,68,72,.95); --on-tint:#1d2a20;
+    --toast:rgba(70,68,72,.95); --on-tint:#132433;
     color-scheme:dark;
   }
 }
 :root[data-theme="dark"]{
-  --bg-a:#2b2622; --bg-b:#1d2a20; --bg:#23281f;
+  --bg-a:#2b2622; --bg-b:#1a2633; --bg:#22262a;
     --glass:rgba(40,39,43,.74); --surface:var(--glass); --solid:#2c2b2f; --fill:rgba(255,255,255,.08);
     --ink:#dcd8d2; --ink2:#a29d96; --ink3:rgba(220,216,210,.32);
-    --sep:rgba(255,255,255,.1); --tint:#a9c4a0; --red:#e0695d; --green:#a9c4a0;
+    --sep:rgba(255,255,255,.1); --tint:#9cc8ea; --red:#e0695d; --green:#9cc8ea;
     --bar:rgba(40,39,43,.6); --sheet:rgba(36,35,39,.9); --sheet-card:rgba(255,255,255,.07);
     --line:rgba(255,255,255,.1); --shadow:0 10px 32px rgba(0,0,0,.35);
-    --toast:rgba(70,68,72,.95); --on-tint:#1d2a20;
+    --toast:rgba(70,68,72,.95); --on-tint:#132433;
   color-scheme:dark;
 }
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
@@ -180,7 +180,7 @@ dialog.sheet::backdrop{background:rgba(30,28,25,.3);backdrop-filter:blur(2px);-w
   transition:opacity .2s,transform .3s cubic-bezier(.2,.8,.2,1);font-size:15px;max-width:calc(100% - 32px);white-space:nowrap;
   box-shadow:0 8px 30px rgba(0,0,0,.18)}
 .toast.show{opacity:1;transform:translate(-50%,0);pointer-events:auto}
-.toast button{background:none;border:0;color:#c9dcc2;font-weight:600;cursor:pointer;padding:4px 10px;border-radius:999px}
+.toast button{background:none;border:0;color:#bcdcf5;font-weight:600;cursor:pointer;padding:4px 10px;border-radius:999px}
 /* barra de abas */
 .tabbar{position:fixed;z-index:20;left:0;right:0;bottom:0;padding-bottom:env(safe-area-inset-bottom);
   background:var(--bar);backdrop-filter:saturate(180%) blur(20px);-webkit-backdrop-filter:saturate(180%) blur(20px);box-shadow:0 -.5px 0 var(--sep)}
@@ -321,7 +321,7 @@ dialog.sheet::backdrop{background:rgba(30,28,25,.3);backdrop-filter:blur(2px);-w
   </form>
 
   <div id="groups"></div>
-  <p class="foot" style="text-align:center;margin-top:24px">Deslize um item para a esquerda para apagar. Toque no círculo para marcar como comprado e no item para ver a foto.<br><span style="color:var(--ink3)">Versão 15</span></p>
+  <p class="foot" style="text-align:center;margin-top:24px">Deslize um item para a esquerda para apagar. Toque no círculo para marcar como comprado e no item para ver a foto.<br><span style="color:var(--ink3)">Versão 16</span></p>
 </main>
 <main class="app" id="tabLugares" hidden>
   <header>
