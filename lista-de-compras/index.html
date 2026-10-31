@@ -180,6 +180,7 @@ dialog.sheet::backdrop{background:rgba(0,0,0,.35)}
 .map-wrap{position:relative;isolation:isolate;height:clamp(380px,62vh,600px);border-radius:var(--r);overflow:hidden;background:var(--surface);margin-bottom:16px}
 #map{position:absolute;inset:0}
 .leaflet-container{font:inherit;background:var(--fill)}
+@media (prefers-color-scheme: dark){ .leaflet-tile-pane{filter:invert(1) hue-rotate(180deg) brightness(.9) contrast(.85) saturate(.7)} }
 .leaflet-control-attribution{font-size:10px;background:color-mix(in srgb,var(--surface) 75%,transparent)!important;color:var(--ink2)}
 .leaflet-control-attribution a{color:var(--ink2)}
 .map-btn{position:absolute;z-index:500;right:10px;top:68px;width:40px;height:40px;border-radius:10px;border:0;cursor:pointer;
@@ -288,7 +289,7 @@ dialog.sheet::backdrop{background:rgba(0,0,0,.35)}
   </form>
 
   <div id="groups"></div>
-  <p class="foot" style="text-align:center;margin-top:24px">Deslize um item para a esquerda para apagar. Toque no círculo para marcar como comprado e no item para ver a foto.<br><span style="color:var(--ink3)">Versão 12</span></p>
+  <p class="foot" style="text-align:center;margin-top:24px">Deslize um item para a esquerda para apagar. Toque no círculo para marcar como comprado e no item para ver a foto.<br><span style="color:var(--ink3)">Versão 13</span></p>
 </main>
 <main class="app" id="tabLugares" hidden>
   <header>
@@ -729,9 +730,10 @@ let map=null, layer=null, meMarker=null, fitted=false;
 const dark=matchMedia("(prefers-color-scheme: dark)");
 let tiles=null;
 const OSM_ATTR='&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a>';
-let tileSource="carto", tileErr=0, tileOk=0;
-function tileUrl(){return tileSource==="osm"?"https://tile.openstreetmap.org/{z}/{x}/{y}.png"
-  :"https://{s}.basemaps.cartocdn.com/"+(dark.matches?"dark_all":"rastertiles/voyager")+"/{z}/{x}/{y}{r}.png"}
+/* mapas sem chave de acesso: OpenStreetMap padrão; reserva: estilo Humanitário (OSM França) */
+const HOT_ATTR=OSM_ATTR+', estilo <a href="https://www.hotosm.org/" target="_blank" rel="noopener">HOT</a>';
+let tileSource="osm", tileErr=0, tileOk=0;
+function tileUrl(){return tileSource==="osm"?"https://tile.openstreetmap.org/{z}/{x}/{y}.png":"https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png"}
 /* dentro do Claude (artifact) o mapa e a busca são bloqueados */
 const IN_FRAME=(()=>{try{return window.self!==window.top}catch(e){return true}})();
 const APP_URL="https://jujunanci-sys.github.io/lista-de-compras/";
@@ -742,21 +744,20 @@ function showMap(){
   if(!map){
     map=L.map("map",{zoomControl:false,attributionControl:true,worldCopyJump:true});
     map.attributionControl.setPrefix(false);
-    tiles=L.tileLayer(tileUrl(),{maxZoom:19,subdomains:"abcd",attribution:OSM_ATTR+' &copy; <a href="https://carto.com/attributions" target="_blank" rel="noopener">CARTO</a>'}).addTo(map);
+    tiles=L.tileLayer(tileUrl(),{maxZoom:19,subdomains:"abc",attribution:OSM_ATTR}).addTo(map);
     tiles.on("tileload",()=>{tileOk++; tileErr=0; if($("mapMsg").dataset.kind==="tiles")mapMsg("")});
     tiles.on("tileerror",()=>{
       if(tileOk||!navigator.onLine)return;
       tileErr++;
-      if(tileSource==="carto"&&tileErr>=3){
-        /* o servidor do CARTO não respondeu: usa o mapa padrão do OpenStreetMap */
-        tileSource="osm"; tileErr=0; tiles.options.subdomains="abc";
-        map.attributionControl.removeAttribution(tiles.getAttribution()); tiles.options.attribution=OSM_ATTR; map.attributionControl.addAttribution(OSM_ATTR);
+      if(tileSource==="osm"&&tileErr>=3){
+        /* o OpenStreetMap não respondeu: usa o estilo Humanitário */
+        tileSource="hot"; tileErr=0;
+        map.attributionControl.removeAttribution(OSM_ATTR); map.attributionControl.addAttribution(HOT_ATTR);
         tiles.setUrl(tileUrl());
-      }else if(tileSource==="osm"&&tileErr>=3){
+      }else if(tileSource==="hot"&&tileErr>=3){
         if(IN_FRAME)frameMsg(); else {mapMsg("O mapa não carregou. Confira a internet e toque na aba Lugares de novo."); $("mapMsg").dataset.kind="tiles"}
       }
     });
-    if(dark.addEventListener)dark.addEventListener("change",()=>tiles.setUrl(tileUrl()));
     layer=L.layerGroup().addTo(map);
     map.setView([-14.2,-51.9],4);
     map.on("click",e=>{
@@ -766,7 +767,7 @@ function showMap(){
     map.on("contextmenu",e=>dropPin(e.latlng));
     drawMarkers();
   }
-  else if(!tileOk&&navigator.onLine){ tileErr=0; tileSource="carto"; tiles.setUrl(tileUrl()); }
+  else if(!tileOk&&navigator.onLine){ tileErr=0; tiles.redraw(); }
   setTimeout(()=>{map.invalidateSize(); if(!fitted){fitAll(false);fitted=true}},0);
   if(IN_FRAME)frameMsg(); else mapMsg(navigator.onLine?"":"Sem internet: o mapa aparece quando você se conectar.");
 }
