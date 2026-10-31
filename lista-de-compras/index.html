@@ -190,6 +190,7 @@ dialog.sheet::backdrop{background:rgba(0,0,0,.35)}
 .map-msg{position:absolute;z-index:500;left:10px;right:60px;top:68px;margin:0;padding:8px 12px;border-radius:10px;font-size:13px;
   background:var(--bar);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);color:var(--ink)}
 .map-msg[hidden]{display:none}
+.map-msg a{color:var(--tint);word-break:break-all}
 .pin-icon{background:none;border:0}
 /* alfinete: cabeça redonda, agulha e sombra */
 .tack{position:relative;display:block;width:30px;height:44px;--c:var(--red)}
@@ -287,7 +288,7 @@ dialog.sheet::backdrop{background:rgba(0,0,0,.35)}
   </form>
 
   <div id="groups"></div>
-  <p class="foot" style="text-align:center;margin-top:24px">Deslize um item para a esquerda para apagar. Toque no círculo para marcar como comprado e no item para ver a foto.<br><span style="color:var(--ink3)">Versão 11</span></p>
+  <p class="foot" style="text-align:center;margin-top:24px">Deslize um item para a esquerda para apagar. Toque no círculo para marcar como comprado e no item para ver a foto.<br><span style="color:var(--ink3)">Versão 12</span></p>
 </main>
 <main class="app" id="tabLugares" hidden>
   <header>
@@ -727,14 +728,35 @@ const TACK=cls=>L.divIcon({className:"pin-icon",html:`<span class="tack ${cls}">
 let map=null, layer=null, meMarker=null, fitted=false;
 const dark=matchMedia("(prefers-color-scheme: dark)");
 let tiles=null;
-function tileUrl(){return "https://{s}.basemaps.cartocdn.com/"+(dark.matches?"dark_all":"rastertiles/voyager")+"/{z}/{x}/{y}{r}.png"}
+const OSM_ATTR='&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a>';
+let tileSource="carto", tileErr=0, tileOk=0;
+function tileUrl(){return tileSource==="osm"?"https://tile.openstreetmap.org/{z}/{x}/{y}.png"
+  :"https://{s}.basemaps.cartocdn.com/"+(dark.matches?"dark_all":"rastertiles/voyager")+"/{z}/{x}/{y}{r}.png"}
+/* dentro do Claude (artifact) o mapa e a busca são bloqueados */
+const IN_FRAME=(()=>{try{return window.self!==window.top}catch(e){return true}})();
+const APP_URL="https://jujunanci-sys.github.io/lista-de-compras/";
+function mapMsgHtml(h){$("mapMsg").innerHTML=h; $("mapMsg").hidden=!h}
+function frameMsg(){mapMsgHtml(`O mapa e a busca não funcionam dentro do Claude. Abra o app pelo link: <a href="${APP_URL}" target="_blank" rel="noopener noreferrer">${APP_URL.replace("https://","")}</a>`)}
 function showMap(){
   if(!window.L){mapMsg("O mapa não carregou. Verifique a internet e abra a aba de novo.");return}
   if(!map){
     map=L.map("map",{zoomControl:false,attributionControl:true,worldCopyJump:true});
     map.attributionControl.setPrefix(false);
-    tiles=L.tileLayer(tileUrl(),{maxZoom:19,subdomains:"abcd",attribution:'&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions" target="_blank" rel="noopener">CARTO</a>'}).addTo(map);
-    dark.addEventListener?.("change",()=>tiles.setUrl(tileUrl()));
+    tiles=L.tileLayer(tileUrl(),{maxZoom:19,subdomains:"abcd",attribution:OSM_ATTR+' &copy; <a href="https://carto.com/attributions" target="_blank" rel="noopener">CARTO</a>'}).addTo(map);
+    tiles.on("tileload",()=>{tileOk++; tileErr=0; if($("mapMsg").dataset.kind==="tiles")mapMsg("")});
+    tiles.on("tileerror",()=>{
+      if(tileOk||!navigator.onLine)return;
+      tileErr++;
+      if(tileSource==="carto"&&tileErr>=3){
+        /* o servidor do CARTO não respondeu: usa o mapa padrão do OpenStreetMap */
+        tileSource="osm"; tileErr=0; tiles.options.subdomains="abc";
+        map.attributionControl.removeAttribution(tiles.getAttribution()); tiles.options.attribution=OSM_ATTR; map.attributionControl.addAttribution(OSM_ATTR);
+        tiles.setUrl(tileUrl());
+      }else if(tileSource==="osm"&&tileErr>=3){
+        if(IN_FRAME)frameMsg(); else {mapMsg("O mapa não carregou. Confira a internet e toque na aba Lugares de novo."); $("mapMsg").dataset.kind="tiles"}
+      }
+    });
+    if(dark.addEventListener)dark.addEventListener("change",()=>tiles.setUrl(tileUrl()));
     layer=L.layerGroup().addTo(map);
     map.setView([-14.2,-51.9],4);
     map.on("click",e=>{
@@ -744,10 +766,11 @@ function showMap(){
     map.on("contextmenu",e=>dropPin(e.latlng));
     drawMarkers();
   }
+  else if(!tileOk&&navigator.onLine){ tileErr=0; tileSource="carto"; tiles.setUrl(tileUrl()); }
   setTimeout(()=>{map.invalidateSize(); if(!fitted){fitAll(false);fitted=true}},0);
-  mapMsg(navigator.onLine?"":"Sem internet: o mapa aparece quando você se conectar.");
+  if(IN_FRAME)frameMsg(); else mapMsg(navigator.onLine?"":"Sem internet: o mapa aparece quando você se conectar.");
 }
-function mapMsg(t){$("mapMsg").textContent=t; $("mapMsg").hidden=!t}
+function mapMsg(t){$("mapMsg").textContent=t; $("mapMsg").hidden=!t; delete $("mapMsg").dataset.kind}
 function drawMarkers(){
   if(!map)return;
   layer.clearLayers();
@@ -827,7 +850,7 @@ async function runSearch(q){
     if(!results.length){resMsg("Nada encontrado. Tente com a cidade, ex.: “Rua do Ouvidor, Rio de Janeiro”.");return}
     $("plResults").innerHTML=results.map((x,k)=>`<button type="button" class="row res" role="option" data-k="${k}"><span class="ri">${PIN_ICO}</span><span class="rt"><b>${esc(x.n)}</b>${x.a?`<span>${esc(x.a)}</span>`:""}</span></button>`).join("");
     $("plResults").hidden=false; $("plResults").scrollTop=0;
-  }catch(e){ if(e.name!=="AbortError"&&mine===qCtrl)resMsg("A busca não respondeu. Tente de novo em instantes."); }
+  }catch(e){ if(e.name!=="AbortError"&&mine===qCtrl)resMsg(IN_FRAME?"A busca não funciona dentro do Claude. Abra o app pelo link do GitHub.":"A busca não respondeu. Tente de novo em instantes."); }
 }
 $("plQuery").addEventListener("input",()=>{
   const q=$("plQuery").value.trim();
