@@ -19,7 +19,7 @@
   --bg:#F2F2F7; --surface:#FFFFFF; --fill:rgba(118,118,128,.12);
   --ink:#000000; --ink2:rgba(60,60,67,.6); --ink3:rgba(60,60,67,.3);
   --sep:rgba(60,60,67,.18); --tint:#007AFF; --red:#FF3B30; --green:#34C759;
-  --bar:rgba(242,242,247,.78); --toast:rgba(30,30,32,.92); --toast-ink:#fff;
+  --bar:rgba(242,242,247,.78); --sheet:#F2F2F7; --sheet-card:#FFFFFF; --toast:rgba(30,30,32,.92); --toast-ink:#fff;
   --font:-apple-system,BlinkMacSystemFont,"SF Pro Text","SF Pro Display","Helvetica Neue","Segoe UI",Roboto,Arial,sans-serif;
   --r:12px;
   color-scheme:light;
@@ -29,7 +29,7 @@
     --bg:#000000; --surface:#1C1C1E; --fill:rgba(118,118,128,.24);
     --ink:#FFFFFF; --ink2:rgba(235,235,245,.6); --ink3:rgba(235,235,245,.3);
     --sep:rgba(84,84,88,.6); --tint:#0A84FF; --red:#FF453A; --green:#30D158;
-    --bar:rgba(18,18,20,.78); --toast:rgba(58,58,60,.95);
+    --bar:rgba(18,18,20,.78); --sheet:#1C1C1E; --sheet-card:#2C2C2E; --toast:rgba(58,58,60,.95);
     color-scheme:dark;
   }
 }
@@ -37,7 +37,7 @@
   --bg:#000000; --surface:#1C1C1E; --fill:rgba(118,118,128,.24);
   --ink:#FFFFFF; --ink2:rgba(235,235,245,.6); --ink3:rgba(235,235,245,.3);
   --sep:rgba(84,84,88,.6); --tint:#0A84FF; --red:#FF453A; --green:#30D158;
-  --bar:rgba(18,18,20,.78); --toast:rgba(58,58,60,.95);
+  --bar:rgba(18,18,20,.78); --sheet:#1C1C1E; --sheet-card:#2C2C2E; --toast:rgba(58,58,60,.95);
   color-scheme:dark;
 }
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
@@ -111,6 +111,39 @@ form.add input::placeholder{color:var(--ink3)}
 .done .nm{color:var(--ink2)}
 .lnk{flex:0 0 auto;color:var(--tint);display:grid;place-items:center;width:30px;height:30px;border-radius:50%;background:color-mix(in srgb,var(--tint) 12%,transparent)}
 .lnk svg{width:14px;height:14px}
+.fg{cursor:pointer}
+.thumb{flex:0 0 auto;width:40px;height:40px;margin:-4px 0;border-radius:8px;object-fit:cover;background:#fff;box-shadow:0 0 0 .5px var(--sep)}
+.done .thumb{opacity:.55}
+.chev{flex:0 0 auto;width:8px;height:13px;color:var(--ink3);margin-left:2px}
+
+/* painel do item */
+dialog.sheet{border:0;padding:0 0 calc(20px + env(safe-area-inset-bottom));margin:auto auto 0;width:100%;max-width:620px;max-height:94vh;
+  border-radius:14px 14px 0 0;background:var(--sheet);color:var(--ink);overflow:auto;overscroll-behavior:contain}
+dialog.sheet[open]{animation:sheetUp .35s cubic-bezier(.2,.8,.2,1)}
+dialog.sheet::backdrop{background:rgba(0,0,0,.35)}
+@keyframes sheetUp{from{transform:translateY(60px);opacity:0}}
+@media (min-width:700px){dialog.sheet{margin:auto;max-width:440px;border-radius:16px;padding-bottom:20px}}
+.sh-bar{position:sticky;top:0;z-index:1;display:flex;justify-content:flex-end;align-items:center;height:52px;padding:0 8px;
+  background:var(--sheet)}
+.grab{position:absolute;left:50%;top:6px;width:36px;height:5px;margin-left:-18px;border-radius:3px;background:var(--ink3)}
+.sh-ok{border:0;background:none;color:var(--tint);font-size:17px;font-weight:600;padding:8px 10px;cursor:pointer}
+.ph{margin:0 16px;aspect-ratio:1;border-radius:var(--r);background:var(--surface);overflow:hidden;display:grid;place-items:center}
+.ph img{width:100%;height:100%;object-fit:contain;background:#fff}
+.ph-empty{display:grid;justify-items:center;gap:6px;padding:24px;text-align:center;color:var(--ink2);font-size:15px;max-width:300px}
+.ph-empty svg{width:44px;height:44px;color:var(--ink3);margin-bottom:6px}
+.ph-empty b{color:var(--ink);font-size:17px;font-weight:600}
+.sh-info{padding:16px 20px 18px}
+.sh-info h2{margin:0;font-size:22px;line-height:28px;font-weight:700;letter-spacing:.01em;overflow-wrap:anywhere}
+.sh-info p{margin:2px 0 0;color:var(--ink2);font-size:15px}
+.sh-acts{margin:0 16px;background:var(--sheet-card)}
+.sheet .ph{background:var(--sheet-card)}
+.act{width:100%;border:0;background:none;color:var(--tint);font-size:17px;text-align:left;cursor:pointer;text-decoration:none;min-height:46px}
+.act:active{background:var(--fill)}
+.act.red{color:var(--red)}
+.act[hidden]{display:none}
+#shMsg:empty{display:none}
+#shMsg{margin-top:10px;margin-left:20px;margin-right:20px}
+
 .empty{color:var(--ink2);text-align:center;padding:48px 16px;margin:0}
 .empty b{display:block;color:var(--ink);font-size:20px;font-weight:600;margin-bottom:4px}
 
@@ -151,8 +184,21 @@ form.add input::placeholder{color:var(--ink3)}
   </form>
 
   <div id="groups"></div>
-  <p class="foot" style="text-align:center;margin-top:24px">Deslize um item para a esquerda para apagar. Toque no círculo para marcar como comprado.</p>
+  <p class="foot" style="text-align:center;margin-top:24px">Deslize um item para a esquerda para apagar. Toque no círculo para marcar como comprado e no item para ver a foto.</p>
 </main>
+<dialog class="sheet" id="sheet" aria-labelledby="shName">
+  <div class="sh-bar"><span class="grab" aria-hidden="true"></span><button type="button" class="sh-ok" id="shOk">OK</button></div>
+  <div class="ph" id="shPh"></div>
+  <div class="sh-info"><h2 id="shName"></h2><p id="shStore"></p></div>
+  <div class="card sh-acts">
+    <button class="row act" type="button" id="shPick">Escolher foto</button>
+    <button class="row act" type="button" id="shPaste">Colar foto copiada</button>
+    <a class="row act" id="shLink" target="_blank" rel="noopener noreferrer">Abrir no site da loja</a>
+    <button class="row act red" type="button" id="shDel">Remover foto</button>
+  </div>
+  <p class="foot" id="shMsg" role="status"></p>
+  <input type="file" id="shFile" accept="image/*" hidden>
+</dialog>
 <div class="toast" id="toast" role="status" aria-live="polite"><span id="toastMsg"></span><button type="button" id="undo">Desfazer</button></div>
 
 <script>
@@ -176,12 +222,14 @@ function load(){
   return SEED.map(([s,n])=>({id:uid(),s,n,d:false}));
 }
 function save(){try{localStorage.setItem(KEY,JSON.stringify(items))}catch(e){}}
-items=load();
+items=load(); save();
 
 const $=id=>document.getElementById(id);
 const esc=t=>t.replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const CHECK='<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8.5l3.2 3.2L13 4.5"/></svg>';
 const LINK='<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3.5h-2a1.5 1.5 0 00-1.5 1.5v7A1.5 1.5 0 004 13.5h7a1.5 1.5 0 001.5-1.5v-2M9 2.5h4.5V7M13.5 2.5L7.5 8.5"/></svg>';
+const CHEV='<svg class="chev" viewBox="0 0 8 13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1.5 1.5l5 5-5 5"/></svg>';
+const PHOTO='<svg viewBox="0 0 44 44" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="9" width="34" height="26" rx="5"/><circle cx="16" cy="18" r="3.2"/><path d="M5 30l10-9 8 7 5-4 11 9"/></svg>';
 const isUrl=t=>/^https?:\/\/\S+$/i.test(t);
 function nameFromUrl(u){
   try{
@@ -202,10 +250,12 @@ function render(){
     const d=list.filter(i=>i.d).length;
     return `<section class="group${d===list.length?" all-done":""}"><h2><span>${esc(s)}</span><span class="c">${d} de ${list.length}</span></h2><div class="card" role="list">${list.map(i=>`
       <div class="swipe" data-id="${i.id}"><div class="bg" aria-hidden="true">Apagar</div>
-        <div class="fg${i.d?" done":""}" tabindex="0" role="listitem" aria-label="${esc(i.n)}. Deslize para a esquerda ou aperte Delete para apagar.">
+        <div class="fg${i.d?" done":""}" tabindex="0" role="listitem" aria-label="${esc(i.n)}. Toque para ver a foto. Deslize para a esquerda ou aperte Delete para apagar.">
           <button class="chk" type="button" aria-pressed="${i.d}" aria-label="Marcar ${esc(i.n)} como comprado">${CHECK}</button>
+          ${photos[i.id]?`<img class="thumb" src="${photos[i.id]}" alt="">`:""}
           <span class="nm">${esc(i.n)}</span>
           ${i.u&&isUrl(i.u)?`<a class="lnk" href="${esc(i.u)}" target="_blank" rel="noopener noreferrer" aria-label="Abrir link de ${esc(i.n)}">${LINK}</a>`:""}
+          ${CHEV}
         </div></div>`).join("")}</div></section>`;
   }).join("");
   $("groups").innerHTML=html||'<p class="empty"><b>Lista vazia</b>Adicione um item acima.</p>';
@@ -257,9 +307,10 @@ $("groups").addEventListener("click",e=>{
 let last=null,toastT=null;
 function removeItem(id){
   const idx=items.findIndex(i=>i.id===id); if(idx<0)return;
+  if(last)dropPhoto(last.it.id);
   last={it:items[idx],idx}; items.splice(idx,1); save(); render();
   $("toastMsg").textContent="Item apagado"; $("toast").classList.add("show");
-  clearTimeout(toastT); toastT=setTimeout(()=>{$("toast").classList.remove("show");last=null},5000);
+  clearTimeout(toastT); toastT=setTimeout(()=>{$("toast").classList.remove("show");if(last)dropPhoto(last.it.id);last=null},5000);
 }
 $("undo").addEventListener("click",()=>{
   if(!last)return; items.splice(Math.min(last.idx,items.length),0,last.it); last=null; save(); render();
@@ -267,7 +318,7 @@ $("undo").addEventListener("click",()=>{
 });
 
 /* deslizar para a esquerda */
-let drag=null;
+let drag=null, suppressClick=false;
 $("groups").addEventListener("pointerdown",e=>{
   const fg=e.target.closest(".fg"); if(!fg||e.target.closest(".chk,.lnk"))return;
   drag={fg,x:e.clientX,y:e.clientY,dx:0,on:false,id:e.pointerId,w:fg.offsetWidth};
@@ -287,6 +338,7 @@ function endDrag(e){
   if(!drag||e.pointerId!==drag.id)return;
   const d=drag; drag=null;
   if(!d.on)return;
+  suppressClick=true; setTimeout(()=>{suppressClick=false},0);
   d.fg.classList.remove("drag");
   const limit=Math.min(110,d.w*0.35);
   if(d.dx<=-limit){
@@ -302,7 +354,101 @@ $("groups").addEventListener("pointercancel",endDrag);
 $("groups").addEventListener("keydown",e=>{
   if((e.key==="Delete"||e.key==="Backspace")&&e.target.classList.contains("fg")){
     e.preventDefault(); removeItem(e.target.closest(".swipe").dataset.id);
+  }else if((e.key==="Enter"||e.key===" ")&&e.target.classList.contains("fg")){
+    e.preventDefault(); openSheet(e.target.closest(".swipe").dataset.id);
   }
+});
+
+/* fotos: guardadas no aparelho (IndexedDB), reduzidas para caber bastante */
+const photos={};
+const fotoDB=(()=>{
+  let p;
+  const open=()=>p||(p=new Promise((res,rej)=>{try{const r=indexedDB.open("lista-compras",1);
+    r.onupgradeneeded=()=>r.result.createObjectStore("fotos");r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error);}catch(e){rej(e)}}));
+  const run=(mode,fn)=>open().then(d=>new Promise((res,rej)=>{const t=d.transaction("fotos",mode);const out=fn(t.objectStore("fotos"));
+    t.oncomplete=()=>res(out);t.onerror=()=>rej(t.error);}));
+  return{
+    put:(k,v)=>run("readwrite",s=>{s.put(v,k)}),
+    del:k=>run("readwrite",s=>{s.delete(k)}),
+    all:()=>run("readonly",s=>{const o={};s.openCursor().onsuccess=e=>{const c=e.target.result;if(c){o[c.key]=c.value;c.continue()}};return o})
+  };
+})();
+function setPhotoURL(id,blob){
+  if(photos[id])URL.revokeObjectURL(photos[id]);
+  if(blob)photos[id]=URL.createObjectURL(blob); else delete photos[id];
+}
+function dropPhoto(id){ if(!photos[id])return; setPhotoURL(id,null); fotoDB.del(id).catch(()=>{}); }
+fotoDB.all().then(m=>{for(const k in m)setPhotoURL(k,m[k]); render(); if(cur)fillSheet();}).catch(()=>{});
+
+async function shrink(file){
+  const url=URL.createObjectURL(file);
+  try{
+    const img=await new Promise((res,rej)=>{const i=new Image();i.onload=()=>res(i);i.onerror=rej;i.src=url});
+    const sc=Math.min(1,1000/Math.max(img.naturalWidth,img.naturalHeight));
+    const c=document.createElement("canvas"); c.width=Math.round(img.naturalWidth*sc); c.height=Math.round(img.naturalHeight*sc);
+    const x=c.getContext("2d"); x.fillStyle="#fff"; x.fillRect(0,0,c.width,c.height); x.drawImage(img,0,0,c.width,c.height);
+    return await new Promise(r=>c.toBlob(r,"image/jpeg",.85));
+  }finally{URL.revokeObjectURL(url)}
+}
+async function setPhoto(id,file){
+  if(!file||!/^image\//.test(file.type)){sheetMsg("Esse arquivo não é uma imagem. Escolha uma foto.");return}
+  let blob;
+  try{blob=await shrink(file)}catch(e){sheetMsg("Não deu para abrir essa imagem. Tente outra foto.");return}
+  setPhotoURL(id,blob); render(); fillSheet(); sheetMsg("");
+  try{await fotoDB.put(id,blob)}catch(e){sheetMsg("A foto aparece agora, mas não ficou salva neste aparelho.")}
+}
+
+/* painel do item */
+let cur=null;
+const sheet=$("sheet");
+function sheetMsg(t){$("shMsg").textContent=t}
+function fillSheet(){
+  const it=items.find(i=>i.id===cur); if(!it){sheet.close();return}
+  const url=photos[cur];
+  $("shPh").innerHTML=url?`<img src="${url}" alt="Foto de ${esc(it.n)}">`
+    :`<div class="ph-empty">${PHOTO}<b>Sem foto</b><span>Escolha uma foto do aparelho ou copie a imagem no site da loja e toque em \u201CColar foto copiada\u201D.</span></div>`;
+  $("shName").textContent=it.n;
+  $("shStore").textContent=it.s+(it.d?" \u00B7 Comprado":"");
+  $("shPick").textContent=url?"Trocar foto":"Escolher foto";
+  const ok=it.u&&isUrl(it.u); $("shLink").hidden=!ok; if(ok)$("shLink").href=it.u;
+  $("shDel").hidden=!url;
+}
+function openSheet(id){
+  cur=id; sheetMsg(""); fillSheet();
+  if(sheet.showModal){ if(!sheet.open)sheet.showModal(); } else sheet.setAttribute("open","");
+}
+sheet.addEventListener("close",()=>{cur=null});
+$("shOk").addEventListener("click",()=>sheet.close());
+sheet.addEventListener("click",e=>{
+  if(e.target!==sheet)return;
+  const r=sheet.getBoundingClientRect();
+  if(e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom)sheet.close();
+});
+$("shPick").addEventListener("click",()=>$("shFile").click());
+$("shFile").addEventListener("change",e=>{const f=e.target.files[0]; e.target.value=""; if(f&&cur)setPhoto(cur,f)});
+$("shDel").addEventListener("click",()=>{if(cur){dropPhoto(cur);render();fillSheet()}});
+$("shPaste").addEventListener("click",async()=>{
+  const id=cur;
+  try{
+    for(const ci of await navigator.clipboard.read()){
+      const t=ci.types.find(t=>t.startsWith("image/"));
+      if(t){await setPhoto(id,new File([await ci.getType(t)],"foto",{type:t}));return}
+    }
+    sheetMsg("Não há imagem copiada. No site da loja, toque e segure a foto do produto e escolha Copiar.");
+  }catch(e){
+    sheetMsg("Não deu para ler a imagem copiada aqui. No computador, aperte Ctrl+V (\u2318V no Mac) com este painel aberto, ou use Escolher foto.");
+  }
+});
+document.addEventListener("paste",e=>{
+  if(!cur||!sheet.open)return;
+  const f=[...(e.clipboardData?.files||[])].find(f=>f.type.startsWith("image/"));
+  if(f){e.preventDefault();setPhoto(cur,f)}
+});
+$("groups").addEventListener("click",e=>{
+  if(e.target.closest(".chk,.lnk"))return;
+  const fg=e.target.closest(".fg"); if(!fg)return;
+  if(suppressClick){suppressClick=false;return}
+  openSheet(fg.closest(".swipe").dataset.id);
 });
 
 /* título grande vira barra translúcida ao rolar */
