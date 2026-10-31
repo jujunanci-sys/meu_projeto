@@ -177,26 +177,72 @@ dialog.sheet::backdrop{background:rgba(0,0,0,.35)}
 .tab[aria-selected="true"]{color:var(--tint)}
 
 /* lugares */
-.map-wrap{position:relative;isolation:isolate;height:310px;border-radius:var(--r);overflow:hidden;background:var(--surface);margin-bottom:16px}
+.map-wrap{position:relative;isolation:isolate;height:clamp(380px,62vh,600px);border-radius:var(--r);overflow:hidden;background:var(--surface);margin-bottom:16px}
 #map{position:absolute;inset:0}
 .leaflet-container{font:inherit;background:var(--fill)}
 .leaflet-control-attribution{font-size:10px;background:color-mix(in srgb,var(--surface) 75%,transparent)!important;color:var(--ink2)}
 .leaflet-control-attribution a{color:var(--ink2)}
-.map-btn{position:absolute;z-index:500;right:10px;top:10px;width:40px;height:40px;border-radius:10px;border:0;cursor:pointer;
+.map-btn{position:absolute;z-index:500;right:10px;top:68px;width:40px;height:40px;border-radius:10px;border:0;cursor:pointer;
   background:var(--bar);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);color:var(--tint);display:grid;place-items:center;
   box-shadow:0 1px 4px rgba(0,0,0,.15)}
 .map-btn svg{width:20px;height:20px}
-.map-btn + .map-btn{top:56px}
-.map-msg{position:absolute;z-index:500;left:10px;right:60px;bottom:10px;margin:0;padding:8px 12px;border-radius:10px;font-size:13px;
+.map-btn + .map-btn{top:114px}
+.map-msg{position:absolute;z-index:500;left:10px;right:60px;top:68px;margin:0;padding:8px 12px;border-radius:10px;font-size:13px;
   background:var(--bar);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);color:var(--ink)}
 .map-msg[hidden]{display:none}
 .pin-icon{background:none;border:0}
-.pin{display:block;width:22px;height:22px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);background:var(--red);
-  border:2.5px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,.35)}
-.pin.done{background:var(--green)}
+/* alfinete: cabeça redonda, agulha e sombra */
+.tack{position:relative;display:block;width:30px;height:44px;--c:var(--red)}
+.tack.done{--c:var(--green)}
+.tack.prev{--c:var(--tint)}
+.tack .nd{position:absolute;left:14px;top:19px;width:2.4px;height:23px;border-radius:0 0 2px 2px;
+  background:linear-gradient(90deg,#7c7c80,#e5e5ea 55%,#8e8e93)}
+.tack .hd{position:absolute;left:3px;top:0;width:24px;height:24px;border-radius:50%;
+  background:radial-gradient(circle at 34% 30%,rgba(255,255,255,.85) 0 2.5px,rgba(255,255,255,0) 7px),var(--c);
+  box-shadow:inset 0 -3px 5px rgba(0,0,0,.25),0 2px 5px rgba(0,0,0,.35)}
+.tack .sh{position:absolute;left:8px;top:39px;width:15px;height:6px;border-radius:50%;background:radial-gradient(rgba(0,0,0,.38),rgba(0,0,0,0) 70%)}
+.tack.drop .hd,.tack.drop .nd{animation:tackDrop .5s cubic-bezier(.3,1.5,.6,1)}
+.tack.drop .sh{animation:tackShadow .5s ease-out}
+@keyframes tackDrop{from{transform:translateY(-46px);opacity:0}60%{opacity:1}}
+@keyframes tackShadow{from{transform:scale(.3);opacity:0}}
+.leaflet-dragging .tack .hd{transform:translateY(-8px)}
+.leaflet-dragging .tack .nd{transform:translateY(-8px)}
+
+/* painel de busca sobre o mapa */
+.msearch{position:absolute;z-index:600;left:10px;right:10px;top:10px;border-radius:12px;overflow:hidden;
+  background:var(--bar);backdrop-filter:saturate(180%) blur(20px);-webkit-backdrop-filter:saturate(180%) blur(20px);box-shadow:0 2px 12px rgba(0,0,0,.16)}
+.ms-row{display:flex;align-items:center;gap:8px;padding:0 6px 0 12px;min-height:46px}
+.ms-row .ico{width:17px;height:17px;color:var(--ink2);flex:0 0 auto}
+.ms-row input{flex:1;min-width:0;border:0;outline:0;background:none;padding:12px 0;font-size:17px}
+.ms-row input::placeholder{color:var(--ink2)}
+.ms-row input::-webkit-search-cancel-button{display:none}
+.ms-x{flex:0 0 auto;width:32px;height:32px;border:0;background:none;color:var(--ink3);cursor:pointer;display:grid;place-items:center;border-radius:50%}
+.ms-x svg{width:18px;height:18px}
+.ms-x[hidden]{display:none}
+.ms-res{background:var(--surface);max-height:calc(clamp(380px,62vh,600px) - 140px);overflow:auto;overscroll-behavior:contain;border-top:.5px solid var(--sep)}
+.ms-res[hidden]{display:none}
+.ms-res .res{position:relative;display:flex!important;gap:12px;align-items:center}
+.ms-res .res + .res::before{content:"";position:absolute;top:0;left:56px;right:0;height:.5px;background:var(--sep)}
+.res .ri{flex:0 0 auto;width:30px;height:30px;border-radius:50%;background:var(--red);color:#fff;display:grid;place-items:center}
+.res .ri svg{width:15px;height:15px}
+.res .rt{min-width:0;flex:1;color:var(--ink);font-size:17px;margin:0}
+.res .ri{margin:0}
+.res .rt b,.res .rt span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ms-msg{margin:0;padding:12px 16px;color:var(--ink2);font-size:15px}
+
+/* cartão do alfinete */
+.pcard{position:absolute;z-index:600;left:10px;right:10px;bottom:22px;border-radius:14px;padding:14px 16px;
+  background:var(--sheet-card);box-shadow:0 6px 24px rgba(0,0,0,.22);animation:sheetUp .3s cubic-bezier(.2,.8,.2,1)}
+.pcard[hidden]{display:none}
+.pc-top{display:flex;gap:10px;align-items:flex-start}
+.pc-txt{flex:1;min-width:0}
+.pc-txt b{display:block;font-size:19px;font-weight:700;line-height:24px;overflow-wrap:anywhere}
+.pc-txt span{display:block;color:var(--ink2);font-size:14px;margin-top:2px}
+.pc-close{flex:0 0 auto;width:30px;height:30px;border:0;border-radius:50%;background:var(--fill);color:var(--ink2);cursor:pointer;display:grid;place-items:center}
+.pc-close svg{width:12px;height:12px}
+.pc-btns{display:flex;gap:10px;margin-top:12px}
+.pc-btns .btn{min-height:44px;font-size:16px}
 .me{width:16px;height:16px;border-radius:50%;background:#0A84FF;border:3px solid #fff;box-shadow:0 0 0 6px rgba(10,132,255,.2)}
-form.plf .row input{flex:1;min-width:0;border:0;outline:0;background:none;padding:11px 0;font-size:17px}
-form.plf input::placeholder{color:var(--ink3)}
 .row .ico{width:17px;height:17px;color:var(--ink3);margin-right:8px;flex:0 0 auto}
 .results{margin-top:12px}
 .results[hidden]{display:none}
@@ -241,7 +287,7 @@ form.plf input::placeholder{color:var(--ink3)}
   </form>
 
   <div id="groups"></div>
-  <p class="foot" style="text-align:center;margin-top:24px">Deslize um item para a esquerda para apagar. Toque no círculo para marcar como comprado e no item para ver a foto.<br><span style="color:var(--ink3)">Versão 10</span></p>
+  <p class="foot" style="text-align:center;margin-top:24px">Deslize um item para a esquerda para apagar. Toque no círculo para marcar como comprado e no item para ver a foto.<br><span style="color:var(--ink3)">Versão 11</span></p>
 </main>
 <main class="app" id="tabLugares" hidden>
   <header>
@@ -249,19 +295,27 @@ form.plf input::placeholder{color:var(--ink3)}
     <p class="sub" id="plSub"></p>
   </header>
   <div class="map-wrap">
-    <div id="map" role="region" aria-label="Mapa dos lugares"></div>
+    <div id="map" role="region" aria-label="Mapa dos lugares. Toque para marcar um alfinete."></div>
+    <form class="msearch" id="plAdd" role="search" autocomplete="off">
+      <div class="ms-row">
+        <svg class="ico" viewBox="0 0 17 17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="7.5" cy="7.5" r="5.5"/><path d="M11.6 11.6L15.5 15.5"/></svg>
+        <input id="plQuery" type="search" placeholder="Buscar endereço ou lugar" aria-label="Buscar endereço ou lugar" aria-controls="plResults" maxlength="200" enterkeyhint="search">
+        <button type="button" class="ms-x" id="plClear" aria-label="Limpar busca" hidden><svg viewBox="0 0 18 18" aria-hidden="true"><circle cx="9" cy="9" r="9" fill="currentColor"/><path d="M6 6l6 6M12 6l-6 6" stroke="var(--surface)" stroke-width="1.8" stroke-linecap="round"/></svg></button>
+      </div>
+      <div class="ms-res" id="plResults" role="listbox" aria-label="Resultados da busca" hidden></div>
+    </form>
     <button type="button" class="map-btn" id="fitAll" aria-label="Mostrar todos os lugares no mapa"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7V3h4M13 3h4v4M17 13v4h-4M7 17H3v-4"/></svg></button>
     <button type="button" class="map-btn" id="locate" aria-label="Mostrar onde estou"><svg viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path d="M17.6 2.4a.8.8 0 00-.86-.18L2.9 7.6a.8.8 0 00.1 1.52l5.74 1.38 1.38 5.74a.8.8 0 001.52.1l5.38-13.84a.8.8 0 00-.18-.86z"/></svg></button>
     <p class="map-msg" id="mapMsg" hidden></p>
+    <div class="pcard" id="pinCard" role="dialog" aria-label="Alfinete marcado" hidden>
+      <div class="pc-top">
+        <div class="pc-txt"><b id="pcName"></b><span id="pcAddr"></span></div>
+        <button type="button" class="pc-close" id="pcClose" aria-label="Tirar alfinete"><svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M2 2l8 8M10 2l-8 8"/></svg></button>
+      </div>
+      <div class="pc-btns"><a class="btn tinted" id="pcRoute" target="_blank" rel="noopener noreferrer">Como chegar</a><button type="button" class="btn primary" id="pcAdd">Adicionar à lista</button></div>
+    </div>
   </div>
-  <form class="plf" id="plAdd" autocomplete="off">
-    <div class="card"><div class="row">
-      <svg class="ico" viewBox="0 0 17 17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="7.5" cy="7.5" r="5.5"/><path d="M11.6 11.6L15.5 15.5"/></svg>
-      <input id="plQuery" type="search" placeholder="Buscar lugar ou endereço" aria-label="Buscar lugar ou endereço" maxlength="200" enterkeyhint="search">
-    </div></div>
-    <div class="card results" id="plResults" hidden></div>
-    <p class="foot" id="plNet"></p>
-  </form>
+  <p class="foot" id="plNet"></p>
   <div id="plList" style="margin-top:30px;display:flex;flex-direction:column;gap:30px"></div>
   <p class="foot" style="text-align:center;margin-top:24px">Toque no círculo quando já tiver ido. Deslize um lugar para a esquerda para apagar.</p>
 </main>
@@ -662,11 +716,12 @@ function renderPlaces(){
         ${CHEV}
       </div></div>`).join("")}</div></section>`;
   $("plList").innerHTML=(sec("Quero ir",places.filter(p=>!p.v))+sec("Já fui",places.filter(p=>p.v)))
-    ||'<p class="empty"><b>Nenhum lugar ainda</b>Busque um lugar acima ou toque e segure no mapa para marcar um ponto.</p>';
+    ||'<p class="empty"><b>Nenhum lugar ainda</b>Toque no mapa para marcar um alfinete ou busque um endereço, depois toque em \u201CAdicionar à lista\u201D.</p>';
   drawMarkers();
 }
 function plNet(t){$("plNet").textContent=t}
-function plHint(){plNet(navigator.onLine?"Busque pelo nome ou endereço, ou toque e segure no mapa para marcar um ponto.":"Sem internet. A busca e o mapa voltam quando você se conectar.")}
+function plHint(){plNet(navigator.onLine?"Toque no mapa para marcar um alfinete (dá para arrastá-lo), ou busque um endereço no painel em cima do mapa.":"Sem internet. A busca e o mapa voltam quando você se conectar.")}
+const TACK=cls=>L.divIcon({className:"pin-icon",html:`<span class="tack ${cls}"><i class="sh"></i><i class="nd"></i><i class="hd"></i></span>`,iconSize:[30,44],iconAnchor:[15,42]});
 
 /* mapa */
 let map=null, layer=null, meMarker=null, fitted=false;
@@ -682,7 +737,11 @@ function showMap(){
     dark.addEventListener?.("change",()=>tiles.setUrl(tileUrl()));
     layer=L.layerGroup().addTo(map);
     map.setView([-14.2,-51.9],4);
-    map.on("contextmenu",e=>addFromPoint(e.latlng));
+    map.on("click",e=>{
+      if(!$("plResults").hidden||document.activeElement===$("plQuery")){hideResults();$("plQuery").blur();return}
+      dropPin(e.latlng);
+    });
+    map.on("contextmenu",e=>dropPin(e.latlng));
     drawMarkers();
   }
   setTimeout(()=>{map.invalidateSize(); if(!fitted){fitAll(false);fitted=true}},0);
@@ -693,7 +752,7 @@ function drawMarkers(){
   if(!map)return;
   layer.clearLayers();
   for(const p of places){
-    const m=L.marker([p.lat,p.lon],{icon:L.divIcon({className:"pin-icon",html:`<span class="pin${p.v?" done":""}"></span>`,iconSize:[22,22],iconAnchor:[11,27]}),title:p.n,alt:p.n,keyboard:true});
+    const m=L.marker([p.lat,p.lon],{icon:TACK(p.v?"done":""),title:p.n,alt:p.n,keyboard:true});
     m.on("click",()=>openPlace(p.id));
     layer.addLayer(m);
   }
@@ -716,51 +775,128 @@ $("locate").addEventListener("click",()=>{
   },()=>mapMsg("Não deu para ver onde você está. Permita o acesso à localização para este app nos Ajustes."),{enableHighAccuracy:true,timeout:15000});
 });
 
-/* buscar e adicionar */
-function splitName(r,typed){
-  const parts=(r.display_name||"").split(",").map(x=>x.trim()).filter(Boolean);
-  const n=r.name||typed||parts[0]||"Lugar";
-  const a=parts.filter(x=>x!==n).slice(0,3).join(", ");
-  return {n,a};
+/* busca de endereços: Photon (busca enquanto digita); Nominatim de reserva */
+const PHOTON="https://photon.komoot.io";
+const PIN_ICO='<svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M8 15s-5-4.6-5-8.3a5 5 0 0110 0C13 10.4 8 15 8 15zm0-6.3a2 2 0 100-4 2 2 0 000 4z"/></svg>';
+function fromPhoton(f){
+  const p=f.properties||{}, [lon,lat]=f.geometry.coordinates;
+  const street=[p.street,p.housenumber].filter(Boolean).join(", ");
+  const n=p.name||street||p.district||p.city||p.state||"Lugar";
+  const a=[...new Set([p.name&&street?street:"",p.district||p.locality,p.city,p.state].filter(x=>x&&x!==n))].slice(0,3).join(", ");
+  return {n,a,lat,lon};
 }
-let lastResults=[];
-$("plAdd").addEventListener("submit",async e=>{
-  e.preventDefault();
-  const q=$("plQuery").value.trim(); if(!q)return;
-  $("plQuery").blur();
-  if(!navigator.onLine){plHint();return}
-  plNet("Buscando…"); $("plResults").hidden=true;
+function fromNominatim(r){
+  const parts=(r.display_name||"").split(",").map(x=>x.trim()).filter(Boolean);
+  const n=r.name||parts[0]||"Lugar";
+  return {n,a:parts.filter(x=>x!==n).slice(0,3).join(", "),lat:+r.lat,lon:+r.lon};
+}
+async function geoSearch(q,signal){
   try{
-    let url=GEO+"/search?format=jsonv2&limit=6&accept-language=pt-BR&q="+encodeURIComponent(q);
-    if(map&&map.getZoom()>=8){const b=map.getBounds(); url+=`&viewbox=${b.getWest()},${b.getNorth()},${b.getEast()},${b.getSouth()}`}
-    const r=await fetch(url); if(!r.ok)throw new Error();
-    lastResults=(await r.json()).map(x=>({...splitName(x),lat:+x.lat,lon:+x.lon}));
-    if(!lastResults.length){plNet("Nada encontrado. Tente o nome com a cidade, ex.: \u201CConfeitaria Colombo, Rio de Janeiro\u201D.");return}
-    $("plResults").innerHTML=lastResults.map((x,k)=>`<button type="button" class="row res" data-k="${k}"><b>${esc(x.n)}</b>${x.a?`<span>${esc(x.a)}</span>`:""}</button>`).join("");
-    $("plResults").hidden=false; plNet("Toque no lugar certo para adicionar.");
-  }catch(err){plNet("A busca não respondeu. Tente de novo em instantes.")}
+    let u=`${PHOTON}/api/?limit=7&q=${encodeURIComponent(q)}`;
+    if(map){const c=map.getCenter(); u+=`&lat=${c.lat.toFixed(4)}&lon=${c.lng.toFixed(4)}&zoom=${Math.round(map.getZoom())}`}
+    const r=await fetch(u,{signal}); if(!r.ok)throw new Error("photon");
+    return (await r.json()).features.map(fromPhoton);
+  }catch(e){
+    if(e.name==="AbortError")throw e;
+    const r=await fetch(`${GEO}/search?format=jsonv2&limit=7&accept-language=pt-BR&q=${encodeURIComponent(q)}`,{signal});
+    if(!r.ok)throw new Error("nominatim");
+    return (await r.json()).map(fromNominatim);
+  }
+}
+async function geoReverse(lat,lon){
+  try{
+    const r=await fetch(`${PHOTON}/reverse?lat=${lat}&lon=${lon}`); if(!r.ok)throw 0;
+    const f=(await r.json()).features[0]; if(f)return fromPhoton(f); throw 0;
+  }catch(e){
+    const r=await fetch(`${GEO}/reverse?format=jsonv2&zoom=18&accept-language=pt-BR&lat=${lat}&lon=${lon}`); if(!r.ok)return null;
+    const j=await r.json(); return j&&j.display_name?fromNominatim({...j,lat,lon}):null;
+  }
+}
+
+let results=[], qTimer=null, qCtrl=null;
+function hideResults(){ $("plResults").hidden=true; }
+function resMsg(t){ $("plResults").innerHTML=`<p class="ms-msg">${esc(t)}</p>`; $("plResults").hidden=false; }
+async function runSearch(q){
+  if(!navigator.onLine){resMsg("Sem internet. A busca volta quando você se conectar.");return}
+  if(qCtrl)qCtrl.abort(); qCtrl=new AbortController(); const mine=qCtrl;
+  if($("plResults").hidden||!results.length)resMsg("Buscando…");
+  try{
+    const seen=new Set();
+    results=(await geoSearch(q,mine.signal)).filter(x=>{const k=x.n+"|"+x.a; if(seen.has(k))return false; seen.add(k); return true});
+    if(mine!==qCtrl)return;
+    if(!results.length){resMsg("Nada encontrado. Tente com a cidade, ex.: “Rua do Ouvidor, Rio de Janeiro”.");return}
+    $("plResults").innerHTML=results.map((x,k)=>`<button type="button" class="row res" role="option" data-k="${k}"><span class="ri">${PIN_ICO}</span><span class="rt"><b>${esc(x.n)}</b>${x.a?`<span>${esc(x.a)}</span>`:""}</span></button>`).join("");
+    $("plResults").hidden=false; $("plResults").scrollTop=0;
+  }catch(e){ if(e.name!=="AbortError"&&mine===qCtrl)resMsg("A busca não respondeu. Tente de novo em instantes."); }
+}
+$("plQuery").addEventListener("input",()=>{
+  const q=$("plQuery").value.trim();
+  $("plClear").hidden=!$("plQuery").value;
+  clearTimeout(qTimer);
+  if(q.length<3){ if(qCtrl)qCtrl.abort(); results=[]; hideResults(); return }
+  qTimer=setTimeout(()=>runSearch(q),350);
 });
-$("plQuery").addEventListener("input",()=>{if(!$("plQuery").value.trim()){$("plResults").hidden=true;plHint()}});
-$("plResults").addEventListener("click",e=>{
-  const b=e.target.closest(".res"); if(!b)return;
-  $("plQuery").value=""; $("plResults").hidden=true; plHint();
-  addPlace(lastResults[+b.dataset.k]);
+$("plQuery").addEventListener("focus",()=>{ if(results.length&&$("plQuery").value.trim().length>=3)$("plResults").hidden=false });
+$("plQuery").addEventListener("keydown",e=>{ if(e.key==="Escape"){hideResults();$("plQuery").blur()} });
+$("plAdd").addEventListener("submit",e=>{
+  e.preventDefault(); clearTimeout(qTimer);
+  const q=$("plQuery").value.trim(); if(!q)return;
+  if(results.length&&!$("plResults").hidden){ pickResult(0); return }
+  runSearch(q);
+});
+$("plClear").addEventListener("click",()=>{ $("plQuery").value=""; $("plClear").hidden=true; results=[]; hideResults(); $("plQuery").focus() });
+$("plResults").addEventListener("click",e=>{ const b=e.target.closest(".res"); if(b)pickResult(+b.dataset.k) });
+function pickResult(k){
+  const x=results[k]; if(!x)return;
+  hideResults(); $("plQuery").blur(); $("plQuery").value=x.n; $("plClear").hidden=false;
+  showPin({...x},{fly:true});
+}
+
+/* alfinete marcado (ainda não salvo) */
+let pin=null, pinMarker=null;
+function nearPlace(x){ return places.find(p=>Math.abs(p.lat-x.lat)<0.0003&&Math.abs(p.lon-x.lon)<0.0003) }
+function showPin(x,{fly=false}={}){
+  if(!map)return;
+  pin=x;
+  if(pinMarker)pinMarker.remove();
+  pinMarker=L.marker([x.lat,x.lon],{icon:TACK("prev drop"),draggable:true,zIndexOffset:1000,title:"Alfinete",alt:"Alfinete marcado",keyboard:false}).addTo(map);
+  pinMarker.on("dragend",()=>{ const ll=pinMarker.getLatLng(); pinMarker.setIcon(TACK("prev")); const y={n:"Alfinete",a:"Buscando endereço…",lat:ll.lat,lon:ll.lng}; pin=y; fillPin(); fillAddress(y) });
+  if(fly)map.flyTo([x.lat,x.lon],Math.max(map.getZoom(),16),{duration:.8});
+  fillPin();
+}
+function fillPin(){
+  if(!pin){ $("pinCard").hidden=true; return }
+  const near=nearPlace(pin);
+  $("pcName").textContent=near?near.n:pin.n;
+  $("pcAddr").textContent=near?"Já está na sua lista":(pin.a||`${pin.lat.toFixed(5)}, ${pin.lon.toFixed(5)}`);
+  $("pcAdd").textContent=near?"Ver detalhes":"Adicionar à lista";
+  $("pcRoute").href=/iPhone|iPad|Macintosh/.test(navigator.userAgent)
+    ?`https://maps.apple.com/?daddr=${pin.lat},${pin.lon}&q=${encodeURIComponent(pin.n)}`
+    :`https://www.google.com/maps/dir/?api=1&destination=${pin.lat},${pin.lon}`;
+  $("pinCard").hidden=false;
+}
+function clearPin(){ pin=null; if(pinMarker){pinMarker.remove();pinMarker=null} $("pinCard").hidden=true; }
+async function fillAddress(x){
+  if(!navigator.onLine){ x.a=""; if(pin===x)fillPin(); return }
+  let r=null; try{ r=await geoReverse(x.lat,x.lon) }catch(e){}
+  if(pin!==x)return;
+  if(r){ x.n=r.n; x.a=r.a } else { x.n="Alfinete"; x.a="" }
+  fillPin();
+}
+function dropPin(ll){ const x={n:"Alfinete",a:"Buscando endereço…",lat:ll.lat,lon:ll.lng}; showPin(x); fillAddress(x); }
+$("pcClose").addEventListener("click",()=>{ clearPin(); $("plQuery").value=""; $("plClear").hidden=true });
+$("pcAdd").addEventListener("click",()=>{
+  if(!pin)return;
+  const near=nearPlace(pin);
+  if(near){ clearPin(); openPlace(near.id); return }
+  addPlace(pin); clearPin(); $("plQuery").value=""; $("plClear").hidden=true;
 });
 function addPlace(x){
-  const near=places.find(p=>Math.abs(p.lat-x.lat)<0.0003&&Math.abs(p.lon-x.lon)<0.0003);
-  if(near){focusPlace(near); plNet(`\u201C${near.n}\u201D já está na sua lista.`); return}
-  const p={id:uid(),n:x.n,a:x.a||"",lat:x.lat,lon:x.lon,v:false};
-  places.unshift(p); savePlaces(); renderPlaces(); focusPlace(p);
+  const near=nearPlace(x);
+  if(near){focusPlace(near); return}
+  const p={id:uid(),n:x.n,a:x.a&&x.a!=="Buscando endereço…"?x.a:"",lat:x.lat,lon:x.lon,v:false};
+  places.unshift(p); savePlaces(); renderPlaces();
   showUndo("Lugar adicionado",()=>{places=places.filter(q=>q!==p); savePlaces(); renderPlaces()});
-}
-async function addFromPoint(ll){
-  let x={n:"Ponto marcado",a:`${ll.lat.toFixed(5)}, ${ll.lng.toFixed(5)}`,lat:ll.lat,lon:ll.lng};
-  if(navigator.onLine){
-    mapMsg("Marcando o ponto…");
-    try{const r=await fetch(`${GEO}/reverse?format=jsonv2&zoom=18&accept-language=pt-BR&lat=${ll.lat}&lon=${ll.lng}`); if(r.ok){const j=await r.json(); if(j&&j.display_name){const s=splitName(j); x.n=s.n; x.a=s.a}}}catch(e){}
-    mapMsg("");
-  }
-  addPlace(x);
 }
 
 /* lista: marcar, abrir, apagar */
