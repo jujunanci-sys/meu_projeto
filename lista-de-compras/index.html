@@ -112,7 +112,7 @@ form.add input::placeholder{color:var(--ink3)}
 .lnk{flex:0 0 auto;color:var(--tint);display:grid;place-items:center;width:30px;height:30px;border-radius:50%;background:color-mix(in srgb,var(--tint) 12%,transparent)}
 .lnk svg{width:14px;height:14px}
 .fg{cursor:pointer}
-.thumb{flex:0 0 auto;width:40px;height:40px;margin:-4px 0;border-radius:8px;object-fit:cover;background:#fff;box-shadow:0 0 0 .5px var(--sep)}
+.thumb{flex:0 0 auto;width:32px;height:32px;margin:-2px 0;border-radius:7px;object-fit:cover;background:#fff;box-shadow:0 0 0 .5px var(--sep)}
 .done .thumb{opacity:.55}
 .chev{flex:0 0 auto;width:8px;height:13px;color:var(--ink3);margin-left:2px}
 
@@ -263,8 +263,8 @@ function render(){
       <div class="swipe" data-id="${i.id}"><div class="bg" aria-hidden="true">Apagar</div>
         <div class="fg${i.d?" done":""}" tabindex="0" role="listitem" aria-label="${esc(i.n)}. Toque para ver a foto. Deslize para a esquerda ou aperte Delete para apagar.">
           <button class="chk" type="button" aria-pressed="${i.d}" aria-label="Marcar ${esc(i.n)} como comprado">${CHECK}</button>
-          ${photos[i.id]?`<img class="thumb" src="${photos[i.id]}" alt="">`:loading.has(i.id)?`<span class="thumb ld" aria-label="Buscando foto"></span>`:""}
           <span class="nm">${esc(i.n)}</span>
+          ${photos[i.id]?`<img class="thumb" src="${photos[i.id]}" alt="">`:loading.has(i.id)?`<span class="thumb ld" aria-label="Buscando foto"></span>`:""}
           ${i.u&&isUrl(i.u)?`<a class="lnk" href="${esc(i.u)}" target="_blank" rel="noopener noreferrer" aria-label="Abrir link de ${esc(i.n)}">${LINK}</a>`:""}
           ${CHEV}
         </div></div>`).join("")}</div></section>`;
