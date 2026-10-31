@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Lista de compras</title>
+<link rel="stylesheet" href="leaflet.css">
 <meta name="theme-color" content="#F2F2F7" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -59,7 +60,8 @@ button,input,select{font:inherit;color:inherit;letter-spacing:inherit}
 .nav-title{font-size:17px;font-weight:600;opacity:0;transform:translateY(4px);transition:opacity .2s,transform .2s;font-variant-numeric:tabular-nums}
 .nav.solid .nav-title{opacity:1;transform:none}
 
-.app{max-width:620px;margin:0 auto;padding:0 16px 120px}
+.app{max-width:620px;margin:0 auto;padding:0 16px calc(110px + env(safe-area-inset-bottom))}
+.app[hidden]{display:none}
 header{padding:2px 4px 18px}
 h1{font-size:34px;line-height:41px;font-weight:700;letter-spacing:.01em;margin:0}
 .sub{margin:2px 0 0;color:var(--ink2);font-size:15px;font-variant-numeric:tabular-nums}
@@ -158,19 +160,63 @@ dialog.sheet::backdrop{background:rgba(0,0,0,.35)}
 .empty b{display:block;color:var(--ink);font-size:20px;font-weight:600;margin-bottom:4px}
 
 /* aviso de exclusão */
-.toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom));transform:translate(-50%,16px) scale(.97);
+.toast{position:fixed;z-index:30;left:50%;bottom:calc(70px + env(safe-area-inset-bottom));transform:translate(-50%,16px) scale(.97);
   background:var(--toast);color:var(--toast-ink);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
   border-radius:999px;padding:12px 10px 12px 20px;display:flex;gap:16px;align-items:center;opacity:0;pointer-events:none;
   transition:opacity .2s,transform .3s cubic-bezier(.2,.8,.2,1);font-size:15px;max-width:calc(100% - 32px);white-space:nowrap;
   box-shadow:0 8px 30px rgba(0,0,0,.18)}
 .toast.show{opacity:1;transform:translate(-50%,0);pointer-events:auto}
 .toast button{background:none;border:0;color:#64A8FF;font-weight:600;cursor:pointer;padding:4px 10px;border-radius:999px}
+/* barra de abas */
+.tabbar{position:fixed;z-index:20;left:0;right:0;bottom:0;padding-bottom:env(safe-area-inset-bottom);
+  background:var(--bar);backdrop-filter:saturate(180%) blur(20px);-webkit-backdrop-filter:saturate(180%) blur(20px);box-shadow:0 -.5px 0 var(--sep)}
+.tabbar-in{max-width:620px;margin:0 auto;display:flex}
+.tab{flex:1;border:0;background:none;color:var(--ink2);display:flex;flex-direction:column;align-items:center;gap:1px;
+  padding:7px 0 5px;font-size:10px;font-weight:500;letter-spacing:.01em;cursor:pointer}
+.tab svg{width:27px;height:27px}
+.tab[aria-selected="true"]{color:var(--tint)}
+
+/* lugares */
+.map-wrap{position:relative;isolation:isolate;height:310px;border-radius:var(--r);overflow:hidden;background:var(--surface);margin-bottom:16px}
+#map{position:absolute;inset:0}
+.leaflet-container{font:inherit;background:var(--fill)}
+.leaflet-control-attribution{font-size:10px;background:color-mix(in srgb,var(--surface) 75%,transparent)!important;color:var(--ink2)}
+.leaflet-control-attribution a{color:var(--ink2)}
+.map-btn{position:absolute;z-index:500;right:10px;top:10px;width:40px;height:40px;border-radius:10px;border:0;cursor:pointer;
+  background:var(--bar);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);color:var(--tint);display:grid;place-items:center;
+  box-shadow:0 1px 4px rgba(0,0,0,.15)}
+.map-btn svg{width:20px;height:20px}
+.map-btn + .map-btn{top:56px}
+.map-msg{position:absolute;z-index:500;left:10px;right:60px;bottom:10px;margin:0;padding:8px 12px;border-radius:10px;font-size:13px;
+  background:var(--bar);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);color:var(--ink)}
+.map-msg[hidden]{display:none}
+.pin-icon{background:none;border:0}
+.pin{display:block;width:22px;height:22px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);background:var(--red);
+  border:2.5px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,.35)}
+.pin.done{background:var(--green)}
+.me{width:16px;height:16px;border-radius:50%;background:#0A84FF;border:3px solid #fff;box-shadow:0 0 0 6px rgba(10,132,255,.2)}
+form.plf .row input{flex:1;min-width:0;border:0;outline:0;background:none;padding:11px 0;font-size:17px}
+form.plf input::placeholder{color:var(--ink3)}
+.row .ico{width:17px;height:17px;color:var(--ink3);margin-right:8px;flex:0 0 auto}
+.results{margin-top:12px}
+.results[hidden]{display:none}
+.res{width:100%;border:0;background:none;text-align:left;cursor:pointer;padding:10px 16px!important;display:block!important}
+.res:active{background:var(--fill)}
+.res b{display:block;font-weight:500}
+.res span{display:block;font-size:13px;color:var(--ink2);margin-top:1px}
+.nm .addr{display:block;font-size:13px;color:var(--ink2);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pl-in{flex:1;min-width:0;border:0;outline:0;background:none;padding:11px 0;font-size:17px}
+.pl-in.title{font-weight:600}
+.pl-in::placeholder{color:var(--ink3)}
+.sh-addr{margin:8px 20px 18px;color:var(--ink2);font-size:13px}
+.sh-gap{height:16px}
+
 @media (prefers-reduced-motion: reduce){*{transition:none!important}}
 </style>
 </head>
 <body>
 <div class="nav" id="nav"><div class="nav-in"><span class="nav-title" id="navTitle">Lista de compras</span></div></div>
-<main class="app">
+<main class="app" id="tabCompras">
   <header id="hero">
     <h1>Lista de compras</h1>
     <p class="sub" id="sub"></p>
@@ -195,8 +241,52 @@ dialog.sheet::backdrop{background:rgba(0,0,0,.35)}
   </form>
 
   <div id="groups"></div>
-  <p class="foot" style="text-align:center;margin-top:24px">Deslize um item para a esquerda para apagar. Toque no círculo para marcar como comprado e no item para ver a foto.<br><span style="color:var(--ink3)">Versão 9</span></p>
+  <p class="foot" style="text-align:center;margin-top:24px">Deslize um item para a esquerda para apagar. Toque no círculo para marcar como comprado e no item para ver a foto.<br><span style="color:var(--ink3)">Versão 10</span></p>
 </main>
+<main class="app" id="tabLugares" hidden>
+  <header>
+    <h1>Lugares</h1>
+    <p class="sub" id="plSub"></p>
+  </header>
+  <div class="map-wrap">
+    <div id="map" role="region" aria-label="Mapa dos lugares"></div>
+    <button type="button" class="map-btn" id="fitAll" aria-label="Mostrar todos os lugares no mapa"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7V3h4M13 3h4v4M17 13v4h-4M7 17H3v-4"/></svg></button>
+    <button type="button" class="map-btn" id="locate" aria-label="Mostrar onde estou"><svg viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path d="M17.6 2.4a.8.8 0 00-.86-.18L2.9 7.6a.8.8 0 00.1 1.52l5.74 1.38 1.38 5.74a.8.8 0 001.52.1l5.38-13.84a.8.8 0 00-.18-.86z"/></svg></button>
+    <p class="map-msg" id="mapMsg" hidden></p>
+  </div>
+  <form class="plf" id="plAdd" autocomplete="off">
+    <div class="card"><div class="row">
+      <svg class="ico" viewBox="0 0 17 17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="7.5" cy="7.5" r="5.5"/><path d="M11.6 11.6L15.5 15.5"/></svg>
+      <input id="plQuery" type="search" placeholder="Buscar lugar ou endereço" aria-label="Buscar lugar ou endereço" maxlength="200" enterkeyhint="search">
+    </div></div>
+    <div class="card results" id="plResults" hidden></div>
+    <p class="foot" id="plNet"></p>
+  </form>
+  <div id="plList" style="margin-top:30px;display:flex;flex-direction:column;gap:30px"></div>
+  <p class="foot" style="text-align:center;margin-top:24px">Toque no círculo quando já tiver ido. Deslize um lugar para a esquerda para apagar.</p>
+</main>
+<nav class="tabbar" aria-label="Abas"><div class="tabbar-in" role="tablist">
+  <button type="button" class="tab" role="tab" id="tabBtnCompras" aria-controls="tabCompras" aria-selected="true">
+    <svg viewBox="0 0 28 28" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9h16l-1.3 13.2a2 2 0 01-2 1.8H9.3a2 2 0 01-2-1.8z"/><path d="M10.5 11.5V8a3.5 3.5 0 017 0v3.5"/></svg>Compras</button>
+  <button type="button" class="tab" role="tab" id="tabBtnLugares" aria-controls="tabLugares" aria-selected="false">
+    <svg viewBox="0 0 28 28" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 25s-8-7.4-8-13.2a8 8 0 0116 0C22 17.6 14 25 14 25z"/><circle cx="14" cy="11.8" r="2.9"/></svg>Lugares</button>
+</div></nav>
+<dialog class="sheet" id="plSheet" aria-label="Lugar">
+  <div class="sh-bar"><span class="grab" aria-hidden="true"></span><button type="button" class="sh-ok" id="plOk">OK</button></div>
+  <div class="card sh-acts">
+    <div class="row"><input class="pl-in title" id="plName" maxlength="120" placeholder="Nome do lugar" aria-label="Nome do lugar"></div>
+    <div class="row"><input class="pl-in" id="plNote" maxlength="200" placeholder="Observação (ex.: ir num sábado)" aria-label="Observação"></div>
+  </div>
+  <p class="sh-addr" id="plAddr"></p>
+  <div class="card sh-acts">
+    <button class="row act" type="button" id="plShow">Ver no mapa</button>
+    <a class="row act" id="plApple" target="_blank" rel="noopener noreferrer">Como chegar pelo Apple Maps</a>
+    <a class="row act" id="plGoogle" target="_blank" rel="noopener noreferrer">Como chegar pelo Google Maps</a>
+    <button class="row act" type="button" id="plVisit">Marcar como visitado</button>
+  </div>
+  <div class="sh-gap"></div>
+  <div class="card sh-acts"><button class="row act red" type="button" id="plDel">Apagar lugar</button></div>
+</dialog>
 <dialog class="sheet" id="sheet" aria-labelledby="shName">
   <div class="sh-bar"><span class="grab" aria-hidden="true"></span><button type="button" class="sh-ok" id="shOk">OK</button></div>
   <div class="ph" id="shPh"></div>
@@ -216,11 +306,15 @@ dialog.sheet::backdrop{background:rgba(0,0,0,.35)}
 </dialog>
 <div class="toast" id="toast" role="status" aria-live="polite"><span id="toastMsg"></span><button type="button" id="undo">Desfazer</button></div>
 
+<script src="leaflet.js"></script>
 <script>
 const NO_STORE="Sem loja", NEW_STORE="__nova__";
 const STORE_KEY="lista-compras-loja";
 const KEY="lista-compras-v1";
 let items=[];
+const navTitles={compras:"Lista de compras",lugares:"Lugares"};
+let tab="compras";
+function setNavTitle(){const t=document.getElementById("navTitle"); if(t)t.textContent=navTitles[tab]}
 function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,7)}
 function load(){
   try{const r=localStorage.getItem(KEY); if(r){const j=JSON.parse(r); if(Array.isArray(j))return j;}}catch(e){}
@@ -247,7 +341,7 @@ function nameFromUrl(u){
 function render(){
   const total=items.length, done=items.filter(i=>i.d).length;
   $("sub").textContent=total?`${done} de ${total} ${total===1?"item comprado":"itens comprados"}`:"Nenhum item";
-  $("navTitle").textContent=total?`${done} de ${total}`:"Lista de compras";
+  navTitles.compras=total?`${done} de ${total}`:"Lista de compras"; setNavTitle();
   $("bar").style.width=total?(done/total*100)+"%":"0%";
   const stores=storeList();
   const html=stores.map(s=>{
@@ -336,36 +430,44 @@ $("groups").addEventListener("click",e=>{
 });
 
 /* apagar com desfazer */
-let last=null,toastT=null;
-function removeItem(id){
-  const idx=items.findIndex(i=>i.id===id); if(idx<0)return;
-  if(last)dropPhoto(last.it.id);
-  last={it:items[idx],idx}; items.splice(idx,1); save(); render();
-  $("toastMsg").textContent="Item apagado"; $("toast").classList.add("show");
-  clearTimeout(toastT); toastT=setTimeout(()=>{$("toast").classList.remove("show");if(last)dropPhoto(last.it.id);last=null},5000);
+let pending=null,toastT=null;
+function settle(){ if(pending&&pending.done)pending.done(); pending=null; }
+function showUndo(msg,undo,done){
+  settle(); pending={undo,done};
+  $("toastMsg").textContent=msg; $("toast").classList.add("show");
+  clearTimeout(toastT); toastT=setTimeout(()=>{$("toast").classList.remove("show");settle()},5000);
 }
 $("undo").addEventListener("click",()=>{
-  if(!last)return; items.splice(Math.min(last.idx,items.length),0,last.it); last=null; save(); render();
+  if(!pending)return; const u=pending.undo; pending=null; u();
   $("toast").classList.remove("show");
 });
+function removeItem(id){
+  const idx=items.findIndex(i=>i.id===id); if(idx<0)return;
+  const it=items[idx]; items.splice(idx,1); save(); render();
+  showUndo("Item apagado",()=>{items.splice(Math.min(idx,items.length),0,it); save(); render()},()=>dropPhoto(it.id));
+}
 
-/* deslizar para a esquerda */
+/* deslizar para a esquerda (vale para as duas listas) */
 let drag=null, suppressClick=false;
-$("groups").addEventListener("pointerdown",e=>{
-  const fg=e.target.closest(".fg"); if(!fg||e.target.closest(".chk,.lnk"))return;
-  drag={fg,x:e.clientX,y:e.clientY,dx:0,on:false,id:e.pointerId,w:fg.offsetWidth};
-});
-$("groups").addEventListener("pointermove",e=>{
-  if(!drag||e.pointerId!==drag.id)return;
-  const dx=e.clientX-drag.x, dy=e.clientY-drag.y;
-  if(!drag.on){
-    if(Math.abs(dx)>8&&Math.abs(dx)>Math.abs(dy)*1.4){drag.on=true;drag.fg.classList.add("drag");drag.fg.parentNode.classList.add("on");try{drag.fg.setPointerCapture(e.pointerId)}catch(_){}}
-    else if(Math.abs(dy)>10){drag=null;return;}
-    else return;
-  }
-  drag.dx=Math.min(0,dx);
-  drag.fg.style.transform=`translateX(${drag.dx}px)`;
-});
+function attachSwipe(box,onRemove){
+  box.addEventListener("pointerdown",e=>{
+    const fg=e.target.closest(".fg"); if(!fg||e.target.closest(".chk,.lnk"))return;
+    drag={fg,x:e.clientX,y:e.clientY,dx:0,on:false,id:e.pointerId,w:fg.offsetWidth,onRemove};
+  });
+  box.addEventListener("pointermove",e=>{
+    if(!drag||e.pointerId!==drag.id)return;
+    const dx=e.clientX-drag.x, dy=e.clientY-drag.y;
+    if(!drag.on){
+      if(Math.abs(dx)>8&&Math.abs(dx)>Math.abs(dy)*1.4){drag.on=true;drag.fg.classList.add("drag");drag.fg.parentNode.classList.add("on");try{drag.fg.setPointerCapture(e.pointerId)}catch(_){}}
+      else if(Math.abs(dy)>10){drag=null;return;}
+      else return;
+    }
+    drag.dx=Math.min(0,dx);
+    drag.fg.style.transform=`translateX(${drag.dx}px)`;
+  });
+  box.addEventListener("pointerup",endDrag);
+  box.addEventListener("pointercancel",endDrag);
+}
 function endDrag(e){
   if(!drag||e.pointerId!==drag.id)return;
   const d=drag; drag=null;
@@ -378,11 +480,10 @@ function endDrag(e){
     d.fg.style.transform=`translateX(-${d.w+20}px)`;
     sw.style.height=sw.offsetHeight+"px";
     setTimeout(()=>{sw.classList.add("gone");},120);
-    setTimeout(()=>removeItem(id),340);
+    setTimeout(()=>d.onRemove(id),340);
   }else{ d.fg.style.transform=""; setTimeout(()=>d.fg.parentNode.classList.remove("on"),260); }
 }
-$("groups").addEventListener("pointerup",endDrag);
-$("groups").addEventListener("pointercancel",endDrag);
+attachSwipe($("groups"),removeItem);
 $("groups").addEventListener("keydown",e=>{
   if((e.key==="Delete"||e.key==="Backspace")&&e.target.classList.contains("fg")){
     e.preventDefault(); removeItem(e.target.closest(".swipe").dataset.id);
@@ -521,11 +622,197 @@ addEventListener("keydown",e=>{if(e.key==="Tab")document.documentElement.classLi
 addEventListener("pointerdown",()=>document.documentElement.classList.remove("kbd"),true);
 
 /* título grande vira barra translúcida ao rolar */
+const h1Hidden={};
+function navSolid(){ $("nav").classList.toggle("solid",!!h1Hidden[tab]) }
 if("IntersectionObserver" in window){
-  new IntersectionObserver(([en])=>$("nav").classList.toggle("solid",!en.isIntersecting),{rootMargin:"-44px 0px 0px 0px"}).observe(document.querySelector("h1"));
+  const io=new IntersectionObserver(es=>{for(const en of es)h1Hidden[en.target.closest("main").id==="tabLugares"?"lugares":"compras"]=!en.isIntersecting&&en.boundingClientRect.top<60; navSolid()},{rootMargin:"-44px 0px 0px 0px"});
+  document.querySelectorAll("main h1").forEach(h=>io.observe(h));
 }
 
-render();
+/* abas */
+const TAB_KEY="lista-aba";
+function showTab(t,{focus=false}={}){
+  tab=t;
+  $("tabCompras").hidden=t!=="compras"; $("tabLugares").hidden=t!=="lugares";
+  $("tabBtnCompras").setAttribute("aria-selected",t==="compras"); $("tabBtnLugares").setAttribute("aria-selected",t==="lugares");
+  document.title=t==="lugares"?"Lugares":"Lista de compras";
+  try{localStorage.setItem(TAB_KEY,t)}catch(e){}
+  try{history.replaceState(null,"",t==="lugares"?"#lugares":location.pathname+location.search)}catch(e){}
+  window.scrollTo(0,0); h1Hidden[t]=false; navSolid(); setNavTitle();
+  if(t==="lugares")showMap();
+}
+$("tabBtnCompras").addEventListener("click",()=>showTab("compras"));
+$("tabBtnLugares").addEventListener("click",()=>showTab("lugares"));
+
+/* ---------- lugares ---------- */
+const PL_KEY="lista-lugares-v1";
+let places=[];
+try{const r=localStorage.getItem(PL_KEY); const j=r&&JSON.parse(r); if(Array.isArray(j))places=j}catch(e){}
+function savePlaces(){try{localStorage.setItem(PL_KEY,JSON.stringify(places))}catch(e){}}
+const GEO="https://nominatim.openstreetmap.org";
+
+function renderPlaces(){
+  const total=places.length, done=places.filter(p=>p.v).length;
+  $("plSub").textContent=total?`${done} de ${total} ${total===1?"lugar visitado":"lugares visitados"}`:"Nenhum lugar ainda";
+  const sec=(title,list)=>!list.length?"":`<section class="group"><h2><span>${title}</span><span class="c">${list.length}</span></h2><div class="card" role="list">${list.map(p=>`
+    <div class="swipe" data-id="${p.id}"><div class="bg" aria-hidden="true">Apagar</div>
+      <div class="fg${p.v?" done":""}" tabindex="0" role="listitem" aria-label="${esc(p.n)}. Toque para ver detalhes. Deslize para a esquerda ou aperte Delete para apagar.">
+        <button class="chk" type="button" aria-pressed="${!!p.v}" aria-label="Marcar ${esc(p.n)} como visitado">${CHECK}</button>
+        <span class="nm">${esc(p.n)}${p.note||p.a?`<span class="addr">${esc(p.note||p.a)}</span>`:""}</span>
+        ${CHEV}
+      </div></div>`).join("")}</div></section>`;
+  $("plList").innerHTML=(sec("Quero ir",places.filter(p=>!p.v))+sec("Já fui",places.filter(p=>p.v)))
+    ||'<p class="empty"><b>Nenhum lugar ainda</b>Busque um lugar acima ou toque e segure no mapa para marcar um ponto.</p>';
+  drawMarkers();
+}
+function plNet(t){$("plNet").textContent=t}
+function plHint(){plNet(navigator.onLine?"Busque pelo nome ou endereço, ou toque e segure no mapa para marcar um ponto.":"Sem internet. A busca e o mapa voltam quando você se conectar.")}
+
+/* mapa */
+let map=null, layer=null, meMarker=null, fitted=false;
+const dark=matchMedia("(prefers-color-scheme: dark)");
+let tiles=null;
+function tileUrl(){return "https://{s}.basemaps.cartocdn.com/"+(dark.matches?"dark_all":"rastertiles/voyager")+"/{z}/{x}/{y}{r}.png"}
+function showMap(){
+  if(!window.L){mapMsg("O mapa não carregou. Verifique a internet e abra a aba de novo.");return}
+  if(!map){
+    map=L.map("map",{zoomControl:false,attributionControl:true,worldCopyJump:true});
+    map.attributionControl.setPrefix(false);
+    tiles=L.tileLayer(tileUrl(),{maxZoom:19,subdomains:"abcd",attribution:'&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions" target="_blank" rel="noopener">CARTO</a>'}).addTo(map);
+    dark.addEventListener?.("change",()=>tiles.setUrl(tileUrl()));
+    layer=L.layerGroup().addTo(map);
+    map.setView([-14.2,-51.9],4);
+    map.on("contextmenu",e=>addFromPoint(e.latlng));
+    drawMarkers();
+  }
+  setTimeout(()=>{map.invalidateSize(); if(!fitted){fitAll(false);fitted=true}},0);
+  mapMsg(navigator.onLine?"":"Sem internet: o mapa aparece quando você se conectar.");
+}
+function mapMsg(t){$("mapMsg").textContent=t; $("mapMsg").hidden=!t}
+function drawMarkers(){
+  if(!map)return;
+  layer.clearLayers();
+  for(const p of places){
+    const m=L.marker([p.lat,p.lon],{icon:L.divIcon({className:"pin-icon",html:`<span class="pin${p.v?" done":""}"></span>`,iconSize:[22,22],iconAnchor:[11,27]}),title:p.n,alt:p.n,keyboard:true});
+    m.on("click",()=>openPlace(p.id));
+    layer.addLayer(m);
+  }
+}
+function fitAll(anim=true){
+  if(!map)return;
+  if(!places.length){map.setView([-14.2,-51.9],4,{animate:anim});return}
+  if(places.length===1){map.setView([places[0].lat,places[0].lon],15,{animate:anim});return}
+  map.fitBounds(L.latLngBounds(places.map(p=>[p.lat,p.lon])),{padding:[40,40],maxZoom:15,animate:anim});
+}
+function focusPlace(p){ if(!map)return; window.scrollTo({top:0,behavior:"smooth"}); map.flyTo([p.lat,p.lon],Math.max(map.getZoom(),16),{duration:.8}); }
+$("fitAll").addEventListener("click",()=>fitAll());
+$("locate").addEventListener("click",()=>{
+  if(!navigator.geolocation||!map){mapMsg("Este aparelho não informou a localização.");return}
+  mapMsg("Procurando onde você está…");
+  navigator.geolocation.getCurrentPosition(pos=>{
+    const ll=[pos.coords.latitude,pos.coords.longitude];
+    if(meMarker)meMarker.setLatLng(ll); else meMarker=L.marker(ll,{icon:L.divIcon({className:"pin-icon",html:'<div class="me"></div>',iconSize:[16,16],iconAnchor:[8,8]}),interactive:false}).addTo(map);
+    map.flyTo(ll,15,{duration:.8}); mapMsg("");
+  },()=>mapMsg("Não deu para ver onde você está. Permita o acesso à localização para este app nos Ajustes."),{enableHighAccuracy:true,timeout:15000});
+});
+
+/* buscar e adicionar */
+function splitName(r,typed){
+  const parts=(r.display_name||"").split(",").map(x=>x.trim()).filter(Boolean);
+  const n=r.name||typed||parts[0]||"Lugar";
+  const a=parts.filter(x=>x!==n).slice(0,3).join(", ");
+  return {n,a};
+}
+let lastResults=[];
+$("plAdd").addEventListener("submit",async e=>{
+  e.preventDefault();
+  const q=$("plQuery").value.trim(); if(!q)return;
+  $("plQuery").blur();
+  if(!navigator.onLine){plHint();return}
+  plNet("Buscando…"); $("plResults").hidden=true;
+  try{
+    let url=GEO+"/search?format=jsonv2&limit=6&accept-language=pt-BR&q="+encodeURIComponent(q);
+    if(map&&map.getZoom()>=8){const b=map.getBounds(); url+=`&viewbox=${b.getWest()},${b.getNorth()},${b.getEast()},${b.getSouth()}`}
+    const r=await fetch(url); if(!r.ok)throw new Error();
+    lastResults=(await r.json()).map(x=>({...splitName(x),lat:+x.lat,lon:+x.lon}));
+    if(!lastResults.length){plNet("Nada encontrado. Tente o nome com a cidade, ex.: \u201CConfeitaria Colombo, Rio de Janeiro\u201D.");return}
+    $("plResults").innerHTML=lastResults.map((x,k)=>`<button type="button" class="row res" data-k="${k}"><b>${esc(x.n)}</b>${x.a?`<span>${esc(x.a)}</span>`:""}</button>`).join("");
+    $("plResults").hidden=false; plNet("Toque no lugar certo para adicionar.");
+  }catch(err){plNet("A busca não respondeu. Tente de novo em instantes.")}
+});
+$("plQuery").addEventListener("input",()=>{if(!$("plQuery").value.trim()){$("plResults").hidden=true;plHint()}});
+$("plResults").addEventListener("click",e=>{
+  const b=e.target.closest(".res"); if(!b)return;
+  $("plQuery").value=""; $("plResults").hidden=true; plHint();
+  addPlace(lastResults[+b.dataset.k]);
+});
+function addPlace(x){
+  const near=places.find(p=>Math.abs(p.lat-x.lat)<0.0003&&Math.abs(p.lon-x.lon)<0.0003);
+  if(near){focusPlace(near); plNet(`\u201C${near.n}\u201D já está na sua lista.`); return}
+  const p={id:uid(),n:x.n,a:x.a||"",lat:x.lat,lon:x.lon,v:false};
+  places.unshift(p); savePlaces(); renderPlaces(); focusPlace(p);
+  showUndo("Lugar adicionado",()=>{places=places.filter(q=>q!==p); savePlaces(); renderPlaces()});
+}
+async function addFromPoint(ll){
+  let x={n:"Ponto marcado",a:`${ll.lat.toFixed(5)}, ${ll.lng.toFixed(5)}`,lat:ll.lat,lon:ll.lng};
+  if(navigator.onLine){
+    mapMsg("Marcando o ponto…");
+    try{const r=await fetch(`${GEO}/reverse?format=jsonv2&zoom=18&accept-language=pt-BR&lat=${ll.lat}&lon=${ll.lng}`); if(r.ok){const j=await r.json(); if(j&&j.display_name){const s=splitName(j); x.n=s.n; x.a=s.a}}}catch(e){}
+    mapMsg("");
+  }
+  addPlace(x);
+}
+
+/* lista: marcar, abrir, apagar */
+$("plList").addEventListener("click",e=>{
+  const sw=e.target.closest(".swipe"); if(!sw)return;
+  const p=places.find(q=>q.id===sw.dataset.id); if(!p)return;
+  const b=e.target.closest(".chk");
+  if(b){p.v=!p.v; savePlaces(); b.closest(".fg").classList.toggle("done",p.v); b.setAttribute("aria-pressed",p.v); clearTimeout(b._t); b._t=setTimeout(renderPlaces,450); return}
+  if(suppressClick){suppressClick=false;return}
+  openPlace(p.id);
+});
+$("plList").addEventListener("keydown",e=>{
+  if(!e.target.classList.contains("fg"))return;
+  const id=e.target.closest(".swipe").dataset.id;
+  if(e.key==="Delete"||e.key==="Backspace"){e.preventDefault();removePlace(id)}
+  else if(e.key==="Enter"||e.key===" "){e.preventDefault();openPlace(id)}
+});
+function removePlace(id){
+  const idx=places.findIndex(p=>p.id===id); if(idx<0)return;
+  const p=places[idx]; places.splice(idx,1); savePlaces(); renderPlaces();
+  showUndo("Lugar apagado",()=>{places.splice(Math.min(idx,places.length),0,p); savePlaces(); renderPlaces()});
+}
+attachSwipe($("plList"),removePlace);
+
+/* painel do lugar */
+const plSheet=$("plSheet"); let plCur=null;
+function curPlace(){return places.find(p=>p.id===plCur)}
+function fillPlace(){
+  const p=curPlace(); if(!p){plSheet.close();return}
+  $("plName").value=p.n; $("plNote").value=p.note||"";
+  $("plAddr").textContent=p.a||`${p.lat.toFixed(5)}, ${p.lon.toFixed(5)}`;
+  $("plApple").href=`https://maps.apple.com/?daddr=${p.lat},${p.lon}&q=${encodeURIComponent(p.n)}`;
+  $("plGoogle").href=`https://www.google.com/maps/dir/?api=1&destination=${p.lat},${p.lon}`;
+  $("plVisit").textContent=p.v?"Marcar como \u201Cquero ir\u201D":"Marcar como visitado";
+}
+function openPlace(id){ plCur=id; fillPlace(); if(plSheet.showModal){if(!plSheet.open)plSheet.showModal()}else plSheet.setAttribute("open","") }
+plSheet.addEventListener("close",()=>{plCur=null; renderPlaces()});
+$("plOk").addEventListener("click",()=>plSheet.close());
+plSheet.addEventListener("click",e=>{
+  if(e.target!==plSheet)return;
+  const r=plSheet.getBoundingClientRect();
+  if(e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom)plSheet.close();
+});
+$("plName").addEventListener("input",()=>{const p=curPlace(); if(p){p.n=$("plName").value.trim()||"Lugar"; savePlaces()}});
+$("plNote").addEventListener("input",()=>{const p=curPlace(); if(p){p.note=$("plNote").value.trim(); savePlaces()}});
+$("plShow").addEventListener("click",()=>{const p=curPlace(); plSheet.close(); if(p)focusPlace(p)});
+$("plVisit").addEventListener("click",()=>{const p=curPlace(); if(p){p.v=!p.v; savePlaces(); fillPlace(); drawMarkers()}});
+$("plDel").addEventListener("click",()=>{const id=plCur; plSheet.close(); if(id)removePlace(id)});
+addEventListener("online",()=>{plHint(); if(map)mapMsg("")}); addEventListener("offline",()=>{plHint(); if(map)mapMsg("Sem internet: o mapa aparece quando você se conectar.")});
+
+render(); renderPlaces(); plHint();
+{ let t0="compras"; try{t0=location.hash==="#lugares"?"lugares":(localStorage.getItem(TAB_KEY)||"compras")}catch(e){} if(t0==="lugares")showTab("lugares"); }
 if("serviceWorker" in navigator && /^https?:$/.test(location.protocol)){
   try{navigator.serviceWorker.register("sw.js").catch(()=>{})}catch(e){}
 }

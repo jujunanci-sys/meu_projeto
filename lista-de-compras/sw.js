@@ -1,7 +1,7 @@
 // Com internet, a página vem sempre da rede (as atualizações aparecem na hora);
 // sem internet, vem da cópia guardada. Ícones e manifest saem da cópia guardada.
-const CACHE = "lista-compras-v9";
-const FILES = ["./", "./index.html", "./manifest.webmanifest", "./icon-192.png", "./icon-512.png", "./apple-touch-icon.png"];
+const CACHE = "lista-compras-v10";
+const FILES = ["./", "./index.html", "./manifest.webmanifest", "./icon-192.png", "./icon-512.png", "./apple-touch-icon.png", "./leaflet.js", "./leaflet.css"];
 
 self.addEventListener("install", (e) => {
   e.waitUntil(
