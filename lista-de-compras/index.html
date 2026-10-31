@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Lista de compras</title>
+<meta name="theme-color" content="#F2F2F7" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Compras">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<style>
+/* Layout no padrão iOS: título grande que vira barra translúcida ao rolar, listas agrupadas em cartões
+   (inset grouped), separadores finos recuados e cor de destaque do sistema. Só fontes do sistema, para funcionar offline. */
+:root{
+  --bg:#F2F2F7; --surface:#FFFFFF; --fill:rgba(118,118,128,.12);
+  --ink:#000000; --ink2:rgba(60,60,67,.6); --ink3:rgba(60,60,67,.3);
+  --sep:rgba(60,60,67,.18); --tint:#007AFF; --red:#FF3B30; --green:#34C759;
+  --bar:rgba(242,242,247,.78); --toast:rgba(30,30,32,.92); --toast-ink:#fff;
+  --font:-apple-system,BlinkMacSystemFont,"SF Pro Text","SF Pro Display","Helvetica Neue","Segoe UI",Roboto,Arial,sans-serif;
+  --r:12px;
+  color-scheme:light;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#000000; --surface:#1C1C1E; --fill:rgba(118,118,128,.24);
+    --ink:#FFFFFF; --ink2:rgba(235,235,245,.6); --ink3:rgba(235,235,245,.3);
+    --sep:rgba(84,84,88,.6); --tint:#0A84FF; --red:#FF453A; --green:#30D158;
+    --bar:rgba(18,18,20,.78); --toast:rgba(58,58,60,.95);
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#000000; --surface:#1C1C1E; --fill:rgba(118,118,128,.24);
+  --ink:#FFFFFF; --ink2:rgba(235,235,245,.6); --ink3:rgba(235,235,245,.3);
+  --sep:rgba(84,84,88,.6); --tint:#0A84FF; --red:#FF453A; --green:#30D158;
+  --bar:rgba(18,18,20,.78); --toast:rgba(58,58,60,.95);
+  color-scheme:dark;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font:17px/1.3 var(--font);letter-spacing:-.01em;
+  -webkit-font-smoothing:antialiased;
+  padding:0 env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left)}
+button,input,select{font:inherit;color:inherit;letter-spacing:inherit}
+:focus-visible{outline:3px solid color-mix(in srgb,var(--tint) 55%,transparent);outline-offset:2px;border-radius:8px}
+
+/* barra de navegação */
+.nav{position:sticky;top:0;z-index:10;padding-top:env(safe-area-inset-top);
+  background:transparent;transition:background .2s,box-shadow .2s}
+.nav.solid{background:var(--bar);backdrop-filter:saturate(180%) blur(20px);-webkit-backdrop-filter:saturate(180%) blur(20px);
+  box-shadow:0 .5px 0 var(--sep)}
+.nav-in{max-width:620px;margin:0 auto;height:44px;display:flex;align-items:center;justify-content:center;padding:0 20px}
+.nav-title{font-size:17px;font-weight:600;opacity:0;transform:translateY(4px);transition:opacity .2s,transform .2s;font-variant-numeric:tabular-nums}
+.nav.solid .nav-title{opacity:1;transform:none}
+
+.app{max-width:620px;margin:0 auto;padding:0 16px 120px}
+header{padding:2px 4px 18px}
+h1{font-size:34px;line-height:41px;font-weight:700;letter-spacing:.01em;margin:0}
+.sub{margin:2px 0 0;color:var(--ink2);font-size:15px;font-variant-numeric:tabular-nums}
+.bar{height:4px;border-radius:2px;background:var(--fill);overflow:hidden;margin-top:12px}
+.bar i{display:block;height:100%;width:0;background:var(--green);border-radius:2px;transition:width .4s cubic-bezier(.2,.8,.2,1)}
+
+/* cartões agrupados */
+.card{background:var(--surface);border-radius:var(--r);overflow:hidden}
+.row{display:flex;align-items:center;min-height:44px;padding:0 16px;position:relative}
+.row + .row::before{content:"";position:absolute;top:0;left:16px;right:0;height:.5px;background:var(--sep)}
+.foot{color:var(--ink2);font-size:13px;line-height:18px;margin:7px 16px 0}
+
+/* adicionar */
+form.add .row input{flex:1;min-width:0;border:0;outline:0;background:none;padding:11px 0;font-size:17px}
+form.add input::placeholder{color:var(--ink3)}
+.row label{flex:0 0 auto;margin-right:12px}
+.sel{flex:1;display:flex;justify-content:flex-end;align-items:center;gap:6px;color:var(--ink2);min-width:0;position:relative}
+.sel select{appearance:none;-webkit-appearance:none;border:0;background:none;color:var(--ink2);text-align:right;text-align-last:right;
+  padding:11px 18px 11px 0;margin-right:-18px;cursor:pointer;max-width:100%;outline-offset:-2px}
+.sel svg{width:8px;height:13px;color:var(--ink3);pointer-events:none}
+.actions{display:flex;gap:10px;margin-top:12px}
+.btn{flex:1;display:flex;align-items:center;justify-content:center;gap:6px;min-height:50px;border-radius:var(--r);border:0;
+  font-size:17px;font-weight:600;cursor:pointer;text-decoration:none;transition:opacity .15s,transform .15s}
+.btn:active{transform:scale(.98);opacity:.85}
+.btn.primary{background:var(--tint);color:#fff}
+.btn.tinted{background:color-mix(in srgb,var(--tint) 14%,transparent);color:var(--tint)}
+.btn svg{width:17px;height:17px}
+.btn[aria-disabled="true"]{color:var(--ink3);background:var(--fill);pointer-events:none}
+
+/* lojas */
+#groups{margin-top:30px;display:flex;flex-direction:column;gap:30px}
+.group h2{margin:0 16px 7px;font-size:13px;line-height:18px;font-weight:400;color:var(--ink2);
+  display:flex;justify-content:space-between;font-variant-numeric:tabular-nums}
+.group h2 span:first-child{text-transform:uppercase;letter-spacing:.02em}
+.group.all-done h2 .c{color:var(--green)}
+.swipe{position:relative;overflow:hidden}
+.swipe + .swipe::before{content:"";position:absolute;z-index:2;top:0;left:54px;right:0;height:.5px;background:var(--sep)}
+.swipe .bg{position:absolute;inset:0;background:var(--red);color:#fff;display:flex;align-items:center;justify-content:flex-end;padding-right:22px;font-size:15px;font-weight:500;visibility:hidden}
+.swipe.on .bg{visibility:visible}
+.swipe .fg{position:relative;background:var(--surface);display:flex;align-items:center;gap:12px;min-height:48px;padding:10px 14px 10px 16px;
+  touch-action:pan-y;user-select:none;-webkit-user-select:none;transition:transform .25s cubic-bezier(.2,.8,.2,1)}
+.swipe .fg:focus-visible{outline-offset:-3px;border-radius:0}
+.swipe .fg.drag{transition:none}
+.swipe.gone{height:0!important;transition:height .22s ease}
+.chk{width:26px;height:26px;margin:-2px;border-radius:50%;border:1.5px solid var(--ink3);background:transparent;flex:0 0 auto;
+  display:grid;place-items:center;padding:0;cursor:pointer;color:transparent;transition:background .2s,border-color .2s}
+.chk svg{width:14px;height:14px;transform:scale(.4);transition:transform .25s cubic-bezier(.3,1.6,.5,1)}
+.done .chk{background:var(--tint);border-color:var(--tint);color:#fff}
+.done .chk svg{transform:scale(1)}
+.nm{flex:1;min-width:0;overflow-wrap:anywhere;transition:color .2s}
+.done .nm{color:var(--ink2)}
+.lnk{flex:0 0 auto;color:var(--tint);display:grid;place-items:center;width:30px;height:30px;border-radius:50%;background:color-mix(in srgb,var(--tint) 12%,transparent)}
+.lnk svg{width:14px;height:14px}
+.empty{color:var(--ink2);text-align:center;padding:48px 16px;margin:0}
+.empty b{display:block;color:var(--ink);font-size:20px;font-weight:600;margin-bottom:4px}
+
+/* aviso de exclusão */
+.toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom));transform:translate(-50%,16px) scale(.97);
+  background:var(--toast);color:var(--toast-ink);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
+  border-radius:999px;padding:12px 10px 12px 20px;display:flex;gap:16px;align-items:center;opacity:0;pointer-events:none;
+  transition:opacity .2s,transform .3s cubic-bezier(.2,.8,.2,1);font-size:15px;max-width:calc(100% - 32px);white-space:nowrap;
+  box-shadow:0 8px 30px rgba(0,0,0,.18)}
+.toast.show{opacity:1;transform:translate(-50%,0);pointer-events:auto}
+.toast button{background:none;border:0;color:#64A8FF;font-weight:600;cursor:pointer;padding:4px 10px;border-radius:999px}
+@media (prefers-reduced-motion: reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<div class="nav" id="nav"><div class="nav-in"><span class="nav-title" id="navTitle">Lista de compras</span></div></div>
+<main class="app">
+  <header id="hero">
+    <h1>Lista de compras</h1>
+    <p class="sub" id="sub"></p>
+    <div class="bar"><i id="bar"></i></div>
+  </header>
+
+  <form class="add" id="add" autocomplete="off">
+    <div class="card">
+      <div class="row"><input id="newName" type="text" placeholder="Novo item ou link do produto" aria-label="Novo item ou link do produto" maxlength="200" enterkeyhint="done"></div>
+      <div class="row"><label for="newStore">Loja</label>
+        <span class="sel"><select id="newStore"></select>
+          <svg viewBox="0 0 8 13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1.5 1.5l5 5-5 5"/></svg></span></div>
+      <div class="row"><input id="newUrl" type="url" inputmode="url" placeholder="Link do produto (opcional)" aria-label="Link do produto (opcional)" maxlength="500"></div>
+    </div>
+    <div class="actions">
+      <a id="gs" class="btn tinted" target="_blank" rel="noopener noreferrer" aria-disabled="true">
+        <svg viewBox="0 0 17 17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="7.5" cy="7.5" r="5.5"/><path d="M11.6 11.6L15.5 15.5"/></svg>Buscar</a>
+      <button type="submit" class="btn primary">Adicionar</button>
+    </div>
+    <p class="foot" id="net"></p>
+  </form>
+
+  <div id="groups"></div>
+  <p class="foot" style="text-align:center;margin-top:24px">Deslize um item para a esquerda para apagar. Toque no círculo para marcar como comprado.</p>
+</main>
+<div class="toast" id="toast" role="status" aria-live="polite"><span id="toastMsg"></span><button type="button" id="undo">Desfazer</button></div>
+
+<script>
+const STORES=["Levi's","Uniqlo","Abercrombie","Polo Ralph Lauren","New Balance","On","DJI","RingConn","Outra loja"];
+const SEED=[
+["Levi's","Jaqueta trucker jeans"],["Levi's","Jeans 501 azul médio"],["Levi's","Jeans reto azul-escuro"],["Levi's","Jeans reto preto"],["Levi's","Jeans baggy lavagem clara"],
+["Uniqlo","Camiseta de algodão branca"],["Uniqlo","Camiseta preta"],["Uniqlo","Camisa oxford azul-clara"],["Uniqlo","Gola alta fina off-white"],["Uniqlo","Suéter de lã merino azul-marinho"],["Uniqlo","Suéter cinza mescla"],["Uniqlo","Cardigã preto de botões"],["Uniqlo","Blazer cinza-chumbo"],["Uniqlo","Overshirt de algodão bege"],["Uniqlo","Calça larga cinza-chumbo"],["Uniqlo","Calça preta reta"],["Uniqlo","Calça barrel de jérsei cru (Jersey Barrel Pants, ID 490451)"],
+["Abercrombie","Baby tee branca"],["Abercrombie","Suéter gola V marrom-chocolate"],["Abercrombie","Jaqueta de couro marrom"],["Abercrombie","Calça de alfaiataria larga verde-oliva"],
+["Polo Ralph Lauren","Camisa oxford branca"],["Polo Ralph Lauren","Polo de piquê azul-marinho"],["Polo Ralph Lauren","Suéter de tricô trançado cru"],["Polo Ralph Lauren","Jaqueta Harrington bege"],["Polo Ralph Lauren","Chino bege"],["Polo Ralph Lauren","Tênis de couro branco"],["Polo Ralph Lauren","Cinto de couro marrom"],["Polo Ralph Lauren","Boné azul-marinho"],["Polo Ralph Lauren","Tote de lona cru"],
+["New Balance","New Balance 204L cinza"],
+["On","Tênis On Cloud off-white"],
+["DJI","DJI Osmo Pocket 4"],
+["RingConn","RingConn (anel inteligente)"],
+["Outra loja","Sapatilha nude"]
+];
+const KEY="lista-compras-v1";
+let items=[];
+function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,7)}
+function load(){
+  try{const r=localStorage.getItem(KEY); if(r){const j=JSON.parse(r); if(Array.isArray(j))return j;}}catch(e){}
+  return SEED.map(([s,n])=>({id:uid(),s,n,d:false}));
+}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(items))}catch(e){}}
+items=load();
+
+const $=id=>document.getElementById(id);
+const esc=t=>t.replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const CHECK='<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8.5l3.2 3.2L13 4.5"/></svg>';
+const LINK='<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3.5h-2a1.5 1.5 0 00-1.5 1.5v7A1.5 1.5 0 004 13.5h7a1.5 1.5 0 001.5-1.5v-2M9 2.5h4.5V7M13.5 2.5L7.5 8.5"/></svg>';
+const isUrl=t=>/^https?:\/\/\S+$/i.test(t);
+function nameFromUrl(u){
+  try{
+    const x=new URL(u); let s=decodeURIComponent(x.pathname.split("/").filter(Boolean).pop()||"");
+    s=s.replace(/\.[a-z0-9]{2,5}$/i,"").replace(/[-_+]+/g," ").trim();
+    if(s.length<3||/^[\d\s]+$/.test(s))s=x.hostname.replace(/^www\./,"");
+    return s.charAt(0).toUpperCase()+s.slice(1);
+  }catch(e){return u}
+}
+function render(){
+  const total=items.length, done=items.filter(i=>i.d).length;
+  $("sub").textContent=total?`${done} de ${total} ${total===1?"item comprado":"itens comprados"}`:"Nenhum item";
+  $("navTitle").textContent=total?`${done} de ${total}`:"Lista de compras";
+  $("bar").style.width=total?(done/total*100)+"%":"0%";
+  const stores=[...STORES,...new Set(items.map(i=>i.s).filter(s=>!STORES.includes(s)))];
+  const html=stores.map(s=>{
+    const list=items.filter(i=>i.s===s); if(!list.length)return"";
+    const d=list.filter(i=>i.d).length;
+    return `<section class="group${d===list.length?" all-done":""}"><h2><span>${esc(s)}</span><span class="c">${d} de ${list.length}</span></h2><div class="card" role="list">${list.map(i=>`
+      <div class="swipe" data-id="${i.id}"><div class="bg" aria-hidden="true">Apagar</div>
+        <div class="fg${i.d?" done":""}" tabindex="0" role="listitem" aria-label="${esc(i.n)}. Deslize para a esquerda ou aperte Delete para apagar.">
+          <button class="chk" type="button" aria-pressed="${i.d}" aria-label="Marcar ${esc(i.n)} como comprado">${CHECK}</button>
+          <span class="nm">${esc(i.n)}</span>
+          ${i.u&&isUrl(i.u)?`<a class="lnk" href="${esc(i.u)}" target="_blank" rel="noopener noreferrer" aria-label="Abrir link de ${esc(i.n)}">${LINK}</a>`:""}
+        </div></div>`).join("")}</div></section>`;
+  }).join("");
+  $("groups").innerHTML=html||'<p class="empty"><b>Lista vazia</b>Adicione um item acima.</p>';
+}
+
+/* seletor de loja */
+$("newStore").innerHTML=STORES.map(s=>`<option>${esc(s)}</option>`).join("");
+
+/* adicionar */
+$("add").addEventListener("submit",e=>{
+  e.preventDefault();
+  let n=$("newName").value.trim(), u=$("newUrl").value.trim();
+  if(isUrl(n)){ u=u||n; n=nameFromUrl(n); }
+  if(u&&!/^https?:\/\//i.test(u))u="https://"+u;
+  if(u&&!isUrl(u))u="";
+  if(!n&&u)n=nameFromUrl(u);
+  if(!n)return;
+  const it={id:uid(),s:$("newStore").value,n,d:false}; if(u)it.u=u;
+  items.push(it);
+  $("newName").value=""; $("newUrl").value=""; save(); render(); netUpdate();
+});
+
+/* busca na internet (só com conexão) */
+function netUpdate(){
+  const q=$("newName").value.trim(), on=navigator.onLine, ok=on&&q&&!isUrl(q);
+  const a=$("gs");
+  a.setAttribute("aria-disabled",ok?"false":"true");
+  a.href=ok?"https://www.google.com/search?tbm=shop&q="+encodeURIComponent(q):"#";
+  $("net").textContent=!on?"Sem internet. A busca volta quando você se conectar."
+    :(q&&!isUrl(q)?"Achou o produto? Copie o link e cole em “Link do produto” para salvar.":"Digite o que procura e toque em Buscar.");
+}
+$("newName").addEventListener("input",netUpdate);
+addEventListener("online",netUpdate); addEventListener("offline",netUpdate);
+netUpdate();
+
+/* marcar: só troca a classe, para a animação do círculo rodar */
+$("groups").addEventListener("click",e=>{
+  const b=e.target.closest(".chk"); if(!b)return;
+  const id=b.closest(".swipe").dataset.id;
+  const it=items.find(i=>i.id===id); if(!it)return;
+  it.d=!it.d; save();
+  b.closest(".fg").classList.toggle("done",it.d); b.setAttribute("aria-pressed",it.d);
+  clearTimeout(b._t); b._t=setTimeout(render,450);
+  const total=items.length, done=items.filter(i=>i.d).length;
+  $("bar").style.width=(done/total*100)+"%";
+});
+
+/* apagar com desfazer */
+let last=null,toastT=null;
+function removeItem(id){
+  const idx=items.findIndex(i=>i.id===id); if(idx<0)return;
+  last={it:items[idx],idx}; items.splice(idx,1); save(); render();
+  $("toastMsg").textContent="Item apagado"; $("toast").classList.add("show");
+  clearTimeout(toastT); toastT=setTimeout(()=>{$("toast").classList.remove("show");last=null},5000);
+}
+$("undo").addEventListener("click",()=>{
+  if(!last)return; items.splice(Math.min(last.idx,items.length),0,last.it); last=null; save(); render();
+  $("toast").classList.remove("show");
+});
+
+/* deslizar para a esquerda */
+let drag=null;
+$("groups").addEventListener("pointerdown",e=>{
+  const fg=e.target.closest(".fg"); if(!fg||e.target.closest(".chk,.lnk"))return;
+  drag={fg,x:e.clientX,y:e.clientY,dx:0,on:false,id:e.pointerId,w:fg.offsetWidth};
+});
+$("groups").addEventListener("pointermove",e=>{
+  if(!drag||e.pointerId!==drag.id)return;
+  const dx=e.clientX-drag.x, dy=e.clientY-drag.y;
+  if(!drag.on){
+    if(Math.abs(dx)>8&&Math.abs(dx)>Math.abs(dy)*1.4){drag.on=true;drag.fg.classList.add("drag");drag.fg.parentNode.classList.add("on");try{drag.fg.setPointerCapture(e.pointerId)}catch(_){}}
+    else if(Math.abs(dy)>10){drag=null;return;}
+    else return;
+  }
+  drag.dx=Math.min(0,dx);
+  drag.fg.style.transform=`translateX(${drag.dx}px)`;
+});
+function endDrag(e){
+  if(!drag||e.pointerId!==drag.id)return;
+  const d=drag; drag=null;
+  if(!d.on)return;
+  d.fg.classList.remove("drag");
+  const limit=Math.min(110,d.w*0.35);
+  if(d.dx<=-limit){
+    const sw=d.fg.closest(".swipe"), id=sw.dataset.id;
+    d.fg.style.transform=`translateX(-${d.w+20}px)`;
+    sw.style.height=sw.offsetHeight+"px";
+    setTimeout(()=>{sw.classList.add("gone");},120);
+    setTimeout(()=>removeItem(id),340);
+  }else{ d.fg.style.transform=""; setTimeout(()=>d.fg.parentNode.classList.remove("on"),260); }
+}
+$("groups").addEventListener("pointerup",endDrag);
+$("groups").addEventListener("pointercancel",endDrag);
+$("groups").addEventListener("keydown",e=>{
+  if((e.key==="Delete"||e.key==="Backspace")&&e.target.classList.contains("fg")){
+    e.preventDefault(); removeItem(e.target.closest(".swipe").dataset.id);
+  }
+});
+
+/* título grande vira barra translúcida ao rolar */
+if("IntersectionObserver" in window){
+  new IntersectionObserver(([en])=>$("nav").classList.toggle("solid",!en.isIntersecting),{rootMargin:"-44px 0px 0px 0px"}).observe(document.querySelector("h1"));
+}
+
+render();
+if("serviceWorker" in navigator && /^https?:$/.test(location.protocol)){
+  try{navigator.serviceWorker.register("sw.js").catch(()=>{})}catch(e){}
+}
+</script>
+</body>
+</html>
