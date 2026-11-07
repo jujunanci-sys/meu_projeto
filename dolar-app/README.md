@@ -10,7 +10,7 @@ Abra o arquivo `index.html` no navegador (duplo clique). Não precisa instalar n
 
 - **Preço ao vivo**: consulta a cotação a cada segundo e mostra se subiu ou caiu.
 - **Termômetro de compra**: compara o preço de agora com os últimos 30 dias e diz, em linguagem simples,
-  se é 🟢 bom momento, 🟡 preço normal ou 🔴 caro.
+  se é bom momento, preço normal ou caro.
 - **Gráfico dos últimos 30 dias** com a média do mês.
 - **Simulador**: digite quantos dólares quer e veja quanto custa em reais.
 - **Meus preços salvos**: o botão "Salvar este preço" guarda o valor e a data/hora. A tabela mostra se hoje
