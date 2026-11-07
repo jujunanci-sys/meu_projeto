@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Dólar Hoje Fácil</title>
+<style>
+  :root {
+    --bg: #f4f6f8;
+    --card: #ffffff;
+    --text: #1d2733;
+    --muted: #64707d;
+    --line: #e3e8ee;
+    --accent: #1f6feb;
+    --good: #1a9e57;
+    --good-bg: #e5f6ec;
+    --mid: #c98a00;
+    --mid-bg: #fff4d6;
+    --bad: #d1373b;
+    --bad-bg: #fde8e8;
+    --shadow: 0 1px 3px rgba(20, 30, 45, .08), 0 4px 16px rgba(20, 30, 45, .05);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #10151b;
+      --card: #19212a;
+      --text: #e8edf2;
+      --muted: #94a1ae;
+      --line: #2a3542;
+      --accent: #5b9dff;
+      --good: #3ccf7e;
+      --good-bg: #163225;
+      --mid: #f0b429;
+      --mid-bg: #3a2f12;
+      --bad: #ff6b6e;
+      --bad-bg: #3d1c1e;
+      --shadow: none;
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    line-height: 1.45;
+  }
+  .wrap { max-width: 980px; margin: 0 auto; padding: 24px 16px 48px; }
+  header h1 { margin: 0; font-size: 1.6rem; }
+  header p { margin: 4px 0 0; color: var(--muted); }
+  .grid { display: grid; gap: 16px; margin-top: 20px; grid-template-columns: 1fr 1fr; }
+  .full { grid-column: 1 / -1; }
+  @media (max-width: 760px) { .grid { grid-template-columns: 1fr; } }
+  .card {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    padding: 20px;
+    box-shadow: var(--shadow);
+  }
+  .card h2 { margin: 0 0 12px; font-size: 1.05rem; }
+  .label { color: var(--muted); font-size: .9rem; }
+
+  /* Preço ao vivo */
+  .live { display: flex; align-items: center; gap: 8px; font-size: .85rem; color: var(--muted); }
+  .dot { width: 10px; height: 10px; border-radius: 50%; background: var(--good); }
+  .dot.pulse { animation: pulse 1s ease-out; }
+  .dot.off { background: var(--bad); }
+  @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(26,158,87,.6); } 100% { box-shadow: 0 0 0 12px rgba(26,158,87,0); } }
+  .price { font-size: clamp(2.6rem, 9vw, 4rem); font-weight: 800; letter-spacing: -1px; margin: 8px 0 4px; font-variant-numeric: tabular-nums; transition: color .4s; }
+  .price.up { color: var(--bad); }
+  .price.down { color: var(--good); }
+  .change { font-size: .95rem; font-weight: 600; }
+  .change.up { color: var(--bad); }
+  .change.down { color: var(--good); }
+  .change.flat { color: var(--muted); }
+  .row { display: flex; flex-wrap: wrap; gap: 8px 20px; margin-top: 14px; }
+  .row div { font-size: .9rem; }
+  .row strong { display: block; font-size: 1.05rem; font-variant-numeric: tabular-nums; }
+
+  .btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+    margin-top: 18px; width: 100%;
+    padding: 14px 18px; border: 0; border-radius: 12px;
+    background: var(--accent); color: #fff; font-size: 1.05rem; font-weight: 700;
+    cursor: pointer;
+  }
+  .btn:hover { filter: brightness(1.08); }
+  .btn:disabled { opacity: .5; cursor: not-allowed; }
+
+  /* Termômetro */
+  .verdict { border-radius: 12px; padding: 14px 16px; font-weight: 700; font-size: 1.1rem; }
+  .verdict small { display: block; font-weight: 400; font-size: .92rem; margin-top: 4px; color: var(--text); }
+  .verdict.good { background: var(--good-bg); color: var(--good); }
+  .verdict.mid { background: var(--mid-bg); color: var(--mid); }
+  .verdict.bad { background: var(--bad-bg); color: var(--bad); }
+  .verdict.wait { background: var(--line); color: var(--muted); }
+  .meter { position: relative; height: 14px; border-radius: 7px; margin: 22px 0 6px;
+    background: linear-gradient(90deg, var(--good), var(--mid), var(--bad)); }
+  .meter .pin { position: absolute; top: -6px; width: 6px; height: 26px; border-radius: 3px;
+    background: var(--text); border: 2px solid var(--card); transform: translateX(-50%); transition: left .5s; }
+  .meter-labels { display: flex; justify-content: space-between; font-size: .8rem; color: var(--muted); }
+  .tip { margin-top: 12px; font-size: .9rem; color: var(--muted); }
+
+  /* Gráfico */
+  .chart-wrap { position: relative; width: 100%; height: 240px; }
+  svg { display: block; width: 100%; height: 100%; }
+  .chart-tip { position: absolute; pointer-events: none; background: var(--text); color: var(--card);
+    padding: 4px 8px; border-radius: 6px; font-size: .8rem; white-space: nowrap; transform: translate(-50%, -120%); display: none; }
+
+  /* Simulador */
+  .sim { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+  .sim input { font-size: 1.1rem; padding: 10px 12px; border-radius: 10px; border: 1px solid var(--line);
+    background: var(--bg); color: var(--text); width: 140px; }
+  .sim-out { font-size: 1.4rem; font-weight: 800; margin-top: 10px; font-variant-numeric: tabular-nums; }
+
+  /* Salvos */
+  table { width: 100%; border-collapse: collapse; font-size: .95rem; }
+  th, td { text-align: left; padding: 10px 8px; border-bottom: 1px solid var(--line); }
+  th { color: var(--muted); font-weight: 600; font-size: .82rem; text-transform: uppercase; letter-spacing: .03em; }
+  td.num { font-variant-numeric: tabular-nums; }
+  .del { background: none; border: 0; color: var(--muted); cursor: pointer; font-size: 1.1rem; padding: 4px 8px; border-radius: 6px; }
+  .del:hover { color: var(--bad); background: var(--bad-bg); }
+  .empty { color: var(--muted); text-align: center; padding: 24px 8px; }
+  .table-scroll { overflow-x: auto; }
+  .toolbar { display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .link { background: none; border: 0; color: var(--accent); cursor: pointer; font-size: .9rem; padding: 0; }
+  .toast { position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%) translateY(120px);
+    background: var(--text); color: var(--card); padding: 12px 20px; border-radius: 12px; font-weight: 600;
+    transition: transform .3s; z-index: 10; }
+  .toast.show { transform: translateX(-50%) translateY(0); }
+
+  details { margin-top: 4px; }
+  details summary { cursor: pointer; font-weight: 600; padding: 6px 0; }
+  details p { margin: 6px 0 10px; color: var(--muted); font-size: .93rem; }
+  footer { margin-top: 24px; font-size: .8rem; color: var(--muted); text-align: center; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>💵 Dólar Hoje, Fácil</h1>
+    <p>Acompanhe o dólar em tempo real e veja, em linguagem simples, se é uma boa hora para comprar.</p>
+  </header>
+
+  <div class="grid">
+    <!-- Preço agora -->
+    <section class="card">
+      <div class="live"><span class="dot" id="dot"></span><span id="status">Conectando…</span></div>
+      <div class="label" style="margin-top:10px">1 dólar americano custa agora</div>
+      <div class="price" id="price">R$ --,--</div>
+      <div class="change flat" id="change">Carregando…</div>
+      <div class="row">
+        <div><span class="label">Menor de hoje</span><strong id="low">--</strong></div>
+        <div><span class="label">Maior de hoje</span><strong id="high">--</strong></div>
+        <div><span class="label">Agora são</span><strong id="clock">--:--:--</strong></div>
+      </div>
+      <button class="btn" id="saveBtn" disabled>📌 Salvar este preço</button>
+    </section>
+
+    <!-- Termômetro -->
+    <section class="card">
+      <h2>🌡️ É uma boa hora para comprar?</h2>
+      <div class="verdict wait" id="verdict">Analisando os últimos 30 dias…</div>
+      <div class="meter"><div class="pin" id="pin" style="left:50%"></div></div>
+      <div class="meter-labels"><span id="minLbl">Mais barato do mês</span><span id="maxLbl">Mais caro do mês</span></div>
+      <p class="tip" id="avgText"></p>
+    </section>
+
+    <!-- Gráfico -->
+    <section class="card full">
+      <h2>📈 Como o dólar andou nos últimos 30 dias</h2>
+      <div class="chart-wrap" id="chartWrap">
+        <svg id="chart" preserveAspectRatio="none"></svg>
+        <div class="chart-tip" id="chartTip"></div>
+      </div>
+      <p class="tip">Linha subindo = dólar ficando mais caro. Linha descendo = dólar ficando mais barato. A linha tracejada é a média do mês.</p>
+    </section>
+
+    <!-- Simulador -->
+    <section class="card">
+      <h2>🧮 Quanto vou pagar?</h2>
+      <div class="sim">
+        <label for="usd">Quero comprar US$</label>
+        <input id="usd" type="number" min="0" step="10" value="100" inputmode="decimal">
+      </div>
+      <div class="sim-out" id="simOut">R$ --</div>
+      <p class="tip">Valor pela cotação comercial. Em casas de câmbio e no cartão o preço final costuma ser uns 3% a 7% maior (taxas e IOF).</p>
+    </section>
+
+    <!-- Dicionário -->
+    <section class="card">
+      <h2>📖 Explicando sem complicar</h2>
+      <details><summary>O que é “cotação”?</summary>
+        <p>É o preço de 1 dólar em reais naquele momento. Ele muda o tempo todo, como o preço de qualquer coisa que muita gente compra e vende.</p></details>
+      <details><summary>Como o app decide se está “barato”?</summary>
+        <p>Ele compara o preço de agora com o menor e o maior preço dos últimos 30 dias. Se estiver perto do menor, é um bom momento; perto do maior, talvez valha esperar.</p></details>
+      <details><summary>Dica de ouro</summary>
+        <p>Ninguém acerta o momento perfeito. Se você precisa de dólar para uma viagem, comprar aos poucos (um pouco por semana) protege você de comprar tudo no dia mais caro.</p></details>
+    </section>
+
+    <!-- Painel de salvos -->
+    <section class="card full">
+      <div class="toolbar">
+        <h2 style="margin:0">📋 Meus preços salvos</h2>
+        <button class="link" id="clearAll" hidden>Apagar todos</button>
+      </div>
+      <p class="tip" style="margin-top:6px">Toque em “Salvar este preço” para guardar o valor e a data. Assim você compara depois se o dólar subiu ou caiu.</p>
+      <div class="table-scroll">
+        <table>
+          <thead><tr><th>Data</th><th>Hora</th><th>Preço salvo</th><th>Comparado a agora</th><th></th></tr></thead>
+          <tbody id="savedBody"></tbody>
+        </table>
+      </div>
+    </section>
+  </div>
+
+  <footer>
+    Dados: AwesomeAPI (cotação comercial USD/BRL). O app consulta a cada segundo; a fonte atualiza o valor em intervalos curtos.<br>
+    Este app é informativo e não é recomendação de investimento.
+  </footer>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+(() => {
+  const LIVE_URL = 'https://economia.awesomeapi.com.br/json/last/USD-BRL';
+  const HIST_URL = 'https://economia.awesomeapi.com.br/json/daily/USD-BRL/30';
+  const FALLBACK_LIVE = 'https://api.frankfurter.app/latest?from=USD&to=BRL';
+  const STORE_KEY = 'dolar-app:salvos';
+
+  const brl = v => v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL', minimumFractionDigits: 2, maximumFractionDigits: 4 });
+  const brl2 = v => v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+  const $ = id => document.getElementById(id);
+
+  let current = null;       // preço atual
+  let lastTick = null;      // momento da última resposta ok
+  let history = [];         // [{date, value}]
+  let backoffUntil = 0;
+  let inFlight = false;
+
+  // ---------- Preço ao vivo ----------
+  async function fetchLive() {
+    if (inFlight || Date.now() < backoffUntil) return;
+    inFlight = true;
+    try {
+      const res = await fetch(LIVE_URL, { cache: 'no-store' });
+      if (res.status === 429) { backoffUntil = Date.now() + 5000; throw new Error('limite'); }
+      if (!res.ok) throw new Error('http ' + res.status);
+      const d = (await res.json()).USDBRL;
+      update(parseFloat(d.bid), parseFloat(d.low), parseFloat(d.high), parseFloat(d.pctChange));
+    } catch (e) {
+      try {
+        const r = await fetch(FALLBACK_LIVE, { cache: 'no-store' });
+        const j = await r.json();
+        if (j && j.rates && j.rates.BRL) update(j.rates.BRL);
+        else throw e;
+      } catch {
+        $('dot').classList.add('off');
+        $('status').textContent = 'Sem conexão com a cotação — tentando de novo…';
+      }
+    } finally {
+      inFlight = false;
+    }
+  }
+
+  function update(price, low, high, pct) {
+    const prev = current;
+    current = price;
+    lastTick = Date.now();
+
+    const el = $('price');
+    el.textContent = brl(price);
+    el.classList.remove('up', 'down');
+    if (prev !== null && price !== prev) {
+      el.classList.add(price > prev ? 'up' : 'down');
+      setTimeout(() => el.classList.remove('up', 'down'), 900);
+    }
+
+    const ch = $('change');
+    if (typeof pct === 'number' && !isNaN(pct)) {
+      ch.className = 'change ' + (pct > 0 ? 'up' : pct < 0 ? 'down' : 'flat');
+      ch.textContent = pct > 0 ? `▲ Subiu ${pct.toFixed(2).replace('.', ',')}% hoje (ficou mais caro)`
+                     : pct < 0 ? `▼ Caiu ${Math.abs(pct).toFixed(2).replace('.', ',')}% hoje (ficou mais barato)`
+                     : 'Sem variação hoje';
+    }
+    if (low) $('low').textContent = brl2(low);
+    if (high) $('high').textContent = brl2(high);
+
+    const dot = $('dot');
+    dot.classList.remove('off', 'pulse');
+    void dot.offsetWidth;
+    dot.classList.add('pulse');
+
+    $('saveBtn').disabled = false;
+    renderVerdict();
+    renderSim();
+    renderSaved();
+    renderChart();
+  }
+
+  // Relógio + status a cada segundo
+  function tick() {
+    const now = new Date();
+    $('clock').textContent = now.toLocaleTimeString('pt-BR');
+    if (lastTick) {
+      const s = Math.round((Date.now() - lastTick) / 1000);
+      $('status').textContent = s <= 1 ? 'Ao vivo · atualizado agora' : `Ao vivo · atualizado há ${s}s`;
+    }
+    fetchLive();
+  }
+
+  // ---------- Histórico ----------
+  async function fetchHistory() {
+    try {
+      const res = await fetch(HIST_URL, { cache: 'no-store' });
+      const arr = await res.json();
+      const byDay = new Map();
+      arr.forEach(d => {
+        const dt = new Date(parseInt(d.timestamp, 10) * 1000);
+        const key = dt.toISOString().slice(0, 10);
+        if (!byDay.has(key)) byDay.set(key, { date: dt, value: parseFloat(d.bid) });
+      });
+      history = [...byDay.values()].sort((a, b) => a.date - b.date);
+    } catch {
+      // fallback: Frankfurter (taxas diárias do BCE)
+      try {
+        const start = new Date(Date.now() - 31 * 864e5).toISOString().slice(0, 10);
+        const r = await fetch(`https://api.frankfurter.app/${start}..?from=USD&to=BRL`);
+        const j = await r.json();
+        history = Object.entries(j.rates).map(([k, v]) => ({ date: new Date(k + 'T12:00:00'), value: v.BRL }));
+      } catch { history = []; }
+    }
+    renderVerdict();
+    renderChart();
+  }
+
+  function stats() {
+    const vals = history.map(h => h.value);
+    if (current !== null) vals.push(current);
+    if (vals.length < 2) return null;
+    const min = Math.min(...vals), max = Math.max(...vals);
+    const avg = vals.reduce((a, b) => a + b, 0) / vals.length;
+    return { min, max, avg };
+  }
+
+  // ---------- Termômetro ----------
+  function renderVerdict() {
+    const s = stats();
+    const v = $('verdict');
+    if (!s || current === null) return;
+    const pos = s.max === s.min ? 0.5 : (current - s.min) / (s.max - s.min);
+    $('pin').style.left = (pos * 100).toFixed(1) + '%';
+    $('minLbl').textContent = 'Mais barato: ' + brl2(s.min);
+    $('maxLbl').textContent = 'Mais caro: ' + brl2(s.max);
+
+    if (pos <= 0.33) {
+      v.className = 'verdict good';
+      v.innerHTML = '🟢 Bom momento para comprar<small>O dólar está entre os preços mais baixos do último mês.</small>';
+    } else if (pos <= 0.66) {
+      v.className = 'verdict mid';
+      v.innerHTML = '🟡 Preço normal<small>Nem barato, nem caro. Se não tiver pressa, dá para esperar uma queda.</small>';
+    } else {
+      v.className = 'verdict bad';
+      v.innerHTML = '🔴 Está caro agora<small>O dólar está entre os preços mais altos do mês. Se puder, espere.</small>';
+    }
+
+    const diff = current - s.avg;
+    const txt = Math.abs(diff) < 0.005
+      ? `Hoje o dólar está praticamente igual à média do mês (${brl2(s.avg)}).`
+      : diff < 0
+        ? `Hoje o dólar está ${brl2(Math.abs(diff))} mais barato que a média do mês (${brl2(s.avg)}). A cada US$ 100, você economiza cerca de ${brl2(Math.abs(diff) * 100)}.`
+        : `Hoje o dólar está ${brl2(diff)} mais caro que a média do mês (${brl2(s.avg)}). A cada US$ 100, você paga cerca de ${brl2(diff * 100)} a mais.`;
+    $('avgText').textContent = txt;
+  }
+
+  // ---------- Gráfico ----------
+  function renderChart() {
+    const svg = $('chart');
+    const pts = history.slice();
+    if (current !== null) pts.push({ date: new Date(), value: current, live: true });
+    if (pts.length < 2) { svg.innerHTML = ''; return; }
+    const W = svg.clientWidth || 600, H = svg.clientHeight || 240;
+    svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
+    const pad = { l: 56, r: 28, t: 12, b: 26 };
+    const vals = pts.map(p => p.value);
+    let min = Math.min(...vals), max = Math.max(...vals);
+    const m = (max - min) * 0.1 || 0.05; min -= m; max += m;
+    const x = i => pad.l + (i / (pts.length - 1)) * (W - pad.l - pad.r);
+    const y = v => pad.t + (1 - (v - min) / (max - min)) * (H - pad.t - pad.b);
+    const css = getComputedStyle(document.documentElement);
+    const accent = css.getPropertyValue('--accent').trim();
+    const muted = css.getPropertyValue('--muted').trim();
+    const line = css.getPropertyValue('--line').trim();
+
+    let g = '';
+    for (let k = 0; k <= 3; k++) {
+      const v = min + (k / 3) * (max - min);
+      g += `<line x1="${pad.l}" x2="${W - pad.r}" y1="${y(v)}" y2="${y(v)}" stroke="${line}" />`;
+      g += `<text x="${pad.l - 6}" y="${y(v) + 4}" font-size="11" fill="${muted}" text-anchor="end">${v.toFixed(2).replace('.', ',')}</text>`;
+    }
+    const step = Math.ceil(pts.length / 6);
+    pts.forEach((p, i) => {
+      if (i % step === 0 || i === pts.length - 1) {
+        const lbl = p.live ? 'agora' : p.date.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
+        g += `<text x="${x(i)}" y="${H - 6}" font-size="11" fill="${muted}" text-anchor="middle">${lbl}</text>`;
+      }
+    });
+    const s = stats();
+    if (s) g += `<line x1="${pad.l}" x2="${W - pad.r}" y1="${y(s.avg)}" y2="${y(s.avg)}" stroke="${muted}" stroke-dasharray="5 5" />`;
+
+    const d = pts.map((p, i) => `${i ? 'L' : 'M'}${x(i).toFixed(1)},${y(p.value).toFixed(1)}`).join(' ');
+    const area = `${d} L${x(pts.length - 1)},${H - pad.b} L${x(0)},${H - pad.b} Z`;
+    g += `<path d="${area}" fill="${accent}" opacity=".1" />`;
+    g += `<path d="${d}" fill="none" stroke="${accent}" stroke-width="2.5" stroke-linejoin="round" />`;
+    const li = pts.length - 1;
+    g += `<circle cx="${x(li)}" cy="${y(pts[li].value)}" r="5" fill="${accent}" stroke="var(--card)" stroke-width="2" />`;
+    g += `<rect id="hover" x="${pad.l}" y="0" width="${W - pad.l - pad.r}" height="${H}" fill="transparent" />`;
+    svg.innerHTML = g;
+
+    const tip = $('chartTip');
+    svg.onmousemove = e => {
+      const r = svg.getBoundingClientRect();
+      const px = (e.clientX - r.left) * (W / r.width);
+      const i = Math.max(0, Math.min(pts.length - 1, Math.round((px - pad.l) / (W - pad.l - pad.r) * (pts.length - 1))));
+      const p = pts[i];
+      tip.style.display = 'block';
+      tip.style.left = (x(i) / W * r.width) + 'px';
+      tip.style.top = (y(p.value) / H * r.height) + 'px';
+      tip.textContent = `${p.live ? 'Agora' : p.date.toLocaleDateString('pt-BR')}: ${brl2(p.value)}`;
+    };
+    svg.onmouseleave = () => { tip.style.display = 'none'; };
+  }
+
+  // ---------- Simulador ----------
+  function renderSim() {
+    const q = parseFloat($('usd').value) || 0;
+    $('simOut').textContent = current === null ? 'R$ --' : `≈ ${brl2(q * current)}`;
+  }
+  $('usd').addEventListener('input', renderSim);
+
+  // ---------- Preços salvos ----------
+  function loadSaved() {
+    try { return JSON.parse(localStorage.getItem(STORE_KEY)) || []; } catch { return []; }
+  }
+  function storeSaved(list) {
+    try { localStorage.setItem(STORE_KEY, JSON.stringify(list)); } catch {}
+  }
+
+  function renderSaved() {
+    const list = loadSaved();
+    const body = $('savedBody');
+    $('clearAll').hidden = list.length === 0;
+    if (!list.length) {
+      body.innerHTML = '<tr><td colspan="5" class="empty">Nenhum preço salvo ainda.</td></tr>';
+      return;
+    }
+    body.innerHTML = list.map((item, i) => {
+      const dt = new Date(item.date);
+      let cmp = '—';
+      if (current !== null) {
+        const diff = current - item.price;
+        if (Math.abs(diff) < 0.0005) cmp = '<span class="change flat">Igual a agora</span>';
+        else if (diff > 0) cmp = `<span class="change up">▲ Hoje está ${brl(diff)} mais caro</span>`;
+        else cmp = `<span class="change down">▼ Hoje está ${brl(-diff)} mais barato</span>`;
+      }
+      return `<tr>
+        <td>${dt.toLocaleDateString('pt-BR')}</td>
+        <td>${dt.toLocaleTimeString('pt-BR')}</td>
+        <td class="num"><strong>${brl(item.price)}</strong></td>
+        <td>${cmp}</td>
+        <td><button class="del" data-i="${i}" title="Apagar" aria-label="Apagar">✕</button></td>
+      </tr>`;
+    }).join('');
+  }
+
+  $('saveBtn').addEventListener('click', () => {
+    if (current === null) return;
+    const list = loadSaved();
+    list.unshift({ price: current, date: new Date().toISOString() });
+    storeSaved(list);
+    renderSaved();
+    toast(`Salvo: ${brl(current)} em ${new Date().toLocaleString('pt-BR')}`);
+  });
+
+  $('savedBody').addEventListener('click', e => {
+    const b = e.target.closest('.del');
+    if (!b) return;
+    const list = loadSaved();
+    list.splice(parseInt(b.dataset.i, 10), 1);
+    storeSaved(list);
+    renderSaved();
+  });
+
+  $('clearAll').addEventListener('click', () => {
+    if (confirm('Apagar todos os preços salvos?')) { storeSaved([]); renderSaved(); }
+  });
+
+  let toastTimer;
+  function toast(msg) {
+    const t = $('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => t.classList.remove('show'), 2500);
+  }
+
+  window.addEventListener('resize', renderChart);
+
+  // ---------- Início ----------
+  renderSaved();
+  fetchHistory();
+  setInterval(fetchHistory, 10 * 60 * 1000);
+  tick();
+  setInterval(tick, 1000);
+})();
+</script>
+</body>
+</html>
