@@ -130,9 +130,6 @@
     transition: transform .3s; z-index: 10; }
   .toast.show { transform: translateX(-50%) translateY(0); }
 
-  details { margin-top: 4px; }
-  details summary { cursor: pointer; font-weight: 600; padding: 6px 0; }
-  details p { margin: 6px 0 10px; color: var(--muted); font-size: .93rem; }
   footer { margin-top: 24px; font-size: .8rem; color: var(--muted); text-align: center; }
 </style>
 </head>
@@ -178,7 +175,7 @@
     </section>
 
     <!-- Simulador -->
-    <section class="card">
+    <section class="card full">
       <h2>🧮 Quanto vou pagar?</h2>
       <div class="sim">
         <label for="usd">Quero comprar US$</label>
@@ -186,17 +183,6 @@
       </div>
       <div class="sim-out" id="simOut">R$ --</div>
       <p class="tip">Valor pela cotação comercial. Em casas de câmbio e no cartão o preço final costuma ser uns 3% a 7% maior (taxas e IOF).</p>
-    </section>
-
-    <!-- Dicionário -->
-    <section class="card">
-      <h2>📖 Explicando sem complicar</h2>
-      <details><summary>O que é “cotação”?</summary>
-        <p>É o preço de 1 dólar em reais naquele momento. Ele muda o tempo todo, como o preço de qualquer coisa que muita gente compra e vende.</p></details>
-      <details><summary>Como o app decide se está “barato”?</summary>
-        <p>Ele compara o preço de agora com o menor e o maior preço dos últimos 30 dias. Se estiver perto do menor, é um bom momento; perto do maior, talvez valha esperar.</p></details>
-      <details><summary>Dica de ouro</summary>
-        <p>Ninguém acerta o momento perfeito. Se você precisa de dólar para uma viagem, comprar aos poucos (um pouco por semana) protege você de comprar tudo no dia mais caro.</p></details>
     </section>
 
     <!-- Painel de salvos -->
