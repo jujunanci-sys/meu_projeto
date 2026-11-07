@@ -1,4 +1,4 @@
-# 💵 Dólar Hoje, Fácil
+# Dólar Hoje, Fácil
 
 App simples para acompanhar o dólar americano (USD → BRL), pensado para quem não entende de finanças.
 
