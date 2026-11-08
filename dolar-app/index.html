@@ -23,8 +23,8 @@
 <style>
   :root {
     --bg: #eceff2;
-    --field-a: #cfe3d6;
-    --field-b: #d5dde9;
+    --field-a: #bcdcc8;
+    --field-b: #c5d2ea;
     --ink: #14181d;
     --muted: #6b7480;
     --faint: #9aa3ad;
@@ -42,6 +42,18 @@
     --mono: "Geist Mono", ui-monospace, "SF Mono", Menlo, monospace;
     --r: 22px;
     --btn-hover: rgba(255, 255, 255, .8);
+    --lg-fill: rgba(255, 255, 255, .22);
+    --lg-fill-hover: rgba(255, 255, 255, .34);
+    --lg-fill-active: rgba(255, 255, 255, .45);
+    --lg-rim-hi: rgba(255, 255, 255, .95);
+    --lg-rim-lo: rgba(255, 255, 255, .45);
+    --lg-spec: rgba(255, 255, 255, .7);
+    --lg-glow: rgba(255, 255, 255, .45);
+    --lg-drop: rgba(30, 40, 55, .22);
+    --lg-filter: blur(10px) saturate(190%) brightness(1.06);
+    --lg-panel: rgba(255, 255, 255, .14);
+    --lg-panel-filter: blur(18px) saturate(160%);
+    --field-c: #dfcdee;
   }
   @media (prefers-color-scheme: dark) {
     :root:not([data-theme="light"]) {
@@ -60,6 +72,16 @@
       --glass-edge: rgba(255, 255, 255, .12);
       --glass-shadow: 0 1px 0 rgba(255,255,255,.08) inset, 0 8px 24px -12px rgba(0, 0, 0, .6);
       --btn-hover: rgba(255, 255, 255, .14);
+      --lg-fill: rgba(255, 255, 255, .055);
+      --lg-fill-hover: rgba(255, 255, 255, .1);
+      --lg-fill-active: rgba(255, 255, 255, .14);
+      --lg-rim-hi: rgba(255, 255, 255, .42);
+      --lg-rim-lo: rgba(255, 255, 255, .1);
+      --lg-spec: rgba(255, 255, 255, .22);
+      --lg-glow: rgba(255, 255, 255, .1);
+      --lg-drop: rgba(0, 0, 0, .55);
+      --lg-filter: blur(12px) saturate(170%) brightness(1.12);
+      --field-c: #2a1f3a;
       color-scheme: dark;
     }
   }
@@ -79,6 +101,16 @@
       --glass-edge: rgba(255, 255, 255, .12);
       --glass-shadow: 0 1px 0 rgba(255,255,255,.08) inset, 0 8px 24px -12px rgba(0, 0, 0, .6);
       --btn-hover: rgba(255, 255, 255, .14);
+      --lg-fill: rgba(255, 255, 255, .055);
+      --lg-fill-hover: rgba(255, 255, 255, .1);
+      --lg-fill-active: rgba(255, 255, 255, .14);
+      --lg-rim-hi: rgba(255, 255, 255, .42);
+      --lg-rim-lo: rgba(255, 255, 255, .1);
+      --lg-spec: rgba(255, 255, 255, .22);
+      --lg-glow: rgba(255, 255, 255, .1);
+      --lg-drop: rgba(0, 0, 0, .55);
+      --lg-filter: blur(12px) saturate(170%) brightness(1.12);
+      --field-c: #2a1f3a;
       color-scheme: dark;
   }
 
@@ -282,12 +314,86 @@
 
   footer { margin-top: 40px; font-size: 12px; color: var(--faint); line-height: 1.6; }
 
+  /* ---------- Liquid Glass ---------- */
+  /* Fundo vivo: manchas de cor que se movem devagar, para o vidro ter o que refratar */
+  .ambient { position: fixed; inset: 0; z-index: -1; pointer-events: none; overflow: hidden; }
+  .ambient i { position: absolute; border-radius: 50%; filter: blur(70px); opacity: .9; }
+  .ambient i:nth-child(1) { width: 38vmax; height: 38vmax; background: var(--field-a); top: 18%; left: 55%; animation: drift1 28s ease-in-out infinite alternate; }
+  .ambient i:nth-child(2) { width: 30vmax; height: 30vmax; background: var(--field-c); top: 55%; left: -8%; animation: drift2 34s ease-in-out infinite alternate; }
+  .ambient i:nth-child(3) { width: 26vmax; height: 26vmax; background: var(--field-b); top: 80%; left: 50%; animation: drift1 40s ease-in-out infinite alternate-reverse; }
+  @keyframes drift1 { to { transform: translate(-12vmax, 8vmax) scale(1.15); } }
+  @keyframes drift2 { to { transform: translate(14vmax, -10vmax) scale(.9); } }
+
+  .glass, .btn, .chip, .icon-btn, .tag, .toast, .chart-tip {
+    background: var(--lg-fill);
+    -webkit-backdrop-filter: var(--lg-filter);
+    backdrop-filter: var(--lg-filter);
+    border: 0;
+    isolation: isolate;
+    box-shadow:
+      inset 0 1px 0 var(--lg-spec),
+      inset 0 -10px 18px -12px var(--lg-glow),
+      inset 0 0 24px -8px var(--lg-glow),
+      0 14px 34px -16px var(--lg-drop),
+      0 2px 6px -3px var(--lg-drop);
+  }
+  .glass, .btn, .chip, .icon-btn, .tag { position: relative; }
+  /* Borda de luz: forte no alto à esquerda, suave embaixo à direita */
+  .glass::before, .btn::before, .chip::before, .icon-btn::before, .tag::before, .toast::before, .chart-tip::before {
+    content: ""; position: absolute; inset: 0; border-radius: inherit; padding: 1.2px; pointer-events: none; z-index: -1;
+    background: linear-gradient(135deg, var(--lg-rim-hi) 0%, transparent 38%, transparent 62%, var(--lg-rim-lo) 100%);
+    -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+    mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0);
+  }
+  /* Brilho que acompanha o dedo ou o mouse */
+  .glass::after, .btn::after, .chip::after, .icon-btn::after {
+    content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none; z-index: -1;
+    background: radial-gradient(circle at var(--mx, 25%) var(--my, 0%), var(--lg-spec), transparent 55%);
+    opacity: .35; transition: opacity .3s ease;
+  }
+  .glass { background: var(--lg-panel, var(--lg-fill)); -webkit-backdrop-filter: var(--lg-panel-filter, var(--lg-filter)); backdrop-filter: var(--lg-panel-filter, var(--lg-filter)); }
+  .glass::after { opacity: .18; background: radial-gradient(120% 80% at var(--mx, 15%) var(--my, 0%), var(--lg-spec), transparent 50%); }
+
+  .btn, .chip, .icon-btn {
+    transition: transform .45s cubic-bezier(.34, 1.56, .64, 1), background .25s ease, color .2s ease;
+  }
+  .btn:hover, .chip:hover, .icon-btn:hover { background: var(--lg-fill-hover); }
+  .btn:hover::after, .chip:hover::after, .icon-btn:hover::after { opacity: .6; }
+  .btn:active, .chip:active, .icon-btn:active { transform: scale(.94); transition-duration: .12s; }
+  .btn:disabled { transform: none; }
+  .chip[aria-pressed="true"] { background: var(--lg-fill-active); font-weight: 500; }
+  .icon-btn { color: var(--muted); }
+  .icon-btn:hover { color: var(--pricey); }
+
+  .meter .pin {
+    background: var(--lg-fill);
+    -webkit-backdrop-filter: var(--lg-filter); backdrop-filter: var(--lg-filter);
+    border: 0;
+    box-shadow: inset 0 1px 0 var(--lg-spec), inset 0 0 0 1px var(--lg-rim-lo), inset 0 -4px 8px -4px var(--lg-glow), 0 4px 12px -3px var(--lg-drop);
+    width: 26px; height: 26px;
+  }
+  .meter .pin::after { inset: 9px; }
+
+  /* Refração real (Chrome e Edge): distorce o que está atrás do vidro */
+  .lg-refract .btn, .lg-refract .chip, .lg-refract .icon-btn, .lg-refract .toast, .lg-refract .tag, .lg-refract .chart-tip {
+    backdrop-filter: url(#lg-refract) var(--lg-filter);
+  }
+
   @media (prefers-reduced-motion: reduce) {
     *, *::before, *::after { animation: none !important; transition: none !important; }
   }
 </style>
 </head>
 <body>
+<div class="ambient" aria-hidden="true"><i></i><i></i><i></i></div>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+  <filter id="lg-refract" x="0" y="0" width="100%" height="100%" color-interpolation-filters="sRGB">
+    <feTurbulence type="fractalNoise" baseFrequency="0.012 0.018" numOctaves="2" seed="7" result="noise"/>
+    <feGaussianBlur in="noise" stdDeviation="2" result="soft"/>
+    <feDisplacementMap in="SourceGraphic" in2="soft" scale="38" xChannelSelector="R" yChannelSelector="G"/>
+  </filter>
+</svg>
 <div class="wrap">
   <header>
     <div class="brand">Dólar Hoje</div>
@@ -684,6 +790,19 @@
   });
   sysDark.addEventListener('change', syncTheme);
   syncTheme();
+
+  // ---------- Liquid Glass: refração e brilho que segue o toque ----------
+  const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (window.chrome && !reduceMotion) root.classList.add('lg-refract');
+  if (!reduceMotion) {
+    document.addEventListener('pointermove', e => {
+      const el = e.target.closest && e.target.closest('.btn, .chip, .icon-btn, .glass');
+      if (!el) return;
+      const r = el.getBoundingClientRect();
+      el.style.setProperty('--mx', ((e.clientX - r.left) / r.width * 100).toFixed(1) + '%');
+      el.style.setProperty('--my', ((e.clientY - r.top) / r.height * 100).toFixed(1) + '%');
+    }, { passive: true });
+  }
 
   // ---------- Instalar como app ----------
   const standalone = matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
