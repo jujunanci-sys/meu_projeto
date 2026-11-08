@@ -20,7 +20,7 @@ torne o repositório público (Settings → General → Danger Zone → Change v
 
 ## Instalar no celular
 
-- **Android (Chrome):** abra o endereço e toque em **Instalar app** no topo, ou no menu ⋮ → **Instalar app**.
+- **Android (Chrome):** abra o endereço e use o menu ⋮ → **Instalar app** (ou **Adicionar à tela inicial**).
 - **iPhone (Safari):** abra o endereço, toque em **Compartilhar** e depois em **Adicionar à Tela de Início**.
 
 O ícone aparece junto com os outros apps e abre em tela cheia, sem a barra do navegador.

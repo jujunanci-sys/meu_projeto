@@ -258,7 +258,6 @@
     <div class="brand">Dólar Hoje</div>
     <div class="header-right">
       <div class="live"><span class="dot" id="dot"></span><span id="status">Conectando…</span></div>
-      <button class="btn small" id="installBtn" hidden>Instalar app</button>
     </div>
   </header>
   <div class="install-hint glass" id="iosHint" hidden>
@@ -631,20 +630,6 @@
   if ('serviceWorker' in navigator && window.isSecureContext) {
     navigator.serviceWorker.register('sw.js').catch(() => {});
   }
-  let installEvent = null;
-  window.addEventListener('beforeinstallprompt', e => {
-    e.preventDefault();
-    installEvent = e;
-    $('installBtn').hidden = false;
-  });
-  $('installBtn').addEventListener('click', async () => {
-    if (!installEvent) return;
-    installEvent.prompt();
-    await installEvent.userChoice.catch(() => {});
-    installEvent = null;
-    $('installBtn').hidden = true;
-  });
-  window.addEventListener('appinstalled', () => { $('installBtn').hidden = true; toast('App instalado'); });
 
   const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
   let hintClosed = false;
