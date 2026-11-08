@@ -2,8 +2,18 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Dólar Hoje</title>
+<meta name="description" content="Acompanhe o dólar ao vivo e veja se é uma boa hora para comprar.">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="theme-color" content="#eceff2" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0f1215" media="(prefers-color-scheme: dark)">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Dólar Hoje">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -73,7 +83,16 @@
   body::before { background: var(--field-a); top: -20vmax; left: -15vmax; }
   body::after  { background: var(--field-b); bottom: -25vmax; right: -15vmax; }
 
-  .wrap { max-width: 960px; margin: 0 auto; padding: 40px 16px 56px; }
+  .wrap {
+    max-width: 960px; margin: 0 auto;
+    padding-top: calc(40px + env(safe-area-inset-top, 0px));
+    padding-bottom: calc(56px + env(safe-area-inset-bottom, 0px));
+    padding-left: max(16px, env(safe-area-inset-left, 0px));
+    padding-right: max(16px, env(safe-area-inset-right, 0px));
+  }
+  .header-right { display: flex; align-items: center; gap: 14px; }
+  .install-hint { margin: 16px 0 0; padding: 12px 16px; border-radius: 16px; font-size: 13px; color: var(--muted); display: flex; gap: 12px; align-items: center; justify-content: space-between; }
+  .install-hint b { color: var(--ink); font-weight: 500; }
 
   header { display: flex; justify-content: space-between; align-items: baseline; gap: 16px; flex-wrap: wrap; }
   .brand { font-weight: 600; font-size: 15px; letter-spacing: -.01em; }
@@ -237,8 +256,15 @@
 <div class="wrap">
   <header>
     <div class="brand">Dólar Hoje</div>
-    <div class="live"><span class="dot" id="dot"></span><span id="status">Conectando…</span></div>
+    <div class="header-right">
+      <div class="live"><span class="dot" id="dot"></span><span id="status">Conectando…</span></div>
+      <button class="btn small" id="installBtn" hidden>Instalar app</button>
+    </div>
   </header>
+  <div class="install-hint glass" id="iosHint" hidden>
+    <span>Para instalar: toque em <b>Compartilhar</b> e depois em <b>Adicionar à Tela de Início</b>.</span>
+    <button class="text-btn" id="iosHintClose">Fechar</button>
+  </div>
 
   <section class="hero">
     <div class="eyebrow">1 dólar americano custa agora</div>
@@ -599,6 +625,35 @@
   }
 
   window.addEventListener('resize', renderChart);
+
+  // ---------- Instalar como app ----------
+  const standalone = matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
+  if ('serviceWorker' in navigator && window.isSecureContext) {
+    navigator.serviceWorker.register('sw.js').catch(() => {});
+  }
+  let installEvent = null;
+  window.addEventListener('beforeinstallprompt', e => {
+    e.preventDefault();
+    installEvent = e;
+    $('installBtn').hidden = false;
+  });
+  $('installBtn').addEventListener('click', async () => {
+    if (!installEvent) return;
+    installEvent.prompt();
+    await installEvent.userChoice.catch(() => {});
+    installEvent = null;
+    $('installBtn').hidden = true;
+  });
+  window.addEventListener('appinstalled', () => { $('installBtn').hidden = true; toast('App instalado'); });
+
+  const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
+  let hintClosed = false;
+  try { hintClosed = localStorage.getItem('dolar-app:dica-ios') === '1'; } catch {}
+  if (isIOS && !standalone && !hintClosed) $('iosHint').hidden = false;
+  $('iosHintClose').addEventListener('click', () => {
+    $('iosHint').hidden = true;
+    try { localStorage.setItem('dolar-app:dica-ios', '1'); } catch {}
+  });
 
   renderSaved();
   fetchHistory();
