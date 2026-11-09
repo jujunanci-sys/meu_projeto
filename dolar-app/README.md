@@ -28,8 +28,9 @@ O ícone aparece junto com os outros apps e abre em tela cheia, sem a barra do n
 ## Aviso com o app fechado (ntfy)
 
 Uma tarefa automática do GitHub (`.github/workflows/aviso-dolar.yml`, na branch principal)
-consulta o dólar a cada 5 minutos e, se ele caiu desde a última consulta, envia uma
-notificação pelo app gratuito **ntfy**. Funciona com o celular bloqueado.
+consulta o dólar a cada minuto, de segunda a sexta das 9h às 18h (Brasília), e, se ele caiu
+desde a consulta anterior, envia uma notificação pelo app gratuito **ntfy**. Funciona com o
+celular bloqueado.
 
 1. Instale o **ntfy** (App Store ou Google Play).
 2. Toque em **+**, digite o canal `dolar-hoje-da76e9f76a45` e toque em **Subscribe**.
