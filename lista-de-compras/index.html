@@ -346,6 +346,11 @@ dialog.sheet::backdrop{background:rgba(22,22,26,.42)}
 .rc-miss button{border:0;background:none;color:var(--link);font:inherit;font-weight:800;cursor:pointer;padding:0;text-decoration:underline}
 .rc-empty{font-family:var(--display);text-align:center;color:var(--ink2);margin:6px 0 0;font-size:15px}
 .w-set{margin-top:34px}
+.data-sec{margin-top:34px}
+.data-sec > .card{border-left:10px solid var(--cobalt)}
+.imp{margin-top:14px;padding:16px;scroll-margin-bottom:110px}
+.imp[hidden]{display:none}
+.imp p{margin:0 0 4px;font-size:15px;line-height:1.4}
 .w-set .row{min-height:54px}
 
 @media (prefers-reduced-motion: reduce){*,*::before,*::after{transition:none!important;animation:none!important}}
@@ -382,7 +387,21 @@ dialog.sheet::backdrop{background:rgba(22,22,26,.42)}
   <div class="shelf-head" id="shelfHead"><span class="hand">sua estante de lojas</span><span class="shelf-hint">toque num livro</span></div>
   <div class="shelf intro" id="shelf" role="toolbar" aria-label="Filtrar por loja"></div>
   <div id="groups"></div>
-  <p class="foot center">Deslize um item para a esquerda para apagar. Toque no círculo para marcar como comprado e no item para ver a foto e o preço.<br><span class="ver">Versão 18</span></p>
+  <p class="foot center">Deslize um item para a esquerda para apagar. Toque no círculo para marcar como comprado e no item para ver a foto e o preço.</p>
+  <section class="group data-sec" aria-labelledby="dataTitle">
+    <h2><span class="cat-h" id="dataTitle">💾 Seus dados</span></h2>
+    <div class="card">
+      <button class="row act" type="button" id="exportBtn">Salvar uma cópia dos dados</button>
+      <button class="row act" type="button" id="importBtn">Restaurar de uma cópia</button>
+    </div>
+    <div class="card imp" id="importBox" role="region" aria-label="Confirmar restauração" hidden>
+      <p id="importInfo"></p>
+      <div class="pc-btns"><button type="button" class="btn tinted" id="importCancel">Cancelar</button><button type="button" class="btn primary" id="importOk">Restaurar</button></div>
+    </div>
+    <p class="foot" id="dataMsg">Use antes de apagar o ícone do app ou para passar sua lista para outro celular. A cópia inclui fotos, preços, lugares e lojas.</p>
+    <input type="file" id="importFile" accept="application/json,.json" hidden>
+  </section>
+  <p class="foot center"><span class="ver">Versão 19</span></p>
 </main>
 <main class="app" id="tabLugares" hidden>
   <header>
@@ -903,6 +922,60 @@ $("fx").addEventListener("input",()=>{ wallet.fx=parseMoney($("fx").value); save
 $("tax").addEventListener("input",()=>{ const v=parseMoney($("tax").value); wallet.tax=v==null?0:Math.min(v,25); saveWallet(); renderWallet() });
 $("fx").addEventListener("blur",()=>{ $("fx").value=wallet.fx?numBR(wallet.fx):"" });
 $("tax").addEventListener("blur",()=>{ $("tax").value=numBR(wallet.tax,wallet.tax%1?1:0) });
+
+/* cópia dos dados: salvar num arquivo e restaurar */
+const APP_ID="lista-viagem";
+const blobToDataURL=b=>new Promise((res,rej)=>{const r=new FileReader(); r.onload=()=>res(r.result); r.onerror=rej; r.readAsDataURL(b)});
+function dataURLtoBlob(u){ const [h,b64]=u.split(","); const bin=atob(b64); const a=new Uint8Array(bin.length);
+  for(let i=0;i<bin.length;i++)a[i]=bin.charCodeAt(i); return new Blob([a],{type:(h.match(/data:([^;]+)/)||[])[1]||"image/jpeg"}) }
+const pl=(n,a,b)=>`${n} ${n===1?a:b}`;
+function dataMsg(t){$("dataMsg").textContent=t}
+$("exportBtn").addEventListener("click",async()=>{
+  dataMsg("Preparando a cópia…");
+  let fotos={};
+  try{ const all=await fotoDB.all(); for(const k in all){ if(items.some(i=>i.id===k))fotos[k]=await blobToDataURL(all[k]) } }catch(e){}
+  const data={app:APP_ID,v:1,date:new Date().toISOString(),items,places,stores,wallet,home,fotos};
+  const day=new Date().toISOString().slice(0,10);
+  const file=new File([JSON.stringify(data)],`lista-viagem-${day}.json`,{type:"application/json"});
+  const n=Object.keys(fotos).length;
+  const done=`Cópia salva: ${items.length} ${items.length===1?"item":"itens"}, ${places.length} ${places.length===1?"lugar":"lugares"}, ${n} ${n===1?"foto":"fotos"}.`;
+  if(navigator.canShare&&navigator.canShare({files:[file]})){
+    try{ await navigator.share({files:[file],title:"Cópia da lista de viagem"}); dataMsg(done); return }
+    catch(e){ if(e.name==="AbortError"){dataMsg("Cópia cancelada.");return} }
+  }
+  try{
+    const a=document.createElement("a"); a.href=URL.createObjectURL(file); a.download=file.name;
+    document.body.append(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(a.href),10000);
+    dataMsg(done+" Procure o arquivo "+file.name+" nos downloads.");
+  }catch(e){ dataMsg("Não deu para salvar a cópia neste aparelho.") }
+});
+let pendingImport=null;
+$("importBtn").addEventListener("click",()=>$("importFile").click());
+$("importFile").addEventListener("change",async e=>{
+  const f=e.target.files[0]; e.target.value=""; if(!f)return;
+  let d=null; try{ d=JSON.parse(await f.text()) }catch(err){}
+  if(!d||d.app!==APP_ID||!Array.isArray(d.items)){ $("importBox").hidden=true; dataMsg("Esse arquivo não é uma cópia deste app. Escolha o arquivo lista-viagem-….json."); return }
+  pendingImport=d;
+  const when=d.date?new Date(d.date).toLocaleDateString("pt-BR",{day:"numeric",month:"long"}):"";
+  const nf=Object.keys(d.fotos||{}).length;
+  $("importInfo").innerHTML=`<b>Cópia${when?" de "+esc(when):""}</b><br>${pl(d.items.length,"item","itens")}, ${pl((d.places||[]).length,"lugar","lugares")}, ${pl((d.stores||[]).length,"loja","lojas")} e ${pl(nf,"foto","fotos")}. Restaurar substitui o que está no app agora.`;
+  $("importBox").hidden=false; dataMsg(""); $("importBox").scrollIntoView({block:"nearest",behavior:"smooth"});
+});
+$("importCancel").addEventListener("click",()=>{ pendingImport=null; $("importBox").hidden=true; dataMsg("Nada foi alterado.") });
+$("importOk").addEventListener("click",async()=>{
+  const d=pendingImport; if(!d)return; pendingImport=null; $("importBox").hidden=true;
+  items=d.items; save();
+  places=Array.isArray(d.places)?d.places:[]; savePlaces();
+  stores=Array.isArray(d.stores)?d.stores:[]; saveStores();
+  if(d.wallet){ wallet={...wallet,...d.wallet}; saveWallet(); $("fx").value=wallet.fx?numBR(wallet.fx):""; $("tax").value=numBR(wallet.tax,wallet.tax%1?1:0) }
+  if(d.home&&d.home.addr){ home=d.home; saveHome(); $("homeAddr").value=home.addr }
+  let nf=0;
+  for(const [k,url] of Object.entries(d.fotos||{})){
+    try{ const blob=dataURLtoBlob(url); setPhotoURL(k,blob); await fotoDB.put(k,blob); nf++ }catch(e){}
+  }
+  shelfSel=""; render(); renderPlaces(); renderWallet();
+  dataMsg(`Pronto: ${pl(items.length,"item","itens")}, ${pl(places.length,"lugar","lugares")} e ${pl(nf,"foto","fotos")} restaurados.`);
+});
 
 /* contorno de foco só com teclado */
 addEventListener("keydown",e=>{if(e.key==="Tab")document.documentElement.classList.add("kbd")},true);
