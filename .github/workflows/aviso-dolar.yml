@@ -76,8 +76,13 @@ jobs:
               d = get("https://query1.finance.yahoo.com/v8/finance/chart/BRL=X?interval=1m&range=1d")
               return float(d["chart"]["result"][0]["meta"]["regularMarketPrice"])
 
+          estado = pathlib.Path(".estado/ultimo.json")
+          salvo = json.loads(estado.read_text()) if estado.exists() else {}
+          fontes = [("awesome", awesome), ("yahoo", yahoo)]
+          fontes.sort(key=lambda x: x[0] != salvo.get("fonte"))  # a fonte da rodada anterior primeiro
+
           preco, fonte = None, None
-          for nome, f in (("awesome", awesome), ("yahoo", yahoo)):
+          for nome, f in fontes:
               try:
                   preco, fonte = f(), nome
                   break
@@ -92,8 +97,6 @@ jobs:
               print("Sem cotação nesta rodada.")
               raise SystemExit(0)
 
-          estado = pathlib.Path(".estado/ultimo.json")
-          salvo = json.loads(estado.read_text()) if estado.exists() else {}
           anterior = salvo.get("preco") if salvo.get("fonte") == fonte else None
           print("fonte:", fonte, "anterior:", salvo, "agora:", preco)
 
