@@ -315,8 +315,6 @@
   footer { margin-top: 40px; font-size: 12px; color: var(--faint); line-height: 1.6; }
 
   /* Aviso de queda */
-  .alert-row { display: flex; align-items: flex-end; gap: 16px 20px; flex-wrap: wrap; }
-  .alert-row .field input { width: 6ch; }
   .alert-status { margin: 14px 0 0; font-size: 14px; display: flex; align-items: center; gap: 10px; }
   .alert-status .mark { width: 8px; height: 8px; border-radius: 50%; background: var(--faint); flex: none; }
   .alert-status.on .mark { background: var(--cheap); box-shadow: 0 0 0 4px color-mix(in srgb, var(--cheap) 20%, transparent); }
@@ -474,18 +472,12 @@
 
     <section class="panel glass full">
       <h2>Avisar quando o dólar cair</h2>
-      <div class="alert-row">
-        <div class="sim-row">
-          <label for="alertTarget">Me avise quando ficar abaixo de</label>
-          <span class="field"><span>R$</span><input id="alertTarget" type="number" min="0" step="0.01" inputmode="decimal"></span>
-        </div>
-        <button class="btn" id="alertBtn">
-          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 11V7a4 4 0 0 1 8 0v4l1.2 1.5H2.8z"/><path d="M6.5 14a1.6 1.6 0 0 0 3 0"/></svg>
-          <span id="alertBtnText">Ativar aviso</span>
-        </button>
-      </div>
+      <button class="btn" id="alertBtn">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 11V7a4 4 0 0 1 8 0v4l1.2 1.5H2.8z"/><path d="M6.5 14a1.6 1.6 0 0 0 3 0"/></svg>
+        <span id="alertBtnText">Ativar aviso</span>
+      </button>
       <p class="alert-status" id="alertStatus"><span class="mark"></span><span id="alertStatusText">Aviso desligado.</span></p>
-      <p class="note">O aviso chega como notificação do celular ou do computador enquanto o app estiver aberto, mesmo em segundo plano. Com o app totalmente fechado, ele não consegue verificar o preço.</p>
+      <p class="note">Você recebe um aviso a cada queda, de qualquer tamanho. A cotação muda mais ou menos a cada 30 segundos, e cada aviso novo substitui o anterior. Funciona com o app aberto, mesmo em segundo plano; com o app totalmente fechado, ele não consegue verificar o preço.</p>
     </section>
 
     <section class="panel glass full">
@@ -798,17 +790,18 @@
   window.addEventListener('resize', renderChart);
 
   // ---------- Aviso de queda ----------
+  // Avisa toda vez que o preço cai em relação à última cotação recebida.
   const ALERT_KEY = 'dolar-app:aviso';
-  let alertCfg = { on: false, target: null, armed: true };
-  try { alertCfg = Object.assign(alertCfg, JSON.parse(localStorage.getItem(ALERT_KEY)) || {}); } catch {}
-  const saveAlert = () => { try { localStorage.setItem(ALERT_KEY, JSON.stringify(alertCfg)); } catch {} };
+  let alertOn = false;
+  try { alertOn = (JSON.parse(localStorage.getItem(ALERT_KEY)) || {}).on === true; } catch {}
+  const saveAlert = () => { try { localStorage.setItem(ALERT_KEY, JSON.stringify({ on: alertOn })); } catch {} };
   const canNotify = 'Notification' in window;
-  if (alertCfg.target) $('alertTarget').value = alertCfg.target.toFixed(2);
+  let lastSeen = null;
 
   function renderAlert() {
     const st = $('alertStatus'), txt = $('alertStatusText');
     st.className = 'alert-status';
-    if (!alertCfg.on) {
+    if (!alertOn) {
       $('alertBtnText').textContent = 'Ativar aviso';
       txt.textContent = 'Aviso desligado.';
       return;
@@ -820,7 +813,7 @@
       return;
     }
     st.classList.add('on');
-    txt.textContent = `Aviso ligado: você recebe uma notificação quando o dólar ficar abaixo de ${brl2(alertCfg.target)}.`;
+    txt.textContent = 'Aviso ligado: você recebe uma notificação sempre que o dólar cair.';
   }
 
   async function notify(title, body) {
@@ -835,45 +828,24 @@
   }
 
   function checkAlert() {
-    if (!alertCfg.on && current !== null && !$('alertTarget').value && document.activeElement !== $('alertTarget')) {
-      $('alertTarget').value = (Math.floor((current - 0.05) * 100) / 100).toFixed(2);
-    }
-    if (!alertCfg.on || current === null || !alertCfg.target) return;
-    if (alertCfg.armed && current < alertCfg.target) {
-      alertCfg.armed = false; saveAlert();
-      notify('O dólar caiu', `Agora está ${brl(current)}, abaixo do seu alvo de ${brl2(alertCfg.target)}.`);
-    } else if (!alertCfg.armed && current > alertCfg.target + 0.01) {
-      // voltou a subir: o próximo mergulho abaixo do alvo gera um novo aviso
-      alertCfg.armed = true; saveAlert();
-    }
+    if (current === null) return;
+    const prev = lastSeen;
+    lastSeen = current;
+    if (!alertOn || prev === null || current >= prev) return;
+    notify('O dólar caiu', `Caiu ${brl(prev - current)}: de ${brl(prev)} para ${brl(current)}.`);
   }
 
   $('alertBtn').addEventListener('click', async () => {
-    if (alertCfg.on) {
-      alertCfg.on = false; saveAlert(); renderAlert(); toast('Aviso desligado');
+    if (alertOn) {
+      alertOn = false; saveAlert(); renderAlert(); toast('Aviso desligado');
       return;
-    }
-    let target = parseFloat(String($('alertTarget').value).replace(',', '.'));
-    if (!(target > 0)) {
-      if (current === null) { toast('Espere a cotação carregar ou digite um valor'); return; }
-      target = Math.floor((current - 0.05) * 100) / 100;
-      $('alertTarget').value = target.toFixed(2);
     }
     if (canNotify && Notification.permission === 'default') {
       try { await Notification.requestPermission(); } catch {}
     }
-    alertCfg = { on: true, target, armed: current === null || current >= target };
+    alertOn = true; lastSeen = current;
     saveAlert(); renderAlert();
-    toast(`Aviso ligado: abaixo de ${brl2(target)}`);
-    checkAlert();
-  });
-
-  $('alertTarget').addEventListener('change', () => {
-    const v = parseFloat(String($('alertTarget').value).replace(',', '.'));
-    if (alertCfg.on && v > 0) {
-      alertCfg.target = v; alertCfg.armed = current === null || current >= v;
-      saveAlert(); renderAlert(); checkAlert();
-    }
+    toast('Aviso ligado: você será avisado sempre que o dólar cair');
   });
   renderAlert();
 
