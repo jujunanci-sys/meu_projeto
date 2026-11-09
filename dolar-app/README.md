@@ -25,6 +25,22 @@ torne o repositório público (Settings → General → Danger Zone → Change v
 
 O ícone aparece junto com os outros apps e abre em tela cheia, sem a barra do navegador.
 
+## Aviso com o app fechado (ntfy)
+
+Uma tarefa automática do GitHub (`.github/workflows/aviso-dolar.yml`, na branch principal)
+consulta o dólar a cada 5 minutos e, se ele caiu desde a última consulta, envia uma
+notificação pelo app gratuito **ntfy**. Funciona com o celular bloqueado.
+
+1. Instale o **ntfy** (App Store ou Google Play).
+2. Toque em **+**, digite o canal `dolar-hoje-da76e9f76a45` e toque em **Subscribe**.
+3. Permita as notificações quando o celular pedir.
+
+Para mandar uma notificação de teste: no GitHub, abra **Actions → Aviso do dólar → Run workflow**,
+marque **Enviar uma notificação de teste agora** e confirme.
+
+O GitHub pode atrasar a tarefa alguns minutos, e desliga tarefas agendadas de repositórios
+sem nenhuma atividade por 60 dias.
+
 ## O que ele faz
 
 - **Preço ao vivo**: consulta a cotação a cada segundo e mostra se subiu ou caiu.

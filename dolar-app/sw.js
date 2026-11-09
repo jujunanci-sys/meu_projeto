@@ -1,7 +1,7 @@
 // Service worker do Dólar Hoje.
 // Guarda a "casca" do app para ele abrir rápido e funcionar como app instalado.
 // A cotação nunca vem do cache: sempre da internet.
-const CACHE = 'dolar-hoje-v5';
+const CACHE = 'dolar-hoje-v6';
 const SHELL = [
   './',
   './index.html',
