@@ -314,6 +314,15 @@
 
   footer { margin-top: 40px; font-size: 12px; color: var(--faint); line-height: 1.6; }
 
+  /* Aviso de queda */
+  .alert-row { display: flex; align-items: flex-end; gap: 16px 20px; flex-wrap: wrap; }
+  .alert-row .field input { width: 6ch; }
+  .alert-status { margin: 14px 0 0; font-size: 14px; display: flex; align-items: center; gap: 10px; }
+  .alert-status .mark { width: 8px; height: 8px; border-radius: 50%; background: var(--faint); flex: none; }
+  .alert-status.on .mark { background: var(--cheap); box-shadow: 0 0 0 4px color-mix(in srgb, var(--cheap) 20%, transparent); }
+  .alert-status.blocked { color: var(--pricey); }
+  .alert-status.blocked .mark { background: var(--pricey); }
+
   /* ---------- Liquid Glass ---------- */
   /* Fundo vivo: manchas de cor que se movem devagar, para o vidro ter o que refratar */
   .ambient { position: fixed; inset: 0; z-index: -1; pointer-events: none; overflow: hidden; }
@@ -464,6 +473,22 @@
     </section>
 
     <section class="panel glass full">
+      <h2>Avisar quando o dólar cair</h2>
+      <div class="alert-row">
+        <div class="sim-row">
+          <label for="alertTarget">Me avise quando ficar abaixo de</label>
+          <span class="field"><span>R$</span><input id="alertTarget" type="number" min="0" step="0.01" inputmode="decimal"></span>
+        </div>
+        <button class="btn" id="alertBtn">
+          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 11V7a4 4 0 0 1 8 0v4l1.2 1.5H2.8z"/><path d="M6.5 14a1.6 1.6 0 0 0 3 0"/></svg>
+          <span id="alertBtnText">Ativar aviso</span>
+        </button>
+      </div>
+      <p class="alert-status" id="alertStatus"><span class="mark"></span><span id="alertStatusText">Aviso desligado.</span></p>
+      <p class="note">O aviso chega como notificação do celular ou do computador enquanto o app estiver aberto, mesmo em segundo plano. Com o app totalmente fechado, ele não consegue verificar o preço.</p>
+    </section>
+
+    <section class="panel glass full">
       <div class="head-row">
         <h2>Meus preços salvos</h2>
         <button class="text-btn" id="clearAll" hidden>Apagar todos</button>
@@ -555,6 +580,7 @@
     renderSim();
     renderSaved();
     renderChart();
+    checkAlert();
   }
 
   function tick() {
@@ -770,6 +796,86 @@
   }
 
   window.addEventListener('resize', renderChart);
+
+  // ---------- Aviso de queda ----------
+  const ALERT_KEY = 'dolar-app:aviso';
+  let alertCfg = { on: false, target: null, armed: true };
+  try { alertCfg = Object.assign(alertCfg, JSON.parse(localStorage.getItem(ALERT_KEY)) || {}); } catch {}
+  const saveAlert = () => { try { localStorage.setItem(ALERT_KEY, JSON.stringify(alertCfg)); } catch {} };
+  const canNotify = 'Notification' in window;
+  if (alertCfg.target) $('alertTarget').value = alertCfg.target.toFixed(2);
+
+  function renderAlert() {
+    const st = $('alertStatus'), txt = $('alertStatusText');
+    st.className = 'alert-status';
+    if (!alertCfg.on) {
+      $('alertBtnText').textContent = 'Ativar aviso';
+      txt.textContent = 'Aviso desligado.';
+      return;
+    }
+    $('alertBtnText').textContent = 'Desligar aviso';
+    if (canNotify && Notification.permission === 'denied') {
+      st.classList.add('blocked');
+      txt.textContent = 'As notificações estão bloqueadas neste navegador. Libere nas configurações do site para receber o aviso. Por enquanto ele aparece só dentro do app.';
+      return;
+    }
+    st.classList.add('on');
+    txt.textContent = `Aviso ligado: você recebe uma notificação quando o dólar ficar abaixo de ${brl2(alertCfg.target)}.`;
+  }
+
+  async function notify(title, body) {
+    toast(body);
+    if (!canNotify || Notification.permission !== 'granted') return;
+    const opts = { body, icon: 'icons/icon-192.png', badge: 'icons/icon-192.png', tag: 'dolar-queda', renotify: true };
+    try {
+      const reg = 'serviceWorker' in navigator && await navigator.serviceWorker.getRegistration();
+      if (reg) { await reg.showNotification(title, opts); return; }
+      new Notification(title, opts);
+    } catch {}
+  }
+
+  function checkAlert() {
+    if (!alertCfg.on && current !== null && !$('alertTarget').value && document.activeElement !== $('alertTarget')) {
+      $('alertTarget').value = (Math.floor((current - 0.05) * 100) / 100).toFixed(2);
+    }
+    if (!alertCfg.on || current === null || !alertCfg.target) return;
+    if (alertCfg.armed && current < alertCfg.target) {
+      alertCfg.armed = false; saveAlert();
+      notify('O dólar caiu', `Agora está ${brl(current)}, abaixo do seu alvo de ${brl2(alertCfg.target)}.`);
+    } else if (!alertCfg.armed && current > alertCfg.target + 0.01) {
+      // voltou a subir: o próximo mergulho abaixo do alvo gera um novo aviso
+      alertCfg.armed = true; saveAlert();
+    }
+  }
+
+  $('alertBtn').addEventListener('click', async () => {
+    if (alertCfg.on) {
+      alertCfg.on = false; saveAlert(); renderAlert(); toast('Aviso desligado');
+      return;
+    }
+    let target = parseFloat(String($('alertTarget').value).replace(',', '.'));
+    if (!(target > 0)) {
+      if (current === null) { toast('Espere a cotação carregar ou digite um valor'); return; }
+      target = Math.floor((current - 0.05) * 100) / 100;
+      $('alertTarget').value = target.toFixed(2);
+    }
+    if (canNotify && Notification.permission === 'default') {
+      try { await Notification.requestPermission(); } catch {}
+    }
+    alertCfg = { on: true, target, armed: current === null || current >= target };
+    saveAlert(); renderAlert();
+    toast(`Aviso ligado: abaixo de ${brl2(target)}`);
+    checkAlert();
+  });
+
+  $('alertTarget').addEventListener('change', () => {
+    const v = parseFloat(String($('alertTarget').value).replace(',', '.'));
+    if (alertCfg.on && v > 0) {
+      alertCfg.target = v; alertCfg.armed = current === null || current >= v;
+      saveAlert(); renderAlert(); checkAlert();
+    }
+  });
+  renderAlert();
 
   // ---------- Modo escuro ----------
   const root = document.documentElement;

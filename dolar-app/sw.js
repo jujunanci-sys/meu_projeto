@@ -1,7 +1,7 @@
 // Service worker do Dólar Hoje.
 // Guarda a "casca" do app para ele abrir rápido e funcionar como app instalado.
 // A cotação nunca vem do cache: sempre da internet.
-const CACHE = 'dolar-hoje-v3';
+const CACHE = 'dolar-hoje-v4';
 const SHELL = [
   './',
   './index.html',
@@ -37,5 +37,16 @@ self.addEventListener('fetch', event => {
         return res;
       })
       .catch(() => caches.match(event.request).then(r => r || caches.match('./index.html')))
+  );
+});
+
+// Tocar na notificação abre (ou traz para frente) o app.
+self.addEventListener('notificationclick', event => {
+  event.notification.close();
+  event.waitUntil(
+    self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then(list => {
+      for (const c of list) if ('focus' in c) return c.focus();
+      return self.clients.openWindow('./');
+    })
   );
 });
