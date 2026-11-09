@@ -1,0 +1,910 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Dólar Hoje</title>
+<meta name="description" content="Acompanhe o dólar ao vivo e veja se é uma boa hora para comprar.">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="theme-color" content="#eceff2" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0f1215" media="(prefers-color-scheme: dark)">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Dólar Hoje">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script>
+  try { var t = localStorage.getItem('dolar-app:tema'); if (t === 'dark' || t === 'light') document.documentElement.setAttribute('data-theme', t); } catch (e) {}
+</script>
+<style>
+  :root {
+    --bg: #eceff2;
+    --field-a: #bcdcc8;
+    --field-b: #c5d2ea;
+    --ink: #14181d;
+    --muted: #6b7480;
+    --faint: #9aa3ad;
+    --hair: rgba(20, 24, 29, .08);
+    --cheap: #2f7d5b;
+    --pricey: #c24a3a;
+    --steady: #a07a1c;
+
+    --glass: rgba(255, 255, 255, .42);
+    --glass-strong: rgba(255, 255, 255, .62);
+    --glass-edge: rgba(255, 255, 255, .75);
+    --glass-shadow: 0 1px 0 rgba(255,255,255,.9) inset, 0 8px 24px -12px rgba(20, 24, 29, .18);
+
+    --sans: "Geist", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+    --mono: "Geist Mono", ui-monospace, "SF Mono", Menlo, monospace;
+    --r: 22px;
+    --btn-hover: rgba(255, 255, 255, .8);
+    --lg-fill: rgba(255, 255, 255, .22);
+    --lg-fill-hover: rgba(255, 255, 255, .34);
+    --lg-fill-active: rgba(255, 255, 255, .45);
+    --lg-rim-hi: rgba(255, 255, 255, .95);
+    --lg-rim-lo: rgba(255, 255, 255, .45);
+    --lg-spec: rgba(255, 255, 255, .7);
+    --lg-glow: rgba(255, 255, 255, .45);
+    --lg-drop: rgba(30, 40, 55, .22);
+    --lg-filter: blur(10px) saturate(190%) brightness(1.06);
+    --lg-panel: rgba(255, 255, 255, .14);
+    --lg-panel-filter: blur(18px) saturate(160%);
+    --field-c: #dfcdee;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #0f1215;
+      --field-a: #17352a;
+      --field-b: #1a2436;
+      --ink: #eef1f4;
+      --muted: #97a1ab;
+      --faint: #66707a;
+      --hair: rgba(255, 255, 255, .08);
+      --cheap: #5cc493;
+      --pricey: #f07b6b;
+      --steady: #e2b54f;
+      --glass: rgba(255, 255, 255, .05);
+      --glass-strong: rgba(255, 255, 255, .09);
+      --glass-edge: rgba(255, 255, 255, .12);
+      --glass-shadow: 0 1px 0 rgba(255,255,255,.08) inset, 0 8px 24px -12px rgba(0, 0, 0, .6);
+      --btn-hover: rgba(255, 255, 255, .14);
+      --lg-fill: rgba(255, 255, 255, .055);
+      --lg-fill-hover: rgba(255, 255, 255, .1);
+      --lg-fill-active: rgba(255, 255, 255, .14);
+      --lg-rim-hi: rgba(255, 255, 255, .42);
+      --lg-rim-lo: rgba(255, 255, 255, .1);
+      --lg-spec: rgba(255, 255, 255, .22);
+      --lg-glow: rgba(255, 255, 255, .1);
+      --lg-drop: rgba(0, 0, 0, .55);
+      --lg-filter: blur(12px) saturate(170%) brightness(1.12);
+      --field-c: #2a1f3a;
+      color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+      --bg: #0f1215;
+      --field-a: #17352a;
+      --field-b: #1a2436;
+      --ink: #eef1f4;
+      --muted: #97a1ab;
+      --faint: #66707a;
+      --hair: rgba(255, 255, 255, .08);
+      --cheap: #5cc493;
+      --pricey: #f07b6b;
+      --steady: #e2b54f;
+      --glass: rgba(255, 255, 255, .05);
+      --glass-strong: rgba(255, 255, 255, .09);
+      --glass-edge: rgba(255, 255, 255, .12);
+      --glass-shadow: 0 1px 0 rgba(255,255,255,.08) inset, 0 8px 24px -12px rgba(0, 0, 0, .6);
+      --btn-hover: rgba(255, 255, 255, .14);
+      --lg-fill: rgba(255, 255, 255, .055);
+      --lg-fill-hover: rgba(255, 255, 255, .1);
+      --lg-fill-active: rgba(255, 255, 255, .14);
+      --lg-rim-hi: rgba(255, 255, 255, .42);
+      --lg-rim-lo: rgba(255, 255, 255, .1);
+      --lg-spec: rgba(255, 255, 255, .22);
+      --lg-glow: rgba(255, 255, 255, .1);
+      --lg-drop: rgba(0, 0, 0, .55);
+      --lg-filter: blur(12px) saturate(170%) brightness(1.12);
+      --field-c: #2a1f3a;
+      color-scheme: dark;
+  }
+
+  * { box-sizing: border-box; }
+  [hidden] { display: none !important; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    margin: 0;
+    min-height: 100vh;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--sans);
+    font-size: 15px;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+  /* Campos de cor desfocados: o que dá profundidade ao vidro */
+  body::before, body::after {
+    content: "";
+    position: fixed;
+    z-index: -1;
+    width: 60vmax; height: 60vmax;
+    border-radius: 50%;
+    filter: blur(90px);
+    pointer-events: none;
+  }
+  body::before { background: var(--field-a); top: -20vmax; left: -15vmax; }
+  body::after  { background: var(--field-b); bottom: -25vmax; right: -15vmax; }
+
+  .wrap {
+    max-width: 960px; margin: 0 auto;
+    padding-top: calc(40px + env(safe-area-inset-top, 0px));
+    padding-bottom: calc(56px + env(safe-area-inset-bottom, 0px));
+    padding-left: max(16px, env(safe-area-inset-left, 0px));
+    padding-right: max(16px, env(safe-area-inset-right, 0px));
+  }
+  .header-right { display: flex; align-items: center; gap: 14px; }
+  .btn.theme-btn { width: 38px; height: 38px; padding: 0; justify-content: center; flex: none; }
+  .btn.theme-btn svg { width: 16px; height: 16px; flex: none; }
+  .theme-btn .moon { display: block; } .theme-btn .sun { display: none; }
+  :root[data-theme="dark"] .theme-btn .moon { display: none; }
+  :root[data-theme="dark"] .theme-btn .sun { display: block; }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) .theme-btn .moon { display: none; }
+    :root:not([data-theme="light"]) .theme-btn .sun { display: block; }
+  }
+  .install-hint { margin: 16px 0 0; padding: 12px 16px; border-radius: 16px; font-size: 13px; color: var(--muted); display: flex; gap: 12px; align-items: center; justify-content: space-between; }
+  .install-hint b { color: var(--ink); font-weight: 500; }
+
+  header { display: flex; justify-content: space-between; align-items: baseline; gap: 16px; flex-wrap: wrap; }
+  .brand { font-weight: 600; font-size: 15px; letter-spacing: -.01em; }
+  .live { display: inline-flex; align-items: center; gap: 8px; font-size: 13px; color: var(--muted); }
+  .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--cheap); }
+  .dot.pulse { animation: pulse 1s ease-out; }
+  .dot.off { background: var(--pricey); }
+  @keyframes pulse { 0% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--cheap) 55%, transparent); } 100% { box-shadow: 0 0 0 9px transparent; } }
+
+  /* Herói: o preço */
+  .hero { padding: 56px 0 40px; }
+  .eyebrow { font-size: 13px; color: var(--muted); display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .tag { font-size: 12px; font-weight: 500; color: var(--ink); padding: 4px 12px; border-radius: 999px;
+    background: var(--glass-strong); -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px);
+    border: 1px solid var(--glass-edge); box-shadow: var(--glass-shadow); }
+  .hero-note { margin: 14px 0 0; font-size: 13px; color: var(--muted); max-width: 62ch; }
+  .price {
+    font-weight: 300;
+    font-size: clamp(64px, 16vw, 148px);
+    line-height: .95;
+    letter-spacing: -.055em;
+    margin: 10px 0 18px;
+    font-variant-numeric: tabular-nums;
+    transition: color .5s ease;
+  }
+  .price .cur { font-size: .32em; letter-spacing: -.02em; color: var(--muted); margin-right: .25em; vertical-align: .95em; font-weight: 400; }
+  .price.up { color: var(--pricey); }
+  .price.down { color: var(--cheap); }
+  .hero-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 28px; }
+  .change { font-size: 14px; font-weight: 500; }
+  .change.up { color: var(--pricey); }
+  .change.down { color: var(--cheap); }
+  .change.flat { color: var(--muted); }
+  .stat { font-size: 13px; color: var(--muted); }
+  .stat b { font-family: var(--mono); font-weight: 500; color: var(--ink); margin-left: 6px; font-size: 13px; }
+
+  /* Vidro */
+  .glass {
+    background: var(--glass);
+    -webkit-backdrop-filter: blur(20px) saturate(160%);
+    backdrop-filter: blur(20px) saturate(160%);
+    border: 1px solid var(--glass-edge);
+    box-shadow: var(--glass-shadow);
+  }
+  .btn {
+    font: inherit;
+    font-weight: 500;
+    color: var(--ink);
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 12px 22px;
+    border-radius: 999px;
+    cursor: pointer;
+    background: var(--glass-strong);
+    -webkit-backdrop-filter: blur(16px) saturate(170%);
+    backdrop-filter: blur(16px) saturate(170%);
+    border: 1px solid var(--glass-edge);
+    box-shadow: var(--glass-shadow);
+    transition: transform .15s ease, background .2s ease, box-shadow .2s ease;
+  }
+  .btn:hover { background: var(--btn-hover); }
+  .btn:active { transform: scale(.97); }
+  .btn:disabled { opacity: .45; cursor: not-allowed; transform: none; }
+  .btn:focus-visible, .chip:focus-visible, .icon-btn:focus-visible, input:focus-visible {
+    outline: 2px solid var(--ink); outline-offset: 3px;
+  }
+  .btn svg { width: 16px; height: 16px; }
+  .btn.small { padding: 7px 14px; font-size: 13px; }
+
+  .actions { margin-top: 32px; display: flex; gap: 12px; flex-wrap: wrap; align-items: center; }
+  .clock { font-family: var(--mono); font-size: 13px; color: var(--faint); }
+
+  /* Painéis */
+  .grid { display: grid; gap: 16px; grid-template-columns: 1fr 1fr; }
+  .full { grid-column: 1 / -1; }
+  @media (max-width: 760px) { .grid { grid-template-columns: 1fr; } .hero { padding: 36px 0 28px; } }
+  .panel { border-radius: var(--r); padding: 26px; }
+  .panel h2 { margin: 0 0 18px; font-size: 13px; font-weight: 500; color: var(--muted); letter-spacing: 0; }
+  .note { margin: 14px 0 0; font-size: 13px; color: var(--muted); max-width: 62ch; }
+
+  /* Veredito */
+  .verdict { font-size: 26px; font-weight: 500; letter-spacing: -.025em; line-height: 1.15; display: flex; align-items: center; gap: 12px; }
+  .verdict .mark { width: 10px; height: 10px; border-radius: 50%; flex: none; background: var(--faint); }
+  .verdict.good .mark { background: var(--cheap); }
+  .verdict.mid .mark { background: var(--steady); }
+  .verdict.bad .mark { background: var(--pricey); }
+  .verdict-sub { margin: 8px 0 0; color: var(--muted); font-size: 14px; }
+  .meter { position: relative; height: 2px; margin: 34px 0 10px; border-radius: 2px;
+    background: linear-gradient(90deg, var(--cheap), var(--steady), var(--pricey)); opacity: .9; }
+  .meter .pin {
+    position: absolute; top: 50%; width: 22px; height: 22px; border-radius: 50%;
+    transform: translate(-50%, -50%); transition: left .6s cubic-bezier(.2,.8,.2,1);
+    background: var(--glass-strong);
+    -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px);
+    border: 1px solid var(--glass-edge);
+    box-shadow: 0 2px 10px -2px rgba(20,24,29,.25), 0 1px 0 rgba(255,255,255,.9) inset;
+  }
+  .meter .pin::after { content: ""; position: absolute; inset: 7px; border-radius: 50%; background: var(--ink); }
+  .meter-labels { display: flex; justify-content: space-between; font-size: 12px; color: var(--muted); }
+  .meter-labels b { font-family: var(--mono); font-weight: 500; color: var(--ink); margin-left: 4px; }
+
+  /* Simulador */
+  .sim-row { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+  .sim-row label { color: var(--muted); font-size: 14px; }
+  .field { display: inline-flex; align-items: baseline; gap: 6px; border-bottom: 1px solid var(--hair); padding: 2px 0 6px; }
+  .field span { color: var(--muted); font-size: 14px; }
+  .field input {
+    font: inherit; font-family: var(--mono); font-size: 22px; font-weight: 500;
+    border: 0; background: transparent; color: var(--ink); width: 7ch; padding: 0;
+    -moz-appearance: textfield;
+  }
+  .field input::-webkit-outer-spin-button, .field input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+  .chips { display: flex; gap: 8px; margin-top: 16px; flex-wrap: wrap; }
+  .chip { font: inherit; font-size: 13px; font-family: var(--mono); color: var(--ink); cursor: pointer;
+    padding: 6px 14px; border-radius: 999px;
+    background: var(--glass); -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px);
+    border: 1px solid var(--glass-edge); box-shadow: var(--glass-shadow); transition: background .2s; }
+  .chip:hover, .chip[aria-pressed="true"] { background: var(--glass-strong); }
+  .sim-out { margin-top: 22px; font-size: 40px; font-weight: 300; letter-spacing: -.04em; font-variant-numeric: tabular-nums; line-height: 1; }
+
+  /* Gráfico */
+  .chart-wrap { position: relative; width: 100%; height: 220px; }
+  svg { display: block; width: 100%; height: 100%; }
+  .chart-tip { position: absolute; pointer-events: none; padding: 5px 10px; border-radius: 999px;
+    font-size: 12px; font-family: var(--mono); white-space: nowrap; transform: translate(-50%, -140%); display: none;
+    background: var(--glass-strong); -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px);
+    border: 1px solid var(--glass-edge); box-shadow: var(--glass-shadow); }
+
+  /* Salvos */
+  .head-row { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 6px; }
+  .head-row h2 { margin: 0; }
+  .text-btn { font: inherit; font-size: 13px; color: var(--muted); background: none; border: 0; cursor: pointer; padding: 4px 0; }
+  .text-btn:hover { color: var(--pricey); }
+  .saved { list-style: none; margin: 0; padding: 0; }
+  .saved li { display: grid; grid-template-columns: 1fr auto auto; gap: 16px; align-items: center;
+    padding: 14px 0; border-top: 1px solid var(--hair); }
+  .saved li:first-child { border-top: 0; }
+  .when { font-size: 14px; }
+  .when small { display: block; color: var(--muted); font-size: 12px; font-family: var(--mono); }
+  .val { font-family: var(--mono); font-size: 15px; font-weight: 500; text-align: right; }
+  .val small { display: block; font-family: var(--sans); font-weight: 400; font-size: 12px; }
+  .icon-btn { width: 32px; height: 32px; border-radius: 50%; display: grid; place-items: center; cursor: pointer; color: var(--muted);
+    background: var(--glass); -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px);
+    border: 1px solid var(--glass-edge); transition: color .2s, background .2s; padding: 0; }
+  .icon-btn:hover { color: var(--pricey); background: var(--glass-strong); }
+  .icon-btn svg { width: 12px; height: 12px; }
+  .empty { color: var(--muted); font-size: 14px; padding: 18px 0 4px; }
+
+  .toast { position: fixed; left: 50%; bottom: 24px; transform: translate(-50%, 140%); z-index: 10;
+    padding: 12px 20px; border-radius: 999px; font-size: 14px; font-weight: 500; opacity: 0;
+    background: var(--glass-strong); -webkit-backdrop-filter: blur(20px) saturate(170%); backdrop-filter: blur(20px) saturate(170%);
+    border: 1px solid var(--glass-edge); box-shadow: var(--glass-shadow); transition: transform .35s cubic-bezier(.2,.8,.2,1), opacity .35s; }
+  .toast.show { transform: translate(-50%, 0); opacity: 1; }
+
+  footer { margin-top: 40px; font-size: 12px; color: var(--faint); line-height: 1.6; }
+
+  /* Aviso de queda */
+  .alert-status { margin: 14px 0 0; font-size: 14px; display: flex; align-items: center; gap: 10px; }
+  .alert-status .mark { width: 8px; height: 8px; border-radius: 50%; background: var(--faint); flex: none; }
+  .alert-status.on .mark { background: var(--cheap); box-shadow: 0 0 0 4px color-mix(in srgb, var(--cheap) 20%, transparent); }
+  .alert-status.blocked { color: var(--pricey); }
+  .alert-status.blocked .mark { background: var(--pricey); }
+  .note b { color: var(--ink); font-weight: 500; }
+  .topic { font-family: var(--mono); font-size: 12px; color: var(--ink); word-break: break-all; }
+
+  /* ---------- Liquid Glass ---------- */
+  /* Fundo vivo: manchas de cor que se movem devagar, para o vidro ter o que refratar */
+  .ambient { position: fixed; inset: 0; z-index: -1; pointer-events: none; overflow: hidden; }
+  .ambient i { position: absolute; border-radius: 50%; filter: blur(70px); opacity: .9; }
+  .ambient i:nth-child(1) { width: 38vmax; height: 38vmax; background: var(--field-a); top: 18%; left: 55%; animation: drift1 28s ease-in-out infinite alternate; }
+  .ambient i:nth-child(2) { width: 30vmax; height: 30vmax; background: var(--field-c); top: 55%; left: -8%; animation: drift2 34s ease-in-out infinite alternate; }
+  .ambient i:nth-child(3) { width: 26vmax; height: 26vmax; background: var(--field-b); top: 80%; left: 50%; animation: drift1 40s ease-in-out infinite alternate-reverse; }
+  @keyframes drift1 { to { transform: translate(-12vmax, 8vmax) scale(1.15); } }
+  @keyframes drift2 { to { transform: translate(14vmax, -10vmax) scale(.9); } }
+
+  .glass, .btn, .chip, .icon-btn, .tag, .toast, .chart-tip {
+    background: var(--lg-fill);
+    -webkit-backdrop-filter: var(--lg-filter);
+    backdrop-filter: var(--lg-filter);
+    border: 0;
+    isolation: isolate;
+    box-shadow:
+      inset 0 1px 0 var(--lg-spec),
+      inset 0 -10px 18px -12px var(--lg-glow),
+      inset 0 0 24px -8px var(--lg-glow),
+      0 14px 34px -16px var(--lg-drop),
+      0 2px 6px -3px var(--lg-drop);
+  }
+  .glass, .btn, .chip, .icon-btn, .tag { position: relative; }
+  /* Borda de luz: forte no alto à esquerda, suave embaixo à direita */
+  .glass::before, .btn::before, .chip::before, .icon-btn::before, .tag::before, .toast::before, .chart-tip::before {
+    content: ""; position: absolute; inset: 0; border-radius: inherit; padding: 1.2px; pointer-events: none; z-index: -1;
+    background: linear-gradient(135deg, var(--lg-rim-hi) 0%, transparent 38%, transparent 62%, var(--lg-rim-lo) 100%);
+    -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+    mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0);
+  }
+  /* Brilho que acompanha o dedo ou o mouse */
+  .glass::after, .btn::after, .chip::after, .icon-btn::after {
+    content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none; z-index: -1;
+    background: radial-gradient(circle at var(--mx, 25%) var(--my, 0%), var(--lg-spec), transparent 55%);
+    opacity: .35; transition: opacity .3s ease;
+  }
+  .glass { background: var(--lg-panel, var(--lg-fill)); -webkit-backdrop-filter: var(--lg-panel-filter, var(--lg-filter)); backdrop-filter: var(--lg-panel-filter, var(--lg-filter)); }
+  .glass::after { opacity: .18; background: radial-gradient(120% 80% at var(--mx, 15%) var(--my, 0%), var(--lg-spec), transparent 50%); }
+
+  .btn, .chip, .icon-btn {
+    transition: transform .45s cubic-bezier(.34, 1.56, .64, 1), background .25s ease, color .2s ease;
+  }
+  .btn:hover, .chip:hover, .icon-btn:hover { background: var(--lg-fill-hover); }
+  .btn:hover::after, .chip:hover::after, .icon-btn:hover::after { opacity: .6; }
+  .btn:active, .chip:active, .icon-btn:active { transform: scale(.94); transition-duration: .12s; }
+  .btn:disabled { transform: none; }
+  .chip[aria-pressed="true"] { background: var(--lg-fill-active); font-weight: 500; }
+  .icon-btn { color: var(--muted); }
+  .icon-btn:hover { color: var(--pricey); }
+
+  .meter .pin {
+    background: var(--lg-fill);
+    -webkit-backdrop-filter: var(--lg-filter); backdrop-filter: var(--lg-filter);
+    border: 0;
+    box-shadow: inset 0 1px 0 var(--lg-spec), inset 0 0 0 1px var(--lg-rim-lo), inset 0 -4px 8px -4px var(--lg-glow), 0 4px 12px -3px var(--lg-drop);
+    width: 26px; height: 26px;
+  }
+  .meter .pin::after { inset: 9px; }
+
+  /* Refração real (Chrome e Edge): distorce o que está atrás do vidro */
+  .lg-refract .btn, .lg-refract .chip, .lg-refract .icon-btn, .lg-refract .toast, .lg-refract .tag, .lg-refract .chart-tip {
+    backdrop-filter: url(#lg-refract) var(--lg-filter);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation: none !important; transition: none !important; }
+  }
+</style>
+</head>
+<body>
+<div class="ambient" aria-hidden="true"><i></i><i></i><i></i></div>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+  <filter id="lg-refract" x="0" y="0" width="100%" height="100%" color-interpolation-filters="sRGB">
+    <feTurbulence type="fractalNoise" baseFrequency="0.012 0.018" numOctaves="2" seed="7" result="noise"/>
+    <feGaussianBlur in="noise" stdDeviation="2" result="soft"/>
+    <feDisplacementMap in="SourceGraphic" in2="soft" scale="38" xChannelSelector="R" yChannelSelector="G"/>
+  </filter>
+</svg>
+<div class="wrap">
+  <header>
+    <div class="brand">Dólar Hoje</div>
+    <div class="header-right">
+      <div class="live"><span class="dot" id="dot"></span><span id="status">Conectando…</span></div>
+      <button class="btn theme-btn" id="themeBtn" aria-label="Ativar modo escuro">
+        <svg class="moon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" aria-hidden="true"><path d="M13.5 9.6A5.5 5.5 0 0 1 6.4 2.5a5.5 5.5 0 1 0 7.1 7.1z"/></svg>
+        <svg class="sun" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true"><circle cx="8" cy="8" r="3"/><path d="M8 1.5v1.5M8 13v1.5M1.5 8H3M13 8h1.5M3.4 3.4l1 1M11.6 11.6l1 1M3.4 12.6l1-1M11.6 4.4l1-1"/></svg>
+      </button>
+    </div>
+  </header>
+  <div class="install-hint glass" id="iosHint" hidden>
+    <span>Para instalar: toque em <b>Compartilhar</b> e depois em <b>Adicionar à Tela de Início</b>.</span>
+    <button class="text-btn" id="iosHintClose">Fechar</button>
+  </div>
+
+  <section class="hero">
+    <div class="eyebrow"><span class="tag">Dólar comercial</span><span>1 dólar americano custa agora</span></div>
+    <div class="price" id="price"><span class="cur">R$</span>--,--</div>
+    <div class="hero-meta">
+      <span class="change flat" id="change">Carregando…</span>
+      <span class="stat">Menor de hoje<b id="low">--</b></span>
+      <span class="stat">Maior de hoje<b id="high">--</b></span>
+    </div>
+    <p class="hero-note">O dólar comercial é a cotação usada por bancos e empresas, a que aparece no noticiário. Para viagem, o dólar turismo (casas de câmbio e cartão) sai um pouco mais caro.</p>
+    <div class="actions">
+      <button class="btn" id="saveBtn" disabled>
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M4 2.5h8v11l-4-2.8-4 2.8z" stroke-linejoin="round"/></svg>
+        Salvar este preço
+      </button>
+      <span class="clock" id="clock">--:--:--</span>
+    </div>
+  </section>
+
+  <div class="grid">
+    <section class="panel glass">
+      <h2>É uma boa hora para comprar?</h2>
+      <div class="verdict" id="verdict"><span class="mark"></span><span id="verdictText">Analisando o último mês…</span></div>
+      <p class="verdict-sub" id="verdictSub"></p>
+      <div class="meter"><div class="pin" id="pin" style="left:50%"></div></div>
+      <div class="meter-labels"><span>Mais barato<b id="minLbl">--</b></span><span>Mais caro<b id="maxLbl">--</b></span></div>
+      <p class="note" id="avgText"></p>
+    </section>
+
+    <section class="panel glass">
+      <h2>Quanto vou pagar?</h2>
+      <div class="sim-row">
+        <label for="usd">Quero comprar</label>
+        <span class="field"><span>US$</span><input id="usd" type="number" min="0" step="10" value="100" inputmode="decimal"></span>
+      </div>
+      <div class="chips" id="chips">
+        <button class="chip" data-v="100" aria-pressed="true">100</button>
+        <button class="chip" data-v="500">500</button>
+        <button class="chip" data-v="1000">1.000</button>
+        <button class="chip" data-v="3000">3.000</button>
+      </div>
+      <div class="sim-out" id="simOut">R$ --</div>
+      <p class="note">Pela cotação comercial. Em casas de câmbio e no cartão o valor final costuma ser 3% a 7% maior, por causa das taxas e do IOF.</p>
+    </section>
+
+    <section class="panel glass full">
+      <h2>Últimos 30 dias</h2>
+      <div class="chart-wrap">
+        <svg id="chart" preserveAspectRatio="none"></svg>
+        <div class="chart-tip" id="chartTip"></div>
+      </div>
+      <p class="note">Linha subindo: o dólar ficou mais caro. Descendo: ficou mais barato. A linha pontilhada é a média do mês.</p>
+    </section>
+
+    <section class="panel glass full">
+      <h2>Avisar quando o dólar cair</h2>
+      <button class="btn" id="alertBtn">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 11V7a4 4 0 0 1 8 0v4l1.2 1.5H2.8z"/><path d="M6.5 14a1.6 1.6 0 0 0 3 0"/></svg>
+        <span id="alertBtnText">Ativar aviso</span>
+      </button>
+      <p class="alert-status" id="alertStatus"><span class="mark"></span><span id="alertStatusText">Aviso desligado.</span></p>
+      <p class="note">Este aviso funciona com o app aberto. Para receber com o celular bloqueado ou o app fechado, instale o app <b>ntfy</b> e inscreva-se no canal <code class="topic">dolar-hoje-da76e9f76a45</code>. Ele avisa a cada queda, verificando a cada 5 minutos.</p>
+    </section>
+
+    <section class="panel glass full">
+      <div class="head-row">
+        <h2>Meus preços salvos</h2>
+        <button class="text-btn" id="clearAll" hidden>Apagar todos</button>
+      </div>
+      <ul class="saved" id="savedList"></ul>
+    </section>
+  </div>
+
+  <footer>
+    Dados: AwesomeAPI, cotação comercial USD/BRL. O app consulta a cada segundo; a fonte atualiza o valor em intervalos curtos.<br>
+    Conteúdo informativo, não é recomendação de investimento.
+  </footer>
+</div>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+(() => {
+  const LIVE_URL = 'https://economia.awesomeapi.com.br/json/last/USD-BRL';
+  const HIST_URL = 'https://economia.awesomeapi.com.br/json/daily/USD-BRL/30';
+  const FALLBACK_LIVE = 'https://api.frankfurter.app/latest?from=USD&to=BRL';
+  const STORE_KEY = 'dolar-app:salvos';
+
+  const brl = v => v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL', minimumFractionDigits: 2, maximumFractionDigits: 4 });
+  const brl2 = v => v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+  const num = (v, d = 4) => v.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: d });
+  const $ = id => document.getElementById(id);
+  const X_ICON = '<svg viewBox="0 0 12 12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true"><path d="M2.5 2.5l7 7M9.5 2.5l-7 7"/></svg>';
+
+  let current = null, lastTick = null, history = [];
+  let backoffUntil = 0, inFlight = false;
+
+  // ---------- Preço ao vivo ----------
+  async function fetchLive() {
+    if (inFlight || Date.now() < backoffUntil) return;
+    inFlight = true;
+    try {
+      const res = await fetch(LIVE_URL, { cache: 'no-store' });
+      if (res.status === 429) { backoffUntil = Date.now() + 5000; throw new Error('limite'); }
+      if (!res.ok) throw new Error('http ' + res.status);
+      const d = (await res.json()).USDBRL;
+      update(parseFloat(d.bid), parseFloat(d.low), parseFloat(d.high), parseFloat(d.pctChange));
+    } catch (e) {
+      try {
+        const r = await fetch(FALLBACK_LIVE, { cache: 'no-store' });
+        const j = await r.json();
+        if (j && j.rates && j.rates.BRL) update(j.rates.BRL);
+        else throw e;
+      } catch {
+        $('dot').classList.add('off');
+        $('status').textContent = 'Sem conexão com a cotação. Tentando de novo…';
+      }
+    } finally {
+      inFlight = false;
+    }
+  }
+
+  function update(price, low, high, pct) {
+    const prev = current;
+    current = price;
+    lastTick = Date.now();
+
+    const el = $('price');
+    el.innerHTML = `<span class="cur">R$</span>${num(price)}`;
+    el.classList.remove('up', 'down');
+    if (prev !== null && price !== prev) {
+      el.classList.add(price > prev ? 'up' : 'down');
+      setTimeout(() => el.classList.remove('up', 'down'), 900);
+    }
+
+    const ch = $('change');
+    if (typeof pct === 'number' && !isNaN(pct)) {
+      const p = Math.abs(pct).toFixed(2).replace('.', ',');
+      ch.className = 'change ' + (pct > 0 ? 'up' : pct < 0 ? 'down' : 'flat');
+      ch.textContent = pct > 0 ? `↑ ${p}% hoje, ficou mais caro`
+                     : pct < 0 ? `↓ ${p}% hoje, ficou mais barato`
+                     : 'Sem variação hoje';
+    }
+    if (low) $('low').textContent = brl2(low);
+    if (high) $('high').textContent = brl2(high);
+
+    const dot = $('dot');
+    dot.classList.remove('off', 'pulse');
+    void dot.offsetWidth;
+    dot.classList.add('pulse');
+
+    $('saveBtn').disabled = false;
+    renderVerdict();
+    renderSim();
+    renderSaved();
+    renderChart();
+    checkAlert();
+  }
+
+  function tick() {
+    $('clock').textContent = new Date().toLocaleTimeString('pt-BR');
+    if (lastTick) {
+      const s = Math.round((Date.now() - lastTick) / 1000);
+      $('status').textContent = s <= 1 ? 'Ao vivo' : `Ao vivo · há ${s}s`;
+    }
+    fetchLive();
+  }
+
+  // ---------- Histórico ----------
+  async function fetchHistory() {
+    try {
+      const res = await fetch(HIST_URL, { cache: 'no-store' });
+      const arr = await res.json();
+      const byDay = new Map();
+      arr.forEach(d => {
+        const dt = new Date(parseInt(d.timestamp, 10) * 1000);
+        const key = dt.toISOString().slice(0, 10);
+        if (!byDay.has(key)) byDay.set(key, { date: dt, value: parseFloat(d.bid) });
+      });
+      history = [...byDay.values()].sort((a, b) => a.date - b.date);
+    } catch {
+      try {
+        const start = new Date(Date.now() - 31 * 864e5).toISOString().slice(0, 10);
+        const r = await fetch(`https://api.frankfurter.app/${start}..?from=USD&to=BRL`);
+        const j = await r.json();
+        history = Object.entries(j.rates).map(([k, v]) => ({ date: new Date(k + 'T12:00:00'), value: v.BRL }));
+      } catch { history = []; }
+    }
+    renderVerdict();
+    renderChart();
+  }
+
+  function stats() {
+    const vals = history.map(h => h.value);
+    if (current !== null) vals.push(current);
+    if (vals.length < 2) return null;
+    const min = Math.min(...vals), max = Math.max(...vals);
+    const avg = vals.reduce((a, b) => a + b, 0) / vals.length;
+    return { min, max, avg };
+  }
+
+  // ---------- Veredito ----------
+  function renderVerdict() {
+    const s = stats();
+    if (!s || current === null) return;
+    const pos = s.max === s.min ? 0.5 : (current - s.min) / (s.max - s.min);
+    $('pin').style.left = (pos * 100).toFixed(1) + '%';
+    $('minLbl').textContent = brl2(s.min);
+    $('maxLbl').textContent = brl2(s.max);
+
+    const v = $('verdict');
+    if (pos <= 0.33) {
+      v.className = 'verdict good';
+      $('verdictText').textContent = 'Bom momento para comprar';
+      $('verdictSub').textContent = 'O dólar está entre os preços mais baixos do último mês.';
+    } else if (pos <= 0.66) {
+      v.className = 'verdict mid';
+      $('verdictText').textContent = 'Preço normal';
+      $('verdictSub').textContent = 'Nem barato, nem caro. Sem pressa, dá para esperar uma queda.';
+    } else {
+      v.className = 'verdict bad';
+      $('verdictText').textContent = 'Está caro agora';
+      $('verdictSub').textContent = 'O dólar está entre os preços mais altos do mês. Se puder, espere.';
+    }
+
+    const diff = current - s.avg;
+    $('avgText').textContent = Math.abs(diff) < 0.005
+      ? `Praticamente igual à média do mês (${brl2(s.avg)}).`
+      : diff < 0
+        ? `${brl2(-diff)} abaixo da média do mês (${brl2(s.avg)}). A cada US$ 100, você economiza cerca de ${brl2(-diff * 100)}.`
+        : `${brl2(diff)} acima da média do mês (${brl2(s.avg)}). A cada US$ 100, você paga cerca de ${brl2(diff * 100)} a mais.`;
+  }
+
+  // ---------- Gráfico ----------
+  function renderChart() {
+    const svg = $('chart');
+    const pts = history.slice();
+    if (current !== null) pts.push({ date: new Date(), value: current, live: true });
+    if (pts.length < 2) { svg.innerHTML = ''; return; }
+    const W = svg.clientWidth || 600, H = svg.clientHeight || 220;
+    svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
+    const pad = { l: 44, r: 28, t: 12, b: 26 };
+    const vals = pts.map(p => p.value);
+    let min = Math.min(...vals), max = Math.max(...vals);
+    const m = (max - min) * 0.12 || 0.05; min -= m; max += m;
+    const x = i => pad.l + (i / (pts.length - 1)) * (W - pad.l - pad.r);
+    const y = v => pad.t + (1 - (v - min) / (max - min)) * (H - pad.t - pad.b);
+    const css = getComputedStyle(document.documentElement);
+    const ink = css.getPropertyValue('--ink').trim();
+    const muted = css.getPropertyValue('--faint').trim();
+    const hair = css.getPropertyValue('--hair').trim();
+    const mono = css.getPropertyValue('--mono').trim();
+
+    let g = `<defs><linearGradient id="fade" x1="0" x2="0" y1="0" y2="1">
+      <stop offset="0" stop-color="${ink}" stop-opacity=".10"/><stop offset="1" stop-color="${ink}" stop-opacity="0"/></linearGradient></defs>`;
+    for (let k = 0; k <= 2; k++) {
+      const v = min + (k / 2) * (max - min);
+      g += `<line x1="${pad.l}" x2="${W - pad.r}" y1="${y(v)}" y2="${y(v)}" stroke="${hair}" />`;
+      g += `<text x="${pad.l - 8}" y="${y(v) + 4}" font-size="11" font-family='${mono}' fill="${muted}" text-anchor="end">${v.toFixed(2).replace('.', ',')}</text>`;
+    }
+    const step = Math.ceil(pts.length / 6);
+    pts.forEach((p, i) => {
+      if (i % step === 0 || i === pts.length - 1) {
+        const lbl = p.live ? 'agora' : p.date.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
+        g += `<text x="${x(i)}" y="${H - 6}" font-size="11" font-family='${mono}' fill="${muted}" text-anchor="middle">${lbl}</text>`;
+      }
+    });
+    const s = stats();
+    if (s) g += `<line x1="${pad.l}" x2="${W - pad.r}" y1="${y(s.avg)}" y2="${y(s.avg)}" stroke="${muted}" stroke-dasharray="2 4" />`;
+
+    const d = pts.map((p, i) => `${i ? 'L' : 'M'}${x(i).toFixed(1)},${y(p.value).toFixed(1)}`).join(' ');
+    g += `<path d="${d} L${x(pts.length - 1)},${H - pad.b} L${x(0)},${H - pad.b} Z" fill="url(#fade)" />`;
+    g += `<path d="${d}" fill="none" stroke="${ink}" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round" />`;
+    const li = pts.length - 1;
+    g += `<circle cx="${x(li)}" cy="${y(pts[li].value)}" r="4" fill="${ink}" />`;
+    g += `<rect x="${pad.l}" y="0" width="${W - pad.l - pad.r}" height="${H}" fill="transparent" />`;
+    svg.innerHTML = g;
+
+    const tip = $('chartTip');
+    svg.onmousemove = e => {
+      const r = svg.getBoundingClientRect();
+      const px = (e.clientX - r.left) * (W / r.width);
+      const i = Math.max(0, Math.min(li, Math.round((px - pad.l) / (W - pad.l - pad.r) * li)));
+      const p = pts[i];
+      tip.style.display = 'block';
+      tip.style.left = (x(i) / W * r.width) + 'px';
+      tip.style.top = (y(p.value) / H * r.height) + 'px';
+      tip.textContent = `${p.live ? 'Agora' : p.date.toLocaleDateString('pt-BR')}  ${brl2(p.value)}`;
+    };
+    svg.onmouseleave = () => { tip.style.display = 'none'; };
+  }
+
+  // ---------- Simulador ----------
+  function renderSim() {
+    const q = parseFloat($('usd').value) || 0;
+    $('simOut').textContent = current === null ? 'R$ --' : brl2(q * current);
+    document.querySelectorAll('.chip').forEach(c => c.setAttribute('aria-pressed', String(+c.dataset.v === q)));
+  }
+  $('usd').addEventListener('input', renderSim);
+  $('chips').addEventListener('click', e => {
+    const c = e.target.closest('.chip');
+    if (!c) return;
+    $('usd').value = c.dataset.v;
+    renderSim();
+  });
+
+  // ---------- Preços salvos ----------
+  function loadSaved() {
+    try { return JSON.parse(localStorage.getItem(STORE_KEY)) || []; } catch { return []; }
+  }
+  function storeSaved(list) {
+    try { localStorage.setItem(STORE_KEY, JSON.stringify(list)); } catch {}
+  }
+
+  function renderSaved() {
+    const list = loadSaved();
+    const ul = $('savedList');
+    $('clearAll').hidden = list.length === 0;
+    if (!list.length) {
+      ul.innerHTML = '<li class="empty" style="display:block">Nenhum preço salvo ainda. Use “Salvar este preço” para guardar o valor e a data, e compare depois.</li>';
+      return;
+    }
+    ul.innerHTML = list.map((item, i) => {
+      const dt = new Date(item.date);
+      let cmp = '';
+      if (current !== null) {
+        const diff = current - item.price;
+        if (Math.abs(diff) < 0.0005) cmp = '<small class="change flat">igual a agora</small>';
+        else if (diff > 0) cmp = `<small class="change up">hoje ${brl(diff)} mais caro</small>`;
+        else cmp = `<small class="change down">hoje ${brl(-diff)} mais barato</small>`;
+      }
+      const date = dt.toLocaleDateString('pt-BR');
+      return `<li>
+        <div class="when">${date}<small>${dt.toLocaleTimeString('pt-BR')}</small></div>
+        <div class="val">${brl(item.price)}${cmp}</div>
+        <button class="icon-btn" data-i="${i}" aria-label="Apagar preço salvo de ${date}">${X_ICON}</button>
+      </li>`;
+    }).join('');
+  }
+
+  $('saveBtn').addEventListener('click', () => {
+    if (current === null) return;
+    const list = loadSaved();
+    list.unshift({ price: current, date: new Date().toISOString() });
+    storeSaved(list);
+    renderSaved();
+    toast(`Preço salvo: ${brl(current)}`);
+  });
+
+  $('savedList').addEventListener('click', e => {
+    const b = e.target.closest('.icon-btn');
+    if (!b) return;
+    const list = loadSaved();
+    list.splice(parseInt(b.dataset.i, 10), 1);
+    storeSaved(list);
+    renderSaved();
+  });
+
+  $('clearAll').addEventListener('click', () => {
+    if (confirm('Apagar todos os preços salvos?')) { storeSaved([]); renderSaved(); }
+  });
+
+  let toastTimer;
+  function toast(msg) {
+    const t = $('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => t.classList.remove('show'), 2500);
+  }
+
+  window.addEventListener('resize', renderChart);
+
+  // ---------- Aviso de queda ----------
+  // Avisa toda vez que o preço cai em relação à última cotação recebida.
+  const ALERT_KEY = 'dolar-app:aviso';
+  let alertOn = false;
+  try { alertOn = (JSON.parse(localStorage.getItem(ALERT_KEY)) || {}).on === true; } catch {}
+  const saveAlert = () => { try { localStorage.setItem(ALERT_KEY, JSON.stringify({ on: alertOn })); } catch {} };
+  const canNotify = 'Notification' in window;
+  let lastSeen = null;
+
+  function renderAlert() {
+    const st = $('alertStatus'), txt = $('alertStatusText');
+    st.className = 'alert-status';
+    if (!alertOn) {
+      $('alertBtnText').textContent = 'Ativar aviso';
+      txt.textContent = 'Aviso desligado.';
+      return;
+    }
+    $('alertBtnText').textContent = 'Desligar aviso';
+    if (canNotify && Notification.permission === 'denied') {
+      st.classList.add('blocked');
+      txt.textContent = 'As notificações estão bloqueadas neste navegador. Libere nas configurações do site para receber o aviso. Por enquanto ele aparece só dentro do app.';
+      return;
+    }
+    st.classList.add('on');
+    txt.textContent = 'Aviso ligado: você recebe uma notificação sempre que o dólar cair.';
+  }
+
+  async function notify(title, body) {
+    toast(body);
+    if (!canNotify || Notification.permission !== 'granted') return;
+    const opts = { body, icon: 'icons/icon-192.png', badge: 'icons/icon-192.png', tag: 'dolar-queda', renotify: true };
+    try {
+      const reg = 'serviceWorker' in navigator && await navigator.serviceWorker.getRegistration();
+      if (reg) { await reg.showNotification(title, opts); return; }
+      new Notification(title, opts);
+    } catch {}
+  }
+
+  function checkAlert() {
+    if (current === null) return;
+    const prev = lastSeen;
+    lastSeen = current;
+    if (!alertOn || prev === null || current >= prev) return;
+    notify('O dólar caiu', `Caiu ${brl(prev - current)}: de ${brl(prev)} para ${brl(current)}.`);
+  }
+
+  $('alertBtn').addEventListener('click', async () => {
+    if (alertOn) {
+      alertOn = false; saveAlert(); renderAlert(); toast('Aviso desligado');
+      return;
+    }
+    if (canNotify && Notification.permission === 'default') {
+      try { await Notification.requestPermission(); } catch {}
+    }
+    alertOn = true; lastSeen = current;
+    saveAlert(); renderAlert();
+    toast('Aviso ligado: você será avisado sempre que o dólar cair');
+  });
+  renderAlert();
+
+  // ---------- Modo escuro ----------
+  const root = document.documentElement;
+  const sysDark = matchMedia('(prefers-color-scheme: dark)');
+  const isDark = () => root.dataset.theme ? root.dataset.theme === 'dark' : sysDark.matches;
+  function syncTheme() {
+    const dark = isDark();
+    $('themeBtn').setAttribute('aria-label', dark ? 'Ativar modo claro' : 'Ativar modo escuro');
+    $('themeBtn').title = dark ? 'Modo claro' : 'Modo escuro';
+    document.querySelectorAll('meta[name="theme-color"]').forEach(m => m.setAttribute('content', dark ? '#0f1215' : '#eceff2'));
+    renderChart();
+  }
+  $('themeBtn').addEventListener('click', () => {
+    const next = isDark() ? 'light' : 'dark';
+    root.setAttribute('data-theme', next);
+    try { localStorage.setItem('dolar-app:tema', next); } catch {}
+    syncTheme();
+  });
+  sysDark.addEventListener('change', syncTheme);
+  syncTheme();
+
+  // ---------- Liquid Glass: refração e brilho que segue o toque ----------
+  const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (window.chrome && !reduceMotion) root.classList.add('lg-refract');
+  if (!reduceMotion) {
+    document.addEventListener('pointermove', e => {
+      const el = e.target.closest && e.target.closest('.btn, .chip, .icon-btn, .glass');
+      if (!el) return;
+      const r = el.getBoundingClientRect();
+      el.style.setProperty('--mx', ((e.clientX - r.left) / r.width * 100).toFixed(1) + '%');
+      el.style.setProperty('--my', ((e.clientY - r.top) / r.height * 100).toFixed(1) + '%');
+    }, { passive: true });
+  }
+
+  // ---------- Instalar como app ----------
+  const standalone = matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
+  if ('serviceWorker' in navigator && window.isSecureContext) {
+    navigator.serviceWorker.register('sw.js').catch(() => {});
+  }
+
+  const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
+  let hintClosed = false;
+  try { hintClosed = localStorage.getItem('dolar-app:dica-ios') === '1'; } catch {}
+  if (isIOS && !standalone && !hintClosed) $('iosHint').hidden = false;
+  $('iosHintClose').addEventListener('click', () => {
+    $('iosHint').hidden = true;
+    try { localStorage.setItem('dolar-app:dica-ios', '1'); } catch {}
+  });
+
+  renderSaved();
+  fetchHistory();
+  setInterval(fetchHistory, 10 * 60 * 1000);
+  tick();
+  setInterval(tick, 1000);
+})();
+</script>
+</body>
+</html>
