@@ -243,13 +243,13 @@ dialog.sheet::backdrop{background:rgba(22,22,26,.42)}
 /* abas de pasta (navegação) */
 .tabbar{position:fixed;z-index:20;left:0;right:0;bottom:0;pointer-events:none}
 .tabbar-in{max-width:620px;margin:0 auto;display:flex;gap:6px;padding:0 10px;align-items:flex-end}
-.tabbar::after{content:"";display:block;height:calc(12px + env(safe-area-inset-bottom));background:var(--fc,var(--pink));transition:background .3s;
+.tabbar::after{content:"";display:block;height:calc(12px + env(safe-area-inset-bottom));background:var(--fc,#FF4F8B);transition:background .3s;
   box-shadow:0 -1px 0 rgba(0,0,0,.06)}
 .tab{flex:1;pointer-events:auto;border:0;cursor:pointer;background:var(--c);color:var(--t);border-radius:16px 16px 0 0;padding:13px 6px 9px;
   font-size:14px;font-weight:800;letter-spacing:.09em;text-transform:uppercase;font-variation-settings:"wdth" 80;
-  transform:translateY(9px);filter:saturate(.7) brightness(.94);box-shadow:0 -3px 10px -4px rgba(0,0,0,.25);
-  transition:transform .4s cubic-bezier(.3,1.6,.5,1),filter .25s}
-.tab[aria-selected="true"]{transform:none;filter:none;padding-bottom:12px}
+  transform:translateY(9px);box-shadow:0 -3px 10px -4px rgba(0,0,0,.3),inset 0 -6px 0 rgba(0,0,0,.12);
+  transition:transform .4s cubic-bezier(.3,1.6,.5,1)}
+.tab[aria-selected="true"]{transform:none;padding-bottom:12px;box-shadow:0 -4px 14px -4px rgba(0,0,0,.35)}
 
 /* lugares: busca, lugar escolhido, partida, lojas, pastas de categoria */
 .msearch{display:block;border-radius:var(--r);background:var(--paper);box-shadow:var(--shadow);overflow:hidden;border:2px solid var(--ink)}
@@ -307,6 +307,7 @@ dialog.sheet::backdrop{background:rgba(22,22,26,.42)}
 .st-form input::placeholder{color:var(--ink3)}
 .st-form button{flex:0 0 auto;border:2px solid var(--ink);background:var(--pill);color:var(--on-pill);border-radius:999px;padding:6px 14px;font-size:14px;font-weight:800;cursor:pointer}
 #stList:not(:empty){border-top:1px solid var(--sep)}
+.st-busy{flex:0 0 auto;font-size:13px;font-weight:700;color:var(--ink2);animation:pulse 1.2s ease-in-out infinite}
 .st-find{flex:0 0 auto;border-radius:999px;padding:5px 11px;font-size:13px;font-weight:800;color:var(--ink);border:1.5px solid var(--ink);white-space:nowrap}
 .st-sugg{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:12px 4px 0;font-size:13px;color:var(--ink2)}
 .st-sugg[hidden]{display:none}
@@ -317,8 +318,8 @@ dialog.sheet::backdrop{background:rgba(22,22,26,.42)}
 .chips[hidden]{display:none}
 .chip{flex:0 0 auto;border:0;border-radius:13px 13px 0 0;padding:10px 14px 8px;background:var(--c,var(--paper));color:var(--t,var(--ink));
   font-size:14px;font-weight:800;cursor:pointer;display:flex;align-items:center;gap:6px;white-space:nowrap;
-  transform:translateY(5px);filter:saturate(.65);transition:transform .35s cubic-bezier(.3,1.6,.5,1),filter .2s}
-.chip[aria-pressed="true"]{transform:none;filter:none;padding-bottom:12px}
+  transform:translateY(5px);transition:transform .35s cubic-bezier(.3,1.6,.5,1)}
+.chip[aria-pressed="true"]{transform:none;padding-bottom:12px}
 .chip .n{font-size:12px;opacity:.75;font-variant-numeric:tabular-nums}
 #plList{margin-top:22px;display:flex;flex-direction:column;gap:24px}
 
@@ -401,7 +402,7 @@ dialog.sheet::backdrop{background:rgba(22,22,26,.42)}
     <p class="foot" id="dataMsg">Use antes de apagar o ícone do app ou para passar sua lista para outro celular. A cópia inclui fotos, preços, lugares e lojas.</p>
     <input type="file" id="importFile" accept="application/json,.json" hidden>
   </section>
-  <p class="foot center"><span class="ver">Versão 19</span></p>
+  <p class="foot center"><span class="ver">Versão 20</span></p>
 </main>
 <main class="app" id="tabLugares" hidden>
   <header>
@@ -434,15 +435,16 @@ dialog.sheet::backdrop{background:rgba(22,22,26,.42)}
   </form>
   <p class="foot" id="homeMsg"></p>
   <section class="group st-wrap" aria-labelledby="stTitle">
-    <h2><span class="cat-h" id="stTitle">🛍️ Lojas para visitar</span><span class="c" id="stCount"></span></h2>
+    <h2><span class="cat-h" id="stTitle">🛍️ Lojas e compras</span><span class="c" id="stCount"></span></h2>
     <div class="card">
       <form class="st-form" id="stAdd" autocomplete="off">
-        <input id="stName" maxlength="60" placeholder="Adicionar loja (ex.: Uniqlo)" aria-label="Nome da loja" enterkeyhint="done">
+        <input id="stName" maxlength="60" placeholder="Adicionar loja (ex.: Target)" aria-label="Nome da loja" enterkeyhint="done">
         <button type="submit">Adicionar</button>
       </form>
       <div id="stList" role="list"></div>
     </div>
     <div class="st-sugg" id="stSugg" hidden></div>
+    <p class="foot">Ao adicionar uma loja, o app já coloca a unidade mais perto da partida, com o endereço e os minutos de carro.</p>
   </section>
   <div class="chips" id="plChips" role="toolbar" aria-label="Filtrar por categoria" hidden></div>
   <div id="plList"></div>
@@ -462,9 +464,9 @@ dialog.sheet::backdrop{background:rgba(22,22,26,.42)}
   <p class="foot">Nas lojas dos EUA o preço da etiqueta não inclui o imposto, que é somado no caixa. Orlando: 6,5% · Kissimmee: 7,5%.</p>
 </main>
 <nav class="tabbar" id="tabbar" aria-label="Abas"><div class="tabbar-in" role="tablist">
-  <button type="button" class="tab" role="tab" id="tabBtnCompras" aria-controls="tabCompras" aria-selected="true" style="--c:#F6B9CB;--t:#16161A">Compras</button>
-  <button type="button" class="tab" role="tab" id="tabBtnLugares" aria-controls="tabLugares" aria-selected="false" style="--c:#C9C03A;--t:#16161A">Lugares</button>
-  <button type="button" class="tab" role="tab" id="tabBtnCarteira" aria-controls="tabCarteira" aria-selected="false" style="--c:#A3182A;--t:#FFFDF8">Carteira</button>
+  <button type="button" class="tab" role="tab" id="tabBtnCompras" aria-controls="tabCompras" aria-selected="true" style="--c:#FF4F8B;--t:#16161A">Compras</button>
+  <button type="button" class="tab" role="tab" id="tabBtnLugares" aria-controls="tabLugares" aria-selected="false" style="--c:#FF7A1A;--t:#16161A">Lugares</button>
+  <button type="button" class="tab" role="tab" id="tabBtnCarteira" aria-controls="tabCarteira" aria-selected="false" style="--c:#2D5BD8;--t:#FFFDF8">Carteira</button>
 </div></nav>
 <dialog class="sheet" id="plSheet" aria-label="Lugar">
   <div class="sh-bar"><span class="grab" aria-hidden="true"></span><button type="button" class="sh-ok" id="plOk">OK</button></div>
@@ -477,6 +479,7 @@ dialog.sheet::backdrop{background:rgba(22,22,26,.42)}
   <div class="card sh-acts">
     <a class="row act" id="plApple" target="_blank" rel="noopener noreferrer">Como chegar pelo Apple Maps</a>
     <a class="row act" id="plGoogle" target="_blank" rel="noopener noreferrer">Como chegar pelo Google Maps</a>
+    <button class="row act" type="button" id="plOther" hidden>Escolher outra unidade</button>
     <button class="row act" type="button" id="plVisit">Marcar como visitado</button>
   </div>
   <div class="sh-gap"></div>
@@ -1074,7 +1077,7 @@ function onHomeReady(){
   homeMsg(home.approx?"Endereço exato não encontrado: usando o centro do CEP. Os minutos são aproximados.":"");
   drawHome();
   const missing=places.filter(p=>p.min==null||p.est);
-  driveTimes(missing).then(()=>{savePlaces(); renderPlaces(); if(pin)fillPin()});
+  driveTimes(missing).then(()=>{savePlaces(); renderPlaces(); if(pin)fillPin()}).then(locateMissing);
 }
 function savePlaces(){try{localStorage.setItem(PL_KEY,JSON.stringify(places))}catch(e){}}
 const GEO="https://nominatim.openstreetmap.org";
@@ -1128,11 +1131,12 @@ let plFilter="todos";
 function renderPlaces(){
   const total=places.length, done=places.filter(p=>p.v).length;
   $("plSub").textContent=total?`${done} de ${total} ${total===1?"lugar visitado":"lugares visitados"}`:"Nenhum lugar ainda";
-  const used=CATS.filter(c=>places.some(p=>catOf(p.c).k===c.k));
+  const used=CATS.filter(c=>c.k!=="compras"&&places.some(p=>catOf(p.c).k===c.k));
+  const others=places.filter(p=>catOf(p.c).k!=="compras").length;
   if(plFilter!=="todos"&&!used.some(c=>c.k===plFilter))plFilter="todos";
   $("plChips").hidden=used.length<2;
   const tc=hex=>{const n=parseInt(hex.slice(1),16),r=n>>16,g=n>>8&255,b=n&255; return (r*299+g*587+b*114)/1000>150?"#16161A":"#FFFDF8"};
-  $("plChips").innerHTML=`<button type="button" class="chip" data-f="todos" style="--c:var(--ink);--t:var(--paper)" aria-pressed="${plFilter==="todos"}">Todos <span class="n">${total}</span></button>`
+  $("plChips").innerHTML=`<button type="button" class="chip" data-f="todos" style="--c:var(--ink);--t:var(--paper)" aria-pressed="${plFilter==="todos"}">Todos <span class="n">${others}</span></button>`
     +used.map(c=>`<button type="button" class="chip" data-f="${c.k}" style="--c:${c.c};--t:${tc(c.c)}" aria-pressed="${plFilter===c.k}">${c.e} ${esc(c.n)} <span class="n">${places.filter(p=>catOf(p.c).k===c.k).length}</span></button>`).join("");
   $("plChips").style.setProperty("--fc",plFilter==="todos"?"var(--ink)":catOf(plFilter).c);
   const shown=used.filter(c=>plFilter==="todos"||c.k===plFilter);
@@ -1147,7 +1151,7 @@ function renderPlaces(){
         ${CHEV}
       </div></div>`).join("")}</div></section>`;
   }).join("")
-    ||'<p class="empty"><b>Nenhum lugar ainda</b>Busque um lugar acima, escolha a categoria e toque em \u201CAdicionar à lista\u201D.</p>';
+    ||(others||stores.length||places.length?"":'<p class="empty"><b>Nenhum lugar ainda</b>Busque um lugar acima, escolha a categoria e toque em \u201CAdicionar à lista\u201D.</p>');
   drawMarkers(); renderStores();
 }
 const placeLine=p=>[timeShort(p),p.note||p.a].filter(Boolean).join(" \u00B7 ");
@@ -1355,28 +1359,61 @@ attachSwipe($("plList"),removePlace);
 /* lojas para visitar */
 const storePlace=st=>st.pid&&places.find(p=>p.id===st.pid);
 const MAP_ICO='<svg width="13" height="13" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true" style="vertical-align:-2px;margin-right:3px"><path d="M8 15s-5-4.6-5-8.3a5 5 0 0110 0C13 10.4 8 15 8 15zm0-6.3a2 2 0 100-4 2 2 0 000 4z"/></svg>';
+const locating=new Set();
+const shopPlaces=()=>{const linked=new Set(stores.map(st=>st.pid).filter(Boolean)); return places.filter(p=>catOf(p.c).k==="compras"&&!linked.has(p.id))};
 function renderStores(){
-  const done=stores.filter(st=>{const p=storePlace(st); return p?p.v:st.v}).length;
-  $("stCount").textContent=stores.length?`${done} de ${stores.length}`:"";
+  const extra=shopPlaces();
+  const total=stores.length+extra.length;
+  const done=stores.filter(st=>{const p=storePlace(st); return p?p.v:st.v}).length+extra.filter(p=>p.v).length;
+  $("stCount").textContent=total?`${done} de ${total}`:"";
   $("stList").innerHTML=stores.map(st=>{
-    const p=storePlace(st), v=p?p.v:st.v;
+    const p=storePlace(st), v=p?p.v:st.v, busy=locating.has(st.id);
     return `<div class="swipe" data-id="${st.id}"><div class="bg" aria-hidden="true">Apagar</div>
       <div class="fg${v?" done":""}" tabindex="0" role="listitem" aria-label="${esc(st.n)}. ${p?"Toque para ver detalhes":"Toque para achar a unidade mais perto"}. Deslize para a esquerda para apagar.">
         <button class="chk" type="button" aria-pressed="${!!v}" aria-label="Marcar ${esc(st.n)} como visitada">${CHECK}</button>
         <span class="nm">${esc(st.n)}${p?`<span class="addr">${MAP_ICO}${esc(placeLine(p)||p.n)}</span>`:""}</span>
-        ${p?CHEV:`<span class="st-find">Achar unidade</span>`}
+        ${p?CHEV:busy?`<span class="st-busy">procurando o endereço\u2026</span>`:`<span class="st-find">Achar unidade</span>`}
       </div></div>`;
-  }).join("");
+  }).join("")+extra.map(p=>`<div class="swipe" data-id="${p.id}" data-kind="place"><div class="bg" aria-hidden="true">Apagar</div>
+      <div class="fg${p.v?" done":""}" tabindex="0" role="listitem" aria-label="${esc(p.n)}. Toque para ver detalhes. Deslize para a esquerda para apagar.">
+        <button class="chk" type="button" aria-pressed="${!!p.v}" aria-label="Marcar ${esc(p.n)} como visitada">${CHECK}</button>
+        <span class="nm">${esc(p.n)}${placeLine(p)?`<span class="addr">${MAP_ICO}${esc(placeLine(p))}</span>`:""}</span>
+        ${CHEV}
+      </div></div>`).join("");
   const have=new Set(stores.map(st=>st.n.toLowerCase()));
   const sugg=storeList().filter(x=>x!==NO_STORE&&x!=="Outra loja"&&!have.has(x.toLowerCase()));
   $("stSugg").hidden=!sugg.length;
   $("stSugg").innerHTML=sugg.length?`<span>Da lista de compras:</span>`+sugg.map(x=>`<button type="button" data-n="${esc(x)}">+ ${esc(x)}</button>`).join(""):"";
 }
+/* acha sozinho a unidade da loja mais perto da partida */
+const norm=t=>String(t||"").normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase().replace(/[^a-z0-9]+/g," ").trim();
+async function autoLocate(st){
+  if(!st||storePlace(st)||locating.has(st.id)||!navigator.onLine||IN_FRAME)return;
+  locating.add(st.id); renderStores();
+  try{
+    if(home.lat==null)await Promise.race([ensureHome(),new Promise(r=>setTimeout(r,2500))]);
+    const key=norm(st.n);
+    let list=(await geoSearch(st.n)).filter(x=>norm(x.n).includes(key)||key.includes(norm(x.n)));
+    const exact=list.filter(x=>norm(x.n)===key); if(exact.length)list=exact;
+    list=sortByHome(list).slice(0,6);
+    await driveTimes(list); sortByHome(list);
+    const x=list[0];
+    if(x&&stores.includes(st)&&!storePlace(st)){
+      const p={id:uid(),n:x.n,a:x.a||"",lat:x.lat,lon:x.lon,v:!!st.v,c:"compras"};
+      if(x.min!=null){p.min=x.min; p.km=x.km; p.est=!!x.est}
+      places.unshift(p); st.pid=p.id; delete st.nf; savePlaces();
+    }else if(!x) st.nf=1;
+    saveStores();
+  }catch(e){}
+  locating.delete(st.id); renderPlaces();
+}
+async function locateMissing(){ for(const st of stores.filter(st=>!storePlace(st)&&!st.nf))await autoLocate(st) }
 function addStore(name){
   name=name.trim().replace(/\s+/g," "); if(!name)return;
   const old=stores.find(st=>st.n.toLowerCase()===name.toLowerCase());
   if(old){ plNet(`\u201C${old.n}\u201D já está nas lojas.`); return }
-  stores.push({id:uid(),n:name,v:false}); saveStores(); renderStores();
+  const st={id:uid(),n:name,v:false}; stores.push(st); saveStores(); renderStores();
+  autoLocate(st);
 }
 $("stAdd").addEventListener("submit",e=>{e.preventDefault(); addStore($("stName").value); $("stName").value=""});
 $("stSugg").addEventListener("click",e=>{const b=e.target.closest("button[data-n]"); if(b)addStore(b.dataset.n)});
@@ -1391,11 +1428,20 @@ function linkStore(p){
   if(!pendingStore||!p)return;
   const st=stores.find(x=>x.id===pendingStore); pendingStore=null; plHint();
   if(!st)return;
-  st.pid=p.id; if(st.v&&!p.v){p.v=true; savePlaces()}
-  saveStores(); renderPlaces();
+  const old=storePlace(st);
+  if(old&&old!==p){ places=places.filter(q=>q!==old) }
+  st.pid=p.id; delete st.nf; p.c="compras"; if(st.v&&!p.v)p.v=true;
+  savePlaces(); saveStores(); renderPlaces();
 }
 $("stList").addEventListener("click",e=>{
   const sw=e.target.closest(".swipe"); if(!sw)return;
+  if(sw.dataset.kind==="place"){
+    const q=places.find(x=>x.id===sw.dataset.id); if(!q)return;
+    const bq=e.target.closest(".chk");
+    if(bq){ q.v=!q.v; savePlaces(); bq.closest(".fg").classList.toggle("done",q.v); bq.setAttribute("aria-pressed",q.v); clearTimeout(bq._t); bq._t=setTimeout(renderPlaces,450); return }
+    if(suppressClick){suppressClick=false;return}
+    openPlace(q.id); return;
+  }
   const st=stores.find(x=>x.id===sw.dataset.id); if(!st)return;
   const p=storePlace(st);
   const b=e.target.closest(".chk");
@@ -1405,19 +1451,24 @@ $("stList").addEventListener("click",e=>{
     clearTimeout(b._t); b._t=setTimeout(renderPlaces,450); return;
   }
   if(suppressClick){suppressClick=false;return}
-  if(p)openPlace(p.id); else findStore(st);
+  if(p)openPlace(p.id); else if(!locating.has(st.id))findStore(st);
 });
 $("stList").addEventListener("keydown",e=>{
   if(!e.target.classList.contains("fg"))return;
-  const st=stores.find(x=>x.id===e.target.closest(".swipe").dataset.id); if(!st)return;
+  const sw=e.target.closest(".swipe");
+  if(sw.dataset.kind==="place"){ if(e.key==="Delete"||e.key==="Backspace"){e.preventDefault();removePlace(sw.dataset.id)} else if(e.key==="Enter"||e.key===" "){e.preventDefault();openPlace(sw.dataset.id)} return }
+  const st=stores.find(x=>x.id===sw.dataset.id); if(!st)return;
   if(e.key==="Delete"||e.key==="Backspace"){e.preventDefault();removeStore(st.id)}
   else if(e.key==="Enter"||e.key===" "){e.preventDefault(); const p=storePlace(st); if(p)openPlace(p.id); else findStore(st)}
 });
 function removeStore(id){
-  const idx=stores.findIndex(x=>x.id===id); if(idx<0)return;
-  const st=stores[idx]; stores.splice(idx,1); saveStores(); renderStores();
+  const idx=stores.findIndex(x=>x.id===id);
+  if(idx<0){ removePlace(id); return }
+  const st=stores[idx], p=storePlace(st), pIdx=p?places.indexOf(p):-1;
+  stores.splice(idx,1); if(p)places.splice(pIdx,1);
+  saveStores(); savePlaces(); renderPlaces();
   if(pendingStore===id)pendingStore=null;
-  showUndo("Loja apagada",()=>{stores.splice(Math.min(idx,stores.length),0,st); saveStores(); renderStores()});
+  showUndo("Loja apagada",()=>{ stores.splice(Math.min(idx,stores.length),0,st); if(p)places.splice(Math.min(pIdx,places.length),0,p); saveStores(); savePlaces(); renderPlaces() });
 }
 attachSwipe($("stList"),removeStore);
 
@@ -1443,6 +1494,7 @@ function fillPlace(){
   $("plApple").href=`https://maps.apple.com/?daddr=${p.lat},${p.lon}&q=${encodeURIComponent(p.n)}`;
   $("plGoogle").href=`https://www.google.com/maps/dir/?api=1&destination=${p.lat},${p.lon}`;
   $("plVisit").textContent=p.v?"Marcar como \u201Cquero ir\u201D":"Marcar como visitado";
+  const ownerSt=stores.find(st=>st.pid===p.id); $("plOther").hidden=!ownerSt;
 }
 function openPlace(id){ plCur=id; fillPlace(); if(plSheet.showModal){if(!plSheet.open)plSheet.showModal()}else plSheet.setAttribute("open","") }
 plSheet.addEventListener("close",()=>{plCur=null; renderPlaces()});
@@ -1456,6 +1508,7 @@ $("plName").addEventListener("input",()=>{const p=curPlace(); if(p){p.n=$("plNam
 $("plCat").innerHTML=catOptions();
 $("plCat").addEventListener("change",()=>{const p=curPlace(); if(p){p.c=$("plCat").value; savePlaces(); drawMarkers()}});
 $("plNote").addEventListener("input",()=>{const p=curPlace(); if(p){p.note=$("plNote").value.trim(); savePlaces()}});
+$("plOther").addEventListener("click",()=>{ const p=curPlace(); const st=p&&stores.find(x=>x.pid===p.id); plSheet.close(); if(st)findStore(st) });
 $("plVisit").addEventListener("click",()=>{const p=curPlace(); if(p){p.v=!p.v; savePlaces(); fillPlace(); drawMarkers()}});
 $("plDel").addEventListener("click",()=>{const id=plCur; plSheet.close(); if(id)removePlace(id)});
 addEventListener("online",plHint); addEventListener("offline",plHint);
