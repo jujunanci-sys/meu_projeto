@@ -1,0 +1,104 @@
+# Aviso do Dólar Hoje
+# A cada 5 minutos consulta o dólar comercial e, se caiu desde a última
+# consulta, manda uma notificação pelo app ntfy (funciona com o celular
+# bloqueado e o app Dólar Hoje fechado).
+name: Aviso do dólar
+
+on:
+  schedule:
+    - cron: "*/5 * * * *"
+  workflow_dispatch:
+    inputs:
+      teste:
+        description: "Enviar uma notificação de teste agora"
+        type: boolean
+        default: false
+
+concurrency:
+  group: aviso-dolar
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  verificar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    env:
+      # Canal do ntfy. Para trocar sem deixar o nome público, crie o segredo
+      # NTFY_TOPIC em Settings > Secrets and variables > Actions.
+      NTFY_TOPIC: ${{ secrets.NTFY_TOPIC || 'dolar-hoje-da76e9f76a45' }}
+      APP_URL: https://jujunanci-sys.github.io/meu_projeto/dolar-app/
+      TESTE: ${{ inputs.teste && '1' || '0' }}
+    steps:
+      - name: Recuperar último preço
+        uses: actions/cache/restore@v4
+        with:
+          path: .estado
+          key: dolar-estado-${{ github.run_id }}
+          restore-keys: dolar-estado-
+
+      - name: Consultar o dólar e avisar se caiu
+        shell: python
+        run: |
+          import json, os, pathlib, urllib.request
+
+          def get(url):
+              req = urllib.request.Request(url, headers={"User-Agent": "dolar-hoje-aviso"})
+              with urllib.request.urlopen(req, timeout=20) as r:
+                  return json.load(r)
+
+          def brl(v):
+              s = f"{v:.4f}".rstrip("0")
+              if len(s.split(".")[1]) < 2:
+                  s = f"{v:.2f}"
+              return "R$ " + s.replace(".", ",")
+
+          def avisar(titulo, texto):
+              corpo = json.dumps({
+                  "topic": os.environ["NTFY_TOPIC"],
+                  "title": titulo,
+                  "message": texto,
+                  "click": os.environ["APP_URL"],
+              }).encode()
+              req = urllib.request.Request("https://ntfy.sh/", data=corpo,
+                                           headers={"Content-Type": "application/json"})
+              with urllib.request.urlopen(req, timeout=20) as r:
+                  print("ntfy respondeu", r.status)
+
+          preco = None
+          try:
+              preco = float(get("https://economia.awesomeapi.com.br/json/last/USD-BRL")["USDBRL"]["bid"])
+          except Exception as e:
+              print("AwesomeAPI falhou:", e)
+          if preco is None:
+              try:
+                  preco = float(get("https://api.frankfurter.app/latest?from=USD&to=BRL")["rates"]["BRL"])
+              except Exception as e:
+                  print("Frankfurter falhou:", e)
+
+          if os.environ.get("TESTE") == "1":
+              texto = f"Teste do aviso. Agora o dólar está {brl(preco)}." if preco else "Teste do aviso."
+              avisar("Dólar Hoje", texto)
+
+          if preco is None:
+              print("Sem cotação nesta rodada.")
+              raise SystemExit(0)
+
+          estado = pathlib.Path(".estado/ultimo.json")
+          anterior = json.loads(estado.read_text())["preco"] if estado.exists() else None
+          print("anterior:", anterior, "agora:", preco)
+
+          if anterior is not None and preco < anterior - 1e-9:
+              avisar("O dólar caiu", f"Caiu {brl(anterior - preco)}: de {brl(anterior)} para {brl(preco)}.")
+
+          estado.parent.mkdir(exist_ok=True)
+          estado.write_text(json.dumps({"preco": preco}))
+
+      - name: Guardar último preço
+        if: always()
+        uses: actions/cache/save@v4
+        with:
+          path: .estado
+          key: dolar-estado-${{ github.run_id }}
