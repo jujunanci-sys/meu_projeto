@@ -212,7 +212,12 @@ dialog.sheet::backdrop{background:rgba(22,22,26,.42)}
 .spin{width:28px;height:28px;border-radius:50%;border:3px solid rgba(22,22,26,.1);border-top-color:#16161A;animation:rot .8s linear infinite;margin-bottom:6px}
 @keyframes rot{to{transform:rotate(360deg)}}
 .sh-info{padding:20px 20px 14px}
-.sh-info h2{margin:0;font-size:26px;line-height:1.05;font-weight:800;letter-spacing:-.02em;overflow-wrap:anywhere;font-variation-settings:"wdth" 88,"opsz" 48}
+.sh-name{display:flex;align-items:center;gap:8px;border-radius:12px;margin:0 -10px;padding:2px 10px;cursor:text;transition:background .2s}
+.sh-name:focus-within{background:var(--paper);box-shadow:0 0 0 2px var(--ink)}
+.sh-name input{flex:1;min-width:0;border:0;outline:0;background:none;padding:4px 0;font-size:26px;line-height:1.1;font-weight:800;letter-spacing:-.02em;
+  color:var(--ink);text-overflow:ellipsis;font-variation-settings:"wdth" 88,"opsz" 48}
+.sh-name .pen{flex:0 0 auto;font-size:20px;color:var(--ink2)}
+.sh-name:focus-within .pen{color:var(--cobalt)}
 .sh-info p{margin:4px 0 0;color:var(--ink2);font-size:15px}
 .sh-acts{margin:0 16px}
 .sh-acts + .sh-acts{margin-top:16px}
@@ -402,7 +407,7 @@ dialog.sheet::backdrop{background:rgba(22,22,26,.42)}
     <p class="foot" id="dataMsg">Use antes de apagar o ícone do app ou para passar sua lista para outro celular. A cópia inclui fotos, preços, lugares e lojas.</p>
     <input type="file" id="importFile" accept="application/json,.json" hidden>
   </section>
-  <p class="foot center"><span class="ver">Versão 20</span></p>
+  <p class="foot center"><span class="ver">Versão 22</span></p>
 </main>
 <main class="app" id="tabLugares" hidden>
   <header>
@@ -485,13 +490,13 @@ dialog.sheet::backdrop{background:rgba(22,22,26,.42)}
   <div class="sh-gap"></div>
   <div class="card sh-acts"><button class="row act red" type="button" id="plDel">Apagar lugar</button></div>
 </dialog>
-<dialog class="sheet" id="sheet" aria-labelledby="shName">
+<dialog class="sheet" id="sheet" aria-label="Item da lista">
   <div class="sh-bar"><span class="grab" aria-hidden="true"></span><button type="button" class="sh-ok" id="shOk">OK</button></div>
   <div class="ph" id="shPh"></div>
-  <div class="sh-info"><h2 id="shName"></h2><p id="shStore"></p></div>
+  <div class="sh-info"><label class="sh-name"><input id="shName" maxlength="200" enterkeyhint="done" aria-label="Nome do produto (toque para editar)"><span class="pen" aria-hidden="true">✎</span></label><p id="shStore"></p></div>
   <div class="card sh-acts" style="margin-bottom:16px"><div class="row"><label for="shPrice">Preço</label><span class="w-in">US$ <input id="shPrice" type="text" inputmode="decimal" placeholder="0,00" maxlength="12"></span></div></div>
   <div class="card sh-acts">
-    <button class="row act" type="button" id="shFetch">Buscar foto pelo link</button>
+    <button class="row act" type="button" id="shFetch">Buscar foto e preço pelo link</button>
     <a class="row act" id="shWeb" target="_blank" rel="noopener noreferrer">Procurar foto na web</a>
     <button class="row act" type="button" id="shPick">Escolher foto do aparelho</button>
     <button class="row act" type="button" id="shPaste">Colar foto copiada</button>
@@ -675,7 +680,7 @@ function netUpdate(){
   a.setAttribute("aria-disabled",ok?"false":"true");
   a.href=ok?"https://www.google.com/search?tbm=shop&q="+encodeURIComponent(q):"#";
   $("net").textContent=!on?"Sem internet. A busca volta quando você se conectar."
-    :(q&&!isUrl(q)?"Achou o produto? Copie o link e cole em “Link do produto” para salvar.":"Digite o que procura e toque em Buscar.");
+    :(q&&!isUrl(q)?"Achou o produto? Copie o link e cole em \u201CLink\u201D: a foto e o preço vêm da página.":"Cole o link do produto e o app busca a foto e o preço na página.");
 }
 $("newName").addEventListener("input",netUpdate);
 addEventListener("online",netUpdate); addEventListener("offline",netUpdate);
@@ -801,25 +806,64 @@ async function setPhoto(id,file){
 /* foto a partir do link do produto: o Microlink lê a página e acha a foto principal;
    o weserv entrega essa imagem num formato que o app pode guardar */
 const loading=new Set();
+/* preço a partir da página do produto: os campos padrão que as lojas usam
+   (product:price, og:price, schema.org e JSON-LD), lidos pelo Microlink */
+const PRICE_RULES={
+  pm1:['meta[property="product:price:amount"]','content'], pc1:['meta[property="product:price:currency"]','content'],
+  pm2:['meta[property="og:price:amount"]','content'], pc2:['meta[property="og:price:currency"]','content'],
+  pm3:['[itemprop="price"]','content'], pm4:['[itemprop="price"]','text'], pc3:['[itemprop="priceCurrency"]','content'],
+  ld:['script[type="application/ld+json"]','html']
+};
+function microlinkUrl(u){
+  const q=new URLSearchParams({url:u});
+  for(const [k,[sel,attr]] of Object.entries(PRICE_RULES)){ q.set(`data.${k}.selector`,sel); q.set(`data.${k}.attr`,attr) }
+  return "https://api.microlink.io/?"+q.toString();
+}
+function offerFromLd(txt){
+  const out=[];
+  const walk=o=>{ if(!o||typeof o!=="object")return; if(Array.isArray(o)){o.forEach(walk);return}
+    if(o.price!=null||o.lowPrice!=null)out.push({v:o.price??o.lowPrice,c:o.priceCurrency});
+    for(const k of ["offers","@graph","priceSpecification","mainEntity"])walk(o[k]) };
+  for(const t of [].concat(txt||[])){ try{walk(JSON.parse(t))}catch(e){} }
+  return out[0]||null;
+}
+function priceFromData(d){
+  if(!d)return null;
+  const cur=(d.pc1||d.pc2||d.pc3||"").toString().trim().toUpperCase();
+  let v=d.pm1??d.pm2??d.pm3??d.pm4, c=cur;
+  if(v==null){ const o=offerFromLd(d.ld); if(o){v=o.v; c=(o.c||cur||"").toUpperCase()} }
+  const n=parseMoney(String(v??"").replace(/[^\d.,]/g,""));
+  if(!n)return null;
+  return {n,c:c||"USD"};
+}
 async function photoFromLink(id,{rename=false}={}){
   const it=items.find(i=>i.id===id); if(!it||!it.u||loading.has(id))return;
   const fail=t=>{if(cur===id)sheetMsg(t)};
   if(!navigator.onLine){fail("Sem internet. Tente de novo quando se conectar.");return}
   loading.add(id); render(); if(cur===id){fillSheet();sheetMsg("")}
+  let priceNote="";
   try{
-    const r=await fetch("https://api.microlink.io/?url="+encodeURIComponent(it.u));
+    const r=await fetch(microlinkUrl(it.u));
     const j=await r.json();
-    const img=j&&j.data&&j.data.image&&j.data.image.url;
+    const d=j&&j.data||{};
+    /* preço: só em dólar, e nunca por cima de um preço que você digitou */
+    const pr=priceFromData(d);
+    if(pr){
+      if(pr.c!=="USD")priceNote=`O site mostra o preço em ${pr.c}; a carteira soma em dólar, então digite o preço em US$.`;
+      else if(!it.p||it.pAuto){ it.p=pr.n; it.pAuto=true; save(); render(); priceNote=`Preço do site: ${USD.format(pr.n)}.` }
+    }
+    const img=d.image&&d.image.url;
+    if(rename&&d.title){const t=String(d.title).split(/\s+[|–—-]\s+/)[0].trim().slice(0,120); if(t.length>2){it.n=t;save()}}
     if(!img)throw new Error("sem imagem");
-    if(rename&&j.data.title){const t=String(j.data.title).split(/\s+[|\u2013\u2014-]\s+/)[0].trim().slice(0,120); if(t.length>2){it.n=t;save()}}
     const b=await fetch("https://images.weserv.nl/?url="+encodeURIComponent(img)+"&w=1000&h=1000&fit=inside&output=jpg&q=85");
     if(!b.ok)throw new Error("imagem");
     const blob=await b.blob();
     loading.delete(id);
     if(!await setPhoto(id,new File([blob],"foto",{type:blob.type||"image/jpeg"})))throw new Error("imagem");
+    if(cur===id)sheetMsg(priceNote||(it.p?"":"O site não mostrou o preço. Digite o preço acima."));
   }catch(e){
     loading.delete(id); render(); if(cur===id)fillSheet();
-    fail("Não deu para pegar a foto desse link. Use \u201CProcurar foto na web\u201D, copie a imagem e toque em \u201CColar foto copiada\u201D.");
+    fail((priceNote?priceNote+" ":"")+"Não deu para pegar a foto desse link. Use “Procurar foto na web”, copie a imagem e toque em “Colar foto copiada”.");
   }
 }
 
@@ -832,13 +876,13 @@ function fillSheet(){
   const url=photos[cur];
   const hasLink=!!(it.u&&isUrl(it.u)), busy=loading.has(cur);
   $("shPh").innerHTML=url?`<img src="${url}" alt="Foto de ${esc(it.n)}">`
-    :busy?`<div class="ph-empty"><span class="spin" aria-hidden="true"></span><b>Buscando foto…</b><span>Pegando a imagem da página do produto.</span></div>`
-    :`<div class="ph-empty">${PHOTO}<b>Sem foto</b><span>${hasLink?"Toque em \u201CBuscar foto pelo link\u201D para pegar a imagem da página do produto.":"Procure a foto na web, copie a imagem e toque em \u201CColar foto copiada\u201D."}</span></div>`;
-  $("shName").textContent=it.n;
+    :busy?`<div class="ph-empty"><span class="spin" aria-hidden="true"></span><b>Buscando foto e preço…</b><span>Lendo a página do produto.</span></div>`
+    :`<div class="ph-empty">${PHOTO}<b>Sem foto</b><span>${hasLink?"Toque em \u201CBuscar foto e preço pelo link\u201D para pegar a imagem e o preço da página do produto.":"Procure a foto na web, copie a imagem e toque em \u201CColar foto copiada\u201D."}</span></div>`;
+  if(document.activeElement!==$("shName"))$("shName").value=it.n;
   if(document.activeElement!==$("shPrice"))$("shPrice").value=it.p?numBR(it.p):"";
   $("shStore").textContent=it.s+(it.d?" \u00B7 Comprado":"");
   $("shFetch").hidden=!hasLink; $("shFetch").disabled=busy;
-  $("shFetch").textContent=busy?"Buscando foto…":url?"Buscar de novo pelo link":"Buscar foto pelo link";
+  $("shFetch").textContent=busy?"Buscando foto e preço…":url?"Buscar de novo pelo link":"Buscar foto e preço pelo link";
   $("shWeb").href="https://www.google.com/search?tbm=isch&q="+encodeURIComponent((it.s===NO_STORE||it.s==="Outra loja"?"":it.s+" ")+it.n);
   $("shLink").hidden=!hasLink; if(hasLink)$("shLink").href=it.u;
   $("shDel").hidden=!url;
@@ -848,7 +892,7 @@ function openSheet(id){
   cur=id; sheetMsg(""); fillSheet();
   if(sheet.showModal){ if(!sheet.open)sheet.showModal(); } else sheet.setAttribute("open","");
 }
-sheet.addEventListener("close",()=>{cur=null});
+sheet.addEventListener("close",()=>{cur=null; render()});
 $("shOk").addEventListener("click",()=>sheet.close());
 sheet.addEventListener("click",e=>{
   if(e.target!==sheet)return;
@@ -856,8 +900,13 @@ sheet.addEventListener("click",e=>{
   if(e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom)sheet.close();
 });
 $("shPick").addEventListener("click",()=>$("shFile").click());
+/* editar o nome do produto */
+$("shName").addEventListener("input",()=>{ const it=items.find(i=>i.id===cur); const v=$("shName").value.trim().replace(/\s+/g," ");
+  if(it&&v){ it.n=v; save() } });
+$("shName").addEventListener("change",()=>{ const it=items.find(i=>i.id===cur); if(it){ $("shName").value=it.n; render(); fillSheet() } });
+$("shName").addEventListener("keydown",e=>{ if(e.key==="Enter"){ e.preventDefault(); $("shName").blur() } });
 function savePrice(){ const it=items.find(i=>i.id===cur); if(!it)return; const v=parseMoney($("shPrice").value);
-  if(v)it.p=v; else delete it.p; save(); render(); }
+  if(v)it.p=v; else delete it.p; delete it.pAuto; save(); render(); }
 $("shPrice").addEventListener("change",savePrice);
 $("shPrice").addEventListener("keydown",e=>{ if(e.key==="Enter"){e.preventDefault(); $("shPrice").blur()} });
 $("shPrice").addEventListener("blur",()=>{ const it=items.find(i=>i.id===cur); if(it)$("shPrice").value=it.p?numBR(it.p):"" });
