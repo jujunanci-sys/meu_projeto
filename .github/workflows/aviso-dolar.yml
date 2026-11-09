@@ -67,16 +67,22 @@ jobs:
               with urllib.request.urlopen(req, timeout=20) as r:
                   print("ntfy respondeu", r.status)
 
-          preco = None
-          try:
-              preco = float(get("https://economia.awesomeapi.com.br/json/last/USD-BRL")["USDBRL"]["bid"])
-          except Exception as e:
-              print("AwesomeAPI falhou:", e)
-          if preco is None:
+          # Fontes que atualizam ao longo do dia. A comparação usa sempre a mesma
+          # fonte da rodada anterior, para não gerar aviso falso ao trocar de fonte.
+          def awesome():
+              return float(get("https://economia.awesomeapi.com.br/json/last/USD-BRL")["USDBRL"]["bid"])
+
+          def yahoo():
+              d = get("https://query1.finance.yahoo.com/v8/finance/chart/BRL=X?interval=1m&range=1d")
+              return float(d["chart"]["result"][0]["meta"]["regularMarketPrice"])
+
+          preco, fonte = None, None
+          for nome, f in (("awesome", awesome), ("yahoo", yahoo)):
               try:
-                  preco = float(get("https://api.frankfurter.app/latest?from=USD&to=BRL")["rates"]["BRL"])
+                  preco, fonte = f(), nome
+                  break
               except Exception as e:
-                  print("Frankfurter falhou:", e)
+                  print(nome, "falhou:", e)
 
           if os.environ.get("TESTE") == "1":
               texto = f"Teste do aviso. Agora o dólar está {brl(preco)}." if preco else "Teste do aviso."
@@ -87,14 +93,15 @@ jobs:
               raise SystemExit(0)
 
           estado = pathlib.Path(".estado/ultimo.json")
-          anterior = json.loads(estado.read_text())["preco"] if estado.exists() else None
-          print("anterior:", anterior, "agora:", preco)
+          salvo = json.loads(estado.read_text()) if estado.exists() else {}
+          anterior = salvo.get("preco") if salvo.get("fonte") == fonte else None
+          print("fonte:", fonte, "anterior:", salvo, "agora:", preco)
 
           if anterior is not None and preco < anterior - 1e-9:
               avisar("O dólar caiu", f"Caiu {brl(anterior - preco)}: de {brl(anterior)} para {brl(preco)}.")
 
           estado.parent.mkdir(exist_ok=True)
-          estado.write_text(json.dumps({"preco": preco}))
+          estado.write_text(json.dumps({"preco": preco, "fonte": fonte}))
 
       - name: Guardar último preço
         if: always()
