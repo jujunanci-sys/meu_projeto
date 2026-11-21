@@ -72,6 +72,12 @@ body {
   text-shadow: 0 0 6px rgba(242,154,31,.35);
   min-width: 0;
 }
+.brl {
+  display: flex; justify-content: space-between; align-items: baseline; gap: 10px;
+  padding-bottom: 10px; margin-bottom: 2px; border-bottom: 1px dashed var(--amber-dim);
+  font-size: clamp(22px, 7vw, 28px); font-variant-numeric: tabular-nums; white-space: nowrap;
+}
+.brl .rate { font-size: 11px; letter-spacing: .08em; color: var(--amber-mid); text-shadow: none; }
 .inputs { display: flex; gap: 14px; align-items: baseline; font-size: 15px; color: var(--amber-mid); text-shadow: none; font-variant-numeric: tabular-nums; }
 .in { white-space: nowrap; border-bottom: 1px solid transparent; padding-bottom: 1px; }
 .in.active { color: var(--amber); border-color: var(--amber); }
@@ -195,6 +201,7 @@ body {
 
   <div class="view" id="viewCalc" role="tabpanel" aria-labelledby="tabCalc">
   <section class="lcd" aria-live="polite">
+    <div class="brl"><span class="rate" id="vRate"></span><span id="vBrl"></span></div>
     <div class="inputs">
       <span class="in" id="chipPrice"><span id="vPrice"></span></span>
       <span class="in" id="chipDisc"><span id="vDisc"></span></span>
@@ -238,7 +245,7 @@ body {
     <button class="key orange" id="kSaveFind" aria-label="Guardar achado"><span><svg width="20" height="24" viewBox="0 0 20 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linejoin="round"><path d="M3 2h14v20l-7-5-7 5z"/></svg><small>GUARDAR</small></span></button>
   </div>
 
-  <p class="hint">Digite o preço e toque no desconto. <b>+%</b> soma o extra do caixa. O marcador guarda o achado para comparar lojas.</p>
+  <p class="hint">Digite o preço em dólar e toque no desconto. O valor em reais aparece no alto, com o dólar a R$ 5,90. <b>+%</b> soma o extra do caixa. O marcador guarda o achado para comparar lojas.</p>
   </div>
 
   <div class="view" id="viewList" role="tabpanel" aria-labelledby="tabList" hidden>
@@ -254,7 +261,7 @@ body {
             <input id="fLoja" list="dlLoja" placeholder="ex.: Loja A" maxlength="40">
           </div>
           <div class="field">
-            <label class="lbl" for="fPreco">PREÇO R$</label>
+            <label class="lbl" for="fPreco">PREÇO US$</label>
             <input id="fPreco" inputmode="decimal" placeholder="0,00" maxlength="12">
           </div>
         </div>
@@ -279,6 +286,7 @@ body {
 
 <script>
 (() => {
+  const DOLAR = window.OUTLET_DOLAR = 5.9; // R$ por US$ 1
   const EXTRA_STEPS = [0, 10, 15, 20];
   // Exemplo inicial: etiqueta de R$ 199,90 com 30% + 10% no caixa.
   const state = window.outletState = { price: "199,90", disc: "30", extra: 10, field: "price", fresh: true };
@@ -299,15 +307,17 @@ body {
 
   function render() {
     const { p, final, save, total } = compute();
-    $("vPrice").textContent = "R$ " + (state.price || "—");
+    $("vPrice").textContent = "US$ " + (state.price || "—");
+    $("vBrl").textContent = "R$ " + brl.format(Math.round(final * 100) / 100 * DOLAR);
+    $("vRate").textContent = "US$ 1 = R$ " + brl.format(DOLAR);
     $("vDisc").textContent = "−" + (state.disc || "—") + "%";
     $("vExtra").textContent = state.extra ? "+" + state.extra + "%" : "";
     $("chipPrice").classList.toggle("active", state.field === "price");
     $("chipDisc").classList.toggle("active", state.field === "disc");
     $("chipExtra").hidden = !state.extra;
 
-    $("vFinal").innerHTML = "<small>R$</small>" + brl.format(final);
-    $("vSave").textContent = save > 0 ? "economia R$ " + brl.format(save) + " · " + pct(total * 100) + "%" : "sem desconto";
+    $("vFinal").innerHTML = "<small>US$</small>" + brl.format(final);
+    $("vSave").textContent = save > 0 ? "economia US$ " + brl.format(save) + " · " + pct(total * 100) + "%" : "sem desconto";
 
     document.querySelectorAll("[data-p]").forEach((k) => k.classList.toggle("sel", k.dataset.p === state.disc));
     $("kExtra").classList.toggle("sel", state.extra > 0);
@@ -387,7 +397,9 @@ body {
 (() => {
   const $ = (id) => document.getElementById(id);
   const brl = new Intl.NumberFormat("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-  const money = (n) => "R$ " + brl.format(n);
+  const DOLAR = window.OUTLET_DOLAR || 5.9;
+  const money = (n) => "US$ " + brl.format(n);
+  const reais = (n) => "R$ " + brl.format(n * DOLAR);
   const norm = (t) => String(t || "").trim().toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/\s+/g, " ");
   function parseMoney(t) {
     let v = String(t || "").replace(/[^\d.,]/g, "");
@@ -483,7 +495,7 @@ body {
     const err = !produto ? "Escreva o nome do produto." : !loja ? "Escreva o nome da loja." : !(preco > 0) ? "Escreva o preço, por exemplo 129,90." : "";
     $("fErr").textContent = err; $("fErr").hidden = !err;
     if (err) return;
-    const it = { produto, loja, preco, criadoEm: Date.now() };
+    const it = { produto, loja, preco, moeda: "USD", criadoEm: Date.now() };
     if (meta) Object.assign(it, meta);
     $("fSubmit").disabled = true;
     try {
@@ -559,6 +571,7 @@ body {
         if (idx === 0 && g.length > 1) store_.appendChild(el("span", "badge", "MENOR"));
         row.appendChild(store_);
         const price = el("span", "price", money(it.preco));
+        price.appendChild(el("span", "diff", reais(it.preco)));
         if (idx > 0) price.appendChild(el("span", "diff", "+" + money(it.preco - best)));
         else if (it.etiqueta) price.appendChild(el("span", "diff", "etiq. " + money(it.etiqueta)));
         row.appendChild(price);
