@@ -1,0 +1,348 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Calculadora Outlet</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<meta name="theme-color" content="#bdbbb2">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=Share+Tech+Mono&display=swap">
+<style>
+/* Layout: one retro calculator body, amber LCD on top, 5-column chunky keypad below. Single deliberate look. */
+:root {
+  color-scheme: light;
+  --page: #e4e1d9;
+  --stripe: #e0521d;
+  --shell: #bdbbb2;
+  --shell-edge: #2a2a28;
+  --bed: #121211;
+  --lcd: #151413;
+  --amber: #f29a1f;
+  --amber-dim: #4a3311;
+  --amber-mid: #9a6217;
+  --k-grey: #6c6e69;
+  --k-grey-hi: #7d7f7a;
+  --k-cream: #dad6c8;
+  --k-cream-hi: #e8e5d9;
+  --k-orange: #e27a0f;
+  --k-orange-hi: #f08b1f;
+  --k-red: #c21f30;
+  --k-blue: #2e6a9a;
+  --ink-light: #f2f0ea;
+  --ink-dark: #1b1b1a;
+  --font-key: "Chakra Petch", "Rajdhani", system-ui, sans-serif;
+  --font-lcd: "Share Tech Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+}
+html, body { height: 100%; }
+body {
+  background: var(--page);
+  background-image: linear-gradient(90deg, var(--stripe) 0 18px, transparent 18px);
+  color: var(--ink-dark);
+  font-family: var(--font-key);
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 16px;
+  box-sizing: border-box;
+  display: flex; justify-content: center; align-items: flex-start;
+  -webkit-tap-highlight-color: transparent;
+}
+* { box-sizing: border-box; }
+
+.device {
+  width: 100%; max-width: 430px;
+  background: linear-gradient(180deg, #c8c6bd, var(--shell) 40%, #b1afa6);
+  border: 3px solid var(--shell-edge);
+  border-radius: 34px;
+  padding: 14px 12px 22px;
+  box-shadow: 0 18px 40px rgba(40,30,20,.25), inset 0 2px 0 rgba(255,255,255,.5);
+  display: grid; gap: 14px;
+}
+
+/* ---------- LCD ---------- */
+.lcd {
+  background: var(--lcd);
+  border-radius: 18px;
+  padding: 14px 14px 12px;
+  box-shadow: inset 0 0 0 3px #0b0b0a, inset 0 6px 18px rgba(0,0,0,.6), 0 2px 0 rgba(255,255,255,.35);
+  font-family: var(--font-lcd);
+  color: var(--amber);
+  display: grid; gap: 8px;
+  text-shadow: 0 0 6px rgba(242,154,31,.35);
+  min-width: 0;
+}
+.chips { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+.chip {
+  border: 1px solid var(--amber-dim);
+  border-radius: 6px;
+  padding: 5px 7px 4px;
+  display: grid; gap: 2px;
+  min-width: 0;
+  transition: background .15s, border-color .15s;
+}
+.chip .lbl { font-size: 10px; letter-spacing: .12em; color: var(--amber-mid); text-shadow: none; }
+.chip .val { font-size: 15px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-variant-numeric: tabular-nums; }
+.chip.active { border-color: var(--amber); background: rgba(242,154,31,.1); }
+.chip.active .lbl { color: var(--amber); }
+.chip.active .val::after { content: "_"; animation: blink 1s steps(1) infinite; }
+.chip.off .val { color: var(--amber-dim); text-shadow: none; }
+@keyframes blink { 50% { opacity: 0; } }
+
+.result { display: grid; justify-items: end; gap: 2px; padding-top: 4px; }
+.result .tag { font-size: 11px; letter-spacing: .14em; color: var(--amber-mid); text-shadow: none; }
+.big {
+  font-size: clamp(38px, 13vw, 56px); line-height: 1;
+  font-variant-numeric: tabular-nums; white-space: nowrap;
+  max-width: 100%; overflow: hidden;
+}
+.big small { font-size: .42em; margin-right: .2em; color: var(--amber-mid); }
+.save {
+  display: flex; justify-content: space-between; align-items: baseline; gap: 8px;
+  font-size: 14px; border-top: 1px dashed var(--amber-dim); padding-top: 8px;
+  font-variant-numeric: tabular-nums;
+}
+.save .pill {
+  border: 1px solid var(--amber); border-radius: 4px; padding: 1px 6px; font-size: 13px;
+}
+.bars { display: flex; align-items: flex-end; gap: 3px; height: 54px; padding-top: 4px; }
+.bars i {
+  flex: 1; display: block; border-radius: 1px;
+  background: var(--amber); box-shadow: 0 0 5px rgba(242,154,31,.45);
+  transition: height .25s ease, background .25s;
+}
+.bars i.dim { background: var(--amber-dim); box-shadow: none; }
+.legend { display: flex; justify-content: space-between; font-size: 10px; letter-spacing: .12em; color: var(--amber-mid); text-shadow: none; }
+
+/* ---------- Keypad ---------- */
+.pad {
+  background: var(--bed);
+  border-radius: 16px;
+  padding: 6px;
+  display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px;
+  box-shadow: 0 2px 0 rgba(255,255,255,.4);
+}
+.key {
+  --k: var(--k-grey); --k-hi: var(--k-grey-hi); --ink: var(--ink-light);
+  position: relative; aspect-ratio: 1; min-width: 0;
+  border: 0; border-radius: 10px; padding: 0;
+  background: var(--k); color: var(--ink);
+  font: 600 clamp(18px, 6vw, 26px)/1 var(--font-key);
+  cursor: pointer; touch-action: manipulation; user-select: none;
+  box-shadow: inset 0 2px 0 rgba(255,255,255,.22), inset 0 -4px 0 rgba(0,0,0,.28), 0 2px 0 rgba(0,0,0,.6);
+  transition: transform .06s, box-shadow .06s, filter .1s;
+  display: grid; place-items: center;
+}
+.key::before {
+  content: ""; position: absolute; inset: 11%; border-radius: 50%;
+  background: radial-gradient(circle at 50% 30%, var(--k-hi), var(--k) 68%);
+  box-shadow: inset 0 -3px 4px rgba(0,0,0,.22), inset 0 2px 2px rgba(255,255,255,.18), 0 -1px 2px rgba(0,0,0,.18), 0 2px 2px rgba(255,255,255,.12);
+}
+.key > span { position: relative; }
+.key[data-p] { font-size: clamp(16px, 5vw, 22px); }
+.key small { display: block; font-size: .45em; letter-spacing: .08em; margin-top: 2px; opacity: .8; font-weight: 600; }
+.key:active, .key.down { transform: translateY(2px); box-shadow: inset 0 2px 0 rgba(255,255,255,.18), inset 0 -2px 0 rgba(0,0,0,.28), 0 0 0 rgba(0,0,0,.6); filter: brightness(.95); }
+.key:focus-visible { outline: 3px solid var(--amber); outline-offset: 1px; }
+
+.cream { --k: var(--k-cream); --k-hi: var(--k-cream-hi); --ink: var(--ink-dark); }
+.orange { --k: var(--k-orange); --k-hi: var(--k-orange-hi); --ink: var(--ink-light); }
+.round { --k: var(--k-cream); --k-hi: var(--k-cream-hi); }
+.round::before { inset: 9%; box-shadow: 0 3px 4px rgba(0,0,0,.35), inset 0 2px 2px rgba(255,255,255,.3), inset 0 -3px 4px rgba(0,0,0,.25); }
+.round.red::before { background: radial-gradient(circle at 50% 30%, #d9384a, var(--k-red) 70%); }
+.round.blue::before { background: radial-gradient(circle at 50% 30%, #3d80b5, var(--k-blue) 70%); }
+.round > span { color: var(--ink-light); font-weight: 700; }
+.round.blue > span { font-size: .78em; }
+.key.sel::after {
+  content: ""; position: absolute; top: 7%; right: 9%; width: 7px; height: 7px; border-radius: 50%;
+  background: var(--amber); box-shadow: 0 0 6px var(--amber);
+}
+.orange.sel::after { background: #fff4d8; box-shadow: 0 0 6px #fff4d8; }
+
+.hint { font: 500 12px/1.4 var(--font-key); color: #55534c; text-align: center; letter-spacing: .02em; }
+
+@media (prefers-reduced-motion: reduce) {
+  .bars i, .chip, .key { transition: none; }
+  .chip.active .val::after { animation: none; }
+}
+</style>
+</head>
+<body>
+<main class="device" aria-label="Calculadora de desconto do outlet">
+  <section class="lcd" aria-live="polite">
+    <div class="chips">
+      <div class="chip" id="chipPrice"><span class="lbl">PREÇO R$</span><span class="val" id="vPrice"></span></div>
+      <div class="chip" id="chipDisc"><span class="lbl">DESCONTO</span><span class="val" id="vDisc"></span></div>
+      <div class="chip" id="chipExtra"><span class="lbl">EXTRA</span><span class="val" id="vExtra"></span></div>
+    </div>
+    <div class="result">
+      <span class="tag">VOCÊ PAGA</span>
+      <div class="big" id="vFinal"></div>
+    </div>
+    <div class="save">
+      <span>ECONOMIA <span id="vSave"></span></span>
+      <span class="pill" id="vTotal"></span>
+    </div>
+    <div class="bars" id="bars" aria-hidden="true"></div>
+    <div class="legend" aria-hidden="true"><span>▮ PAGA</span><span>▯ ECONOMIZA</span></div>
+  </section>
+
+  <div class="pad" id="pad">
+    <button class="key round red" id="kCE" data-act="ce" aria-label="Limpar"><span>CE</span></button>
+    <button class="key round blue" id="kPrice" data-act="field-price" aria-label="Digitar preço"><span>R$</span></button>
+    <button class="key round blue" id="kDisc" data-act="field-disc" aria-label="Digitar desconto"><span>%</span></button>
+    <button class="key orange" id="kExtra" data-act="extra" aria-label="Desconto extra no caixa"><span>+%<small>EXTRA</small></span></button>
+    <button class="key orange" id="kBack" data-act="back" aria-label="Apagar">
+      <span><svg width="28" height="22" viewBox="0 0 28 22" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linejoin="round" stroke-linecap="round"><path d="M9 2h16a1 1 0 0 1 1 1v16a1 1 0 0 1-1 1H9L2 11z"/><path d="M13 7l8 8M21 7l-8 8"/></svg></span>
+    </button>
+
+    <button class="key" id="k7" data-d="7"><span>7</span></button>
+    <button class="key" id="k8" data-d="8"><span>8</span></button>
+    <button class="key" id="k9" data-d="9"><span>9</span></button>
+    <button class="key cream" id="p10" data-p="10"><span>10%</span></button>
+    <button class="key orange" id="p50" data-p="50"><span>50%</span></button>
+
+    <button class="key" id="k4" data-d="4"><span>4</span></button>
+    <button class="key" id="k5" data-d="5"><span>5</span></button>
+    <button class="key" id="k6" data-d="6"><span>6</span></button>
+    <button class="key cream" id="p20" data-p="20"><span>20%</span></button>
+    <button class="key orange" id="p60" data-p="60"><span>60%</span></button>
+
+    <button class="key" id="k1" data-d="1"><span>1</span></button>
+    <button class="key" id="k2" data-d="2"><span>2</span></button>
+    <button class="key" id="k3" data-d="3"><span>3</span></button>
+    <button class="key cream" id="p30" data-p="30"><span>30%</span></button>
+    <button class="key orange" id="p70" data-p="70"><span>70%</span></button>
+
+    <button class="key" id="k00" data-d="00"><span>00</span></button>
+    <button class="key" id="k0" data-d="0"><span>0</span></button>
+    <button class="key" id="kComma" data-d=","><span>,</span></button>
+    <button class="key cream" id="p40" data-p="40"><span>40%</span></button>
+    <button class="key orange" id="p80" data-p="80"><span>80%</span></button>
+  </div>
+
+  <p class="hint">Digite o preço da etiqueta e toque no desconto. O próximo número já começa um produto novo com o mesmo desconto. <b>+%</b> soma o desconto extra do caixa (10, 15 ou 20%).</p>
+</main>
+
+<script>
+(() => {
+  const EXTRA_STEPS = [0, 10, 15, 20];
+  const N_BARS = 34;
+  // Exemplo inicial: etiqueta de R$ 199,90 com 30% + 10% no caixa.
+  const state = { price: "199,90", disc: "30", extra: 10, field: "price", fresh: true };
+
+  const $ = (id) => document.getElementById(id);
+  const brl = new Intl.NumberFormat("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  const pct = (n) => (Math.round(n * 10) / 10).toString().replace(".", ",");
+  const num = (s) => { const v = parseFloat((s || "").replace(",", ".")); return isFinite(v) ? v : 0; };
+
+  // Bar heights: a soft two-hump curve, like a spectrum readout.
+  const shape = Array.from({ length: N_BARS }, (_, i) => {
+    const x = i / (N_BARS - 1);
+    const a = Math.exp(-((x - 0.3) ** 2) / 0.02), b = Math.exp(-((x - 0.68) ** 2) / 0.03);
+    return 0.18 + 0.82 * Math.max(a * 0.8, b);
+  });
+  const barsEl = $("bars");
+  shape.forEach(() => barsEl.appendChild(document.createElement("i")));
+  const bars = [...barsEl.children];
+
+  function compute() {
+    const p = num(state.price);
+    const d = Math.min(num(state.disc), 100) / 100;
+    const e = state.extra / 100;
+    const final = p * (1 - d) * (1 - e);
+    const total = 1 - (1 - d) * (1 - e);
+    return { p, final, save: p - final, total };
+  }
+
+  function render() {
+    const { p, final, save, total } = compute();
+    $("vPrice").textContent = state.price || "—";
+    $("vDisc").textContent = state.disc ? state.disc + "%" : "—";
+    $("vExtra").textContent = state.extra ? "+" + state.extra + "%" : "OFF";
+    $("chipPrice").classList.toggle("active", state.field === "price");
+    $("chipDisc").classList.toggle("active", state.field === "disc");
+    $("chipExtra").classList.toggle("off", !state.extra);
+
+    $("vFinal").innerHTML = "<small>R$</small>" + brl.format(final);
+    $("vSave").textContent = "R$ " + brl.format(save);
+    $("vTotal").textContent = "−" + pct(total * 100) + "% TOTAL";
+
+    const paidShare = p > 0 ? final / p : 1;
+    const lit = Math.round(paidShare * N_BARS);
+    bars.forEach((b, i) => {
+      b.style.height = Math.round(shape[i] * 100) + "%";
+      b.classList.toggle("dim", i >= lit);
+    });
+
+    document.querySelectorAll("[data-p]").forEach((k) => k.classList.toggle("sel", k.dataset.p === state.disc));
+    $("kExtra").classList.toggle("sel", state.extra > 0);
+    $("kPrice").classList.toggle("sel", state.field === "price");
+    $("kDisc").classList.toggle("sel", state.field === "disc");
+  }
+
+  function append(field, ch) {
+    let s = state[field];
+    const maxInt = field === "price" ? 7 : 2;
+    const maxDec = field === "price" ? 2 : 1;
+    const [ip, dp] = s.split(",");
+    if (ch === ",") {
+      if (s.includes(",")) return;
+      state[field] = (s || "0") + ",";
+      return;
+    }
+    if (dp !== undefined) {
+      if (dp.length >= maxDec) return;
+    } else {
+      if (ip === "0") s = "";
+      if (s.length >= maxInt) return;
+    }
+    state[field] = s + ch;
+  }
+
+  function press(el) {
+    if (el.dataset.d !== undefined) {
+      if (state.field === "price" && state.fresh) { state.price = ""; state.fresh = false; }
+      for (const ch of el.dataset.d) append(state.field, ch);
+      if (state.field === "disc" && num(state.disc) >= 100) state.disc = "99";
+    } else if (el.dataset.p) {
+      state.disc = el.dataset.p; state.field = "price"; state.fresh = true;
+    } else {
+      switch (el.dataset.act) {
+        case "ce":
+          if (state.price && !state.fresh) { state.price = ""; }
+          else { state.price = ""; state.disc = ""; state.extra = 0; }
+          state.field = "price"; state.fresh = false; break;
+        case "back":
+          state.fresh = false;
+          state[state.field] = state[state.field].slice(0, -1); break;
+        case "field-price": state.field = "price"; state.fresh = false; break;
+        case "field-disc": state.field = "disc"; state.disc = ""; break;
+        case "extra":
+          state.extra = EXTRA_STEPS[(EXTRA_STEPS.indexOf(state.extra) + 1) % EXTRA_STEPS.length]; break;
+      }
+    }
+    try { navigator.vibrate && navigator.vibrate(8); } catch (_) {}
+    render();
+  }
+
+  $("pad").addEventListener("click", (ev) => {
+    const k = ev.target.closest(".key");
+    if (k) press(k);
+  });
+
+  // Teclado físico
+  const keyMap = { Backspace: "kBack", Escape: "kCE", Delete: "kCE", ",": "kComma", ".": "kComma", "%": "kDisc", "+": "kExtra" };
+  document.addEventListener("keydown", (ev) => {
+    const id = /^[0-9]$/.test(ev.key) ? "k" + ev.key : keyMap[ev.key];
+    if (!id) return;
+    ev.preventDefault();
+    const el = $(id);
+    el.classList.add("down");
+    setTimeout(() => el.classList.remove("down"), 90);
+    press(el);
+  });
+
+  render();
+})();
+</script>
+</body>
+</html>
