@@ -1,0 +1,761 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#e4f0fa">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Outlet">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+<title>Calculadora Outlet</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;600&family=Sora:wght@400;500;600&family=JetBrains+Mono:wght@500&display=swap">
+<style>
+/* Layout: one narrow instrument column — HUD with the discount ring, a single row of discount chips, a big 4-column keypad. */
+:root {
+  --bg: #e4f0fa;
+  --grid: rgba(123, 30, 58, .05);
+  --halo: rgba(137, 196, 238, .55);
+  --surface: #fbfdff;
+  --surface-2: #edf5fc;
+  --ink: #2b0f19;
+  --muted: #6a5c66;
+  --line: #cfe1f0;
+  --track: #d3e6f5;
+  --accent: #7b1e3a;
+  --accent-2: #c4506f;
+  --on-accent: #ffffff;
+  --cta: linear-gradient(160deg, #7b1e3a, #a3304f);
+  --danger: #c4314b;
+  --glow: rgba(123, 30, 58, .18);
+  --key: #ffffff;
+  --key-shadow: 0 1px 0 rgba(43, 15, 25, .05), 0 8px 16px -10px rgba(43, 15, 25, .3);
+  --font-display: "Unbounded", "Sora", system-ui, sans-serif;
+  --font-body: "Sora", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #14080d; --grid: rgba(140, 198, 239, .05); --halo: rgba(123, 30, 58, .45); --surface: #200f17; --surface-2: #2a1520;
+    --ink: #f6eef2; --muted: #b39da9; --line: #3f2431; --track: #3a2230; --accent: #9fd1f6; --accent-2: #5fa8e6;
+    --on-accent: #2b0f19; --cta: linear-gradient(160deg, #a9d6f8, #7fb8e6); --danger: #ff7a8f; --glow: rgba(159, 209, 246, .28); --key: #24121b;
+    --key-shadow: inset 0 1px 0 rgba(255, 255, 255, .05), 0 8px 16px -10px rgba(0, 0, 0, .7);
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #14080d; --grid: rgba(140, 198, 239, .05); --halo: rgba(123, 30, 58, .45); --surface: #200f17; --surface-2: #2a1520;
+  --ink: #f6eef2; --muted: #b39da9; --line: #3f2431; --track: #3a2230; --accent: #9fd1f6; --accent-2: #5fa8e6;
+  --on-accent: #2b0f19; --cta: linear-gradient(160deg, #a9d6f8, #7fb8e6); --danger: #ff7a8f; --glow: rgba(159, 209, 246, .28); --key: #24121b;
+  --key-shadow: inset 0 1px 0 rgba(255, 255, 255, .05), 0 8px 16px -10px rgba(0, 0, 0, .7);
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html { min-height: 100%; }
+body {
+  margin: 0; min-height: 100%;
+  background-color: var(--bg);
+  background-image:
+    radial-gradient(120% 60% at 50% -10%, var(--halo), transparent 60%),
+    linear-gradient(var(--grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+  background-size: auto, 28px 28px, 28px 28px;
+  color: var(--ink);
+  font: 400 15px/1.4 var(--font-body);
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 14px 24px;
+  -webkit-tap-highlight-color: transparent;
+}
+button { font: inherit; color: inherit; }
+button:focus-visible, input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+.app { max-width: 440px; margin: 0 auto; display: grid; gap: 12px; }
+.view { display: grid; gap: 12px; }
+.label { font: 500 10px/1 var(--font-mono); letter-spacing: .14em; text-transform: uppercase; color: var(--muted); }
+
+/* ---------- Tabs ---------- */
+.top { display: flex; gap: 8px; align-items: stretch; }
+.top .tabs { flex: 1; min-width: 0; }
+.theme-btn {
+  flex: none; width: 50px; border-radius: 999px; cursor: pointer;
+  border: 1px solid var(--line); background: var(--surface-2); color: var(--accent);
+  display: grid; place-items: center; transition: transform .1s;
+}
+.theme-btn:active { transform: scale(.94); }
+.theme-btn .sun, .theme-btn[data-mode="dark"] .moon { display: none; }
+.theme-btn[data-mode="dark"] .sun { display: block; }
+.tabs {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 4px; padding: 4px;
+  background: var(--surface-2); border: 1px solid var(--line); border-radius: 999px;
+}
+.tab {
+  border: 0; border-radius: 999px; padding: 10px 0; cursor: pointer;
+  background: transparent; color: var(--muted); font-weight: 600; font-size: 14px;
+  display: flex; justify-content: center; align-items: center; gap: 6px;
+}
+.tab[aria-selected="true"] { background: var(--surface); color: var(--ink); box-shadow: var(--key-shadow); }
+.count:not(:empty) {
+  min-width: 20px; padding: 2px 6px; border-radius: 999px;
+  background: var(--accent); color: var(--on-accent); font: 500 11px/1.2 var(--font-mono);
+}
+
+/* ---------- HUD ---------- */
+.hud {
+  background: var(--surface); border: 1px solid var(--line); border-radius: 26px;
+  padding: 16px; display: grid; gap: 10px;
+}
+.brl { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+.brl .label { line-height: 1.5; }
+#vBrl { font: 600 clamp(17px, 5vw, 20px)/1 var(--font-display); letter-spacing: -.01em; white-space: nowrap; font-variant-numeric: tabular-nums; }
+
+.ring { position: relative; width: min(100%, 236px); margin: 0 auto; aspect-ratio: 1; max-width: 100%; }
+.ring svg { width: 100%; height: 100%; display: block; transform: rotate(-90deg); }
+.ring .track { stroke: var(--track); }
+.ring #ringMaskArc { transition: stroke-dashoffset .6s cubic-bezier(.2, .8, .2, 1); }
+.ring-center {
+  position: absolute; inset: 0; display: grid; place-content: center; justify-items: center;
+  text-align: center; gap: 4px;
+}
+#vPct { font: 500 13px/1 var(--font-mono); color: var(--accent); letter-spacing: .04em; }
+.cur { font: 500 11px/1 var(--font-mono); color: var(--muted); letter-spacing: .1em; }
+#vFinal { font: 600 34px/1 var(--font-display); letter-spacing: -.02em; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.pays { font-size: 12px; color: var(--muted); }
+
+.fields { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.field-btn {
+  border: 1px solid var(--line); background: var(--surface-2); border-radius: 14px;
+  padding: 9px 12px; text-align: left; cursor: pointer; display: grid; gap: 5px; min-width: 0;
+}
+.field-btn .v { font-weight: 600; font-size: 16px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-variant-numeric: tabular-nums; }
+.field-btn.active { border-color: var(--accent); box-shadow: 0 0 0 3px var(--glow); background: var(--surface); }
+.field-btn.active .v::after { content: ""; display: inline-block; width: 2px; height: 1em; margin-left: 2px; vertical-align: -2px; background: var(--accent); animation: blink 1s steps(1) infinite; }
+@keyframes blink { 50% { opacity: 0; } }
+#vSave { text-align: center; font-size: 13px; color: var(--muted); font-variant-numeric: tabular-nums; }
+#vSave b { color: var(--ink); font-weight: 600; }
+
+/* ---------- Discount chips ---------- */
+.disc { display: grid; gap: 8px; }
+.chips { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; }
+.chip {
+  border: 1px solid var(--line); background: var(--surface); border-radius: 12px;
+  height: 46px; cursor: pointer; font-weight: 600; font-size: 15px; padding: 0;
+  font-variant-numeric: tabular-nums; transition: background .15s, color .15s, border-color .15s, transform .08s;
+}
+.chip small { font-size: .7em; font-weight: 500; }
+.chip.on { background: var(--accent); border-color: var(--accent); color: var(--on-accent); box-shadow: 0 6px 16px -8px var(--accent); }
+.chip:active { transform: scale(.96); }
+.row2 { display: grid; grid-template-columns: auto 1fr; gap: 8px; align-items: center; }
+.other { padding: 0 14px; height: 40px; font-size: 13px; }
+.extra { display: grid; grid-template-columns: auto repeat(4, 1fr); align-items: center; gap: 4px; background: var(--surface-2); border: 1px solid var(--line); border-radius: 12px; padding: 3px 3px 3px 10px; }
+.extra .label { margin-right: 4px; }
+.extra button {
+  border: 0; background: transparent; border-radius: 9px; height: 32px; cursor: pointer;
+  font-weight: 600; font-size: 13px; color: var(--muted); padding: 0;
+}
+.extra button.on { background: var(--surface); color: var(--accent); box-shadow: var(--key-shadow); }
+
+/* ---------- Keypad ---------- */
+.pad { display: grid; grid-template-columns: repeat(4, 1fr); grid-auto-rows: 58px; gap: 8px; }
+.key {
+  border: 0; border-radius: 16px; background: var(--key); box-shadow: var(--key-shadow);
+  font: 500 24px/1 var(--font-body); cursor: pointer; touch-action: manipulation; user-select: none;
+  display: grid; place-items: center; transition: transform .08s, background .15s;
+}
+.key:active, .key.down { transform: scale(.95); }
+.key.util { background: var(--surface-2); color: var(--muted); font-size: 16px; font-weight: 600; box-shadow: none; border: 1px solid var(--line); }
+.key.save {
+  grid-row: 3 / span 2; grid-column: 4;
+  background: var(--cta); color: var(--on-accent);
+  font-size: 13px; font-weight: 600; gap: 6px; align-content: center;
+  box-shadow: 0 10px 22px -10px var(--accent);
+}
+
+/* ---------- Achados ---------- */
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 22px; padding: 16px; display: grid; gap: 12px; }
+.form { display: grid; gap: 12px; }
+.frow { display: grid; grid-template-columns: 1.3fr 1fr; gap: 8px; }
+.field { display: grid; gap: 6px; min-width: 0; }
+.field input {
+  width: 100%; min-width: 0; border: 1px solid var(--line); background: var(--surface-2); color: var(--ink);
+  border-radius: 12px; padding: 12px; font: 500 16px var(--font-body);
+}
+.field input::placeholder { color: var(--muted); opacity: .7; }
+.field input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--glow); background: var(--surface); }
+.note { margin: 0; font-size: 12px; color: var(--muted); }
+.err { margin: 0; font-size: 13px; color: var(--danger); }
+.submit {
+  border: 0; border-radius: 14px; height: 50px; cursor: pointer; font-weight: 600; font-size: 15px;
+  background: var(--cta); color: var(--on-accent);
+}
+.submit:disabled { opacity: .6; }
+.status { margin: 0; text-align: right; }
+.list { display: grid; gap: 14px; }
+.empty { margin: 0; font-size: 14px; line-height: 1.55; color: var(--muted); }
+.group { display: grid; gap: 8px; border-top: 1px solid var(--line); padding-top: 14px; }
+.ghead { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.gname { font-weight: 600; font-size: 16px; overflow-wrap: anywhere; min-width: 0; }
+.mini {
+  flex: none; border: 1px solid var(--line); background: var(--surface-2); border-radius: 999px;
+  padding: 6px 11px; font-size: 12px; font-weight: 600; cursor: pointer;
+}
+.mini.warn { border-color: var(--danger); color: var(--danger); background: transparent; }
+.offer { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; gap: 10px; align-items: center; font-variant-numeric: tabular-nums; }
+.offer .store { overflow-wrap: anywhere; color: var(--muted); }
+.offer.best .store { color: var(--ink); font-weight: 600; }
+.offer .price { text-align: right; white-space: nowrap; font-weight: 600; }
+.offer .diff { display: block; font: 500 11px/1.5 var(--font-mono); color: var(--muted); }
+.badge {
+  display: inline-block; margin-left: 6px; padding: 2px 7px; border-radius: 999px;
+  background: var(--accent); color: var(--on-accent); font: 500 9px/1.4 var(--font-mono); letter-spacing: .1em; vertical-align: 2px;
+}
+
+@media (max-width: 360px) {
+  .chip { font-size: 13px; height: 42px; }
+  .pad { grid-auto-rows: 52px; }
+  #vFinal { font-size: 28px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ring #ringMaskArc, .chip, .key { transition: none; }
+  .field-btn.active .v::after { animation: none; }
+}
+</style>
+</head>
+<body>
+<main class="app">
+  <div class="top">
+  <nav class="tabs" role="tablist" aria-label="Seções">
+    <button class="tab" role="tab" id="tabCalc" data-view="calcular" aria-controls="viewCalc">Calcular</button>
+    <button class="tab" role="tab" id="tabList" data-view="achados" aria-controls="viewList">Achados <span class="count" id="count"></span></button>
+  </nav>
+  <button class="theme-btn" id="themeBtn" type="button" aria-label="Mudar para tema escuro">
+    <svg class="moon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z"/></svg>
+    <svg class="sun" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v2.2M12 19.3v2.2M2.5 12h2.2M19.3 12h2.2M5.3 5.3l1.6 1.6M17.1 17.1l1.6 1.6M5.3 18.7l1.6-1.6M17.1 6.9l1.6-1.6"/></svg>
+  </button>
+  </div>
+
+  <div class="view" id="viewCalc" role="tabpanel" aria-labelledby="tabCalc">
+    <section class="hud" aria-live="polite">
+      <div class="brl">
+        <span class="label">Em reais<br><span id="vRate"></span></span>
+        <span id="vBrl"></span>
+      </div>
+      <div class="ring">
+        <svg viewBox="0 0 220 220" aria-hidden="true">
+          <defs>
+            <linearGradient id="ringGrad" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0" style="stop-color: var(--accent)"></stop>
+              <stop offset="1" style="stop-color: var(--accent-2)"></stop>
+            </linearGradient>
+            <mask id="ringMask" maskUnits="userSpaceOnUse" x="0" y="0" width="220" height="220">
+              <circle id="ringMaskArc" cx="110" cy="110" r="96" fill="none" stroke="#fff" stroke-width="24"></circle>
+            </mask>
+          </defs>
+          <circle class="track" cx="110" cy="110" r="96" fill="none" stroke-width="14" stroke-dasharray="2.2 4.0832"></circle>
+          <circle cx="110" cy="110" r="96" fill="none" stroke="url(#ringGrad)" stroke-width="14" stroke-dasharray="2.2 4.0832" mask="url(#ringMask)"></circle>
+        </svg>
+        <div class="ring-center">
+          <span id="vPct"></span>
+          <span class="cur">US$</span>
+          <span id="vFinal"></span>
+          <span class="pays">você paga</span>
+        </div>
+      </div>
+      <div class="fields">
+        <button class="field-btn" id="chipPrice" data-act="field-price"><span class="label">Etiqueta</span><span class="v" id="vPrice"></span></button>
+        <button class="field-btn" id="chipDisc" data-act="field-disc"><span class="label">Desconto</span><span class="v" id="vDisc"></span></button>
+      </div>
+      <p id="vSave" style="margin:0"></p>
+    </section>
+
+    <section class="disc" aria-label="Desconto">
+      <div class="chips">
+        <button class="chip" data-p="10">10<small>%</small></button>
+        <button class="chip" data-p="15">15<small>%</small></button>
+        <button class="chip" data-p="20">20<small>%</small></button>
+        <button class="chip" data-p="25">25<small>%</small></button>
+        <button class="chip" data-p="30">30<small>%</small></button>
+        <button class="chip" data-p="40">40<small>%</small></button>
+        <button class="chip" data-p="50">50<small>%</small></button>
+      </div>
+      <div class="row2">
+        <button class="chip other" id="kDisc" data-act="field-disc">Outro %</button>
+        <div class="extra" role="group" aria-label="Desconto extra no caixa">
+          <span class="label">Extra</span>
+          <button data-extra="0">Não</button>
+          <button data-extra="10">+10</button>
+          <button data-extra="15">+15</button>
+          <button data-extra="20">+20</button>
+        </div>
+      </div>
+    </section>
+
+    <div class="pad" id="pad">
+      <button class="key" id="k7" data-d="7">7</button>
+      <button class="key" id="k8" data-d="8">8</button>
+      <button class="key" id="k9" data-d="9">9</button>
+      <button class="key util" id="kBack" data-act="back" aria-label="Apagar">
+        <svg width="24" height="18" viewBox="0 0 28 22" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"><path d="M9 2h16a1 1 0 0 1 1 1v16a1 1 0 0 1-1 1H9L2 11z"/><path d="M13 7l8 8M21 7l-8 8"/></svg>
+      </button>
+      <button class="key" id="k4" data-d="4">4</button>
+      <button class="key" id="k5" data-d="5">5</button>
+      <button class="key" id="k6" data-d="6">6</button>
+      <button class="key util" id="kCE" data-act="ce" aria-label="Limpar">C</button>
+      <button class="key" id="k1" data-d="1">1</button>
+      <button class="key" id="k2" data-d="2">2</button>
+      <button class="key" id="k3" data-d="3">3</button>
+      <button class="key save" id="kSaveFind" aria-label="Guardar achado">
+        <svg width="18" height="22" viewBox="0 0 20 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linejoin="round"><path d="M3 2h14v20l-7-5-7 5z"/></svg>
+        Guardar
+      </button>
+      <button class="key" id="k00" data-d="00">00</button>
+      <button class="key" id="k0" data-d="0">0</button>
+      <button class="key" id="kComma" data-d=",">,</button>
+    </div>
+  </div>
+
+  <div class="view" id="viewList" role="tabpanel" aria-labelledby="tabList" hidden>
+    <section class="card">
+      <form class="form" id="form" autocomplete="off" novalidate>
+        <div class="field">
+          <label class="label" for="fProd">Produto</label>
+          <input id="fProd" list="dlProd" placeholder="ex.: Tênis de corrida azul 42" maxlength="80">
+        </div>
+        <div class="frow">
+          <div class="field">
+            <label class="label" for="fLoja">Loja</label>
+            <input id="fLoja" list="dlLoja" placeholder="ex.: Loja A" maxlength="40">
+          </div>
+          <div class="field">
+            <label class="label" for="fPreco">Preço US$</label>
+            <input id="fPreco" inputmode="decimal" placeholder="0,00" maxlength="12">
+          </div>
+        </div>
+        <p class="note" id="fNote" hidden></p>
+        <button class="submit" id="fSubmit" type="submit">Salvar achado</button>
+        <p class="err" id="fErr" role="alert" hidden></p>
+      </form>
+      <datalist id="dlProd"></datalist>
+      <datalist id="dlLoja"></datalist>
+    </section>
+
+    <section class="card">
+      <div class="field">
+        <label class="label" for="fBusca">Buscar</label>
+        <input id="fBusca" type="search" placeholder="Produto ou loja">
+      </div>
+      <div id="list" class="list"></div>
+      <p class="status label" id="status">Salvo neste aparelho</p>
+    </section>
+  </div>
+</main>
+
+<script>
+(() => {
+  // Botão de tema: alterna claro/escuro e lembra a escolha neste aparelho.
+  const root = document.documentElement;
+  const btn = document.getElementById("themeBtn");
+  const mq = window.matchMedia ? window.matchMedia("(prefers-color-scheme: dark)") : null;
+  const current = () => root.getAttribute("data-theme") || (mq && mq.matches ? "dark" : "light");
+  const paint = () => {
+    const m = current();
+    btn.dataset.mode = m;
+    btn.setAttribute("aria-label", m === "dark" ? "Mudar para tema claro" : "Mudar para tema escuro");
+    const meta = document.querySelector('meta[name="theme-color"]');
+    if (meta) meta.content = m === "dark" ? "#14080d" : "#e4f0fa";
+  };
+  try { const t = localStorage.getItem("outlet-tema"); if (t === "dark" || t === "light") root.setAttribute("data-theme", t); } catch (_) {}
+  btn.addEventListener("click", () => {
+    const next = current() === "dark" ? "light" : "dark";
+    root.setAttribute("data-theme", next);
+    try { localStorage.setItem("outlet-tema", next); } catch (_) {}
+    paint();
+  });
+  if (mq && mq.addEventListener) mq.addEventListener("change", paint);
+  new MutationObserver(paint).observe(root, { attributes: true, attributeFilter: ["data-theme"] });
+  paint();
+})();
+</script>
+<script>
+(() => {
+  const DOLAR = window.OUTLET_DOLAR = 5.9; // R$ por US$ 1
+  const RING_C = 2 * Math.PI * 96;
+  // Exemplo inicial: etiqueta de US$ 199,90 com 30% + 10% no caixa.
+  const state = window.outletState = { price: "199,90", disc: "30", extra: 10, field: "price", fresh: true };
+
+  const $ = (id) => document.getElementById(id);
+  const brl = new Intl.NumberFormat("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  const pct = (n) => (Math.round(n * 10) / 10).toString().replace(".", ",");
+  const num = (s) => { const v = parseFloat((s || "").replace(",", ".")); return isFinite(v) ? v : 0; };
+
+  const maskArc = $("ringMaskArc");
+  maskArc.setAttribute("stroke-dasharray", RING_C.toFixed(2));
+  maskArc.style.strokeDashoffset = RING_C;
+
+  function compute() {
+    const p = num(state.price);
+    const d = Math.min(num(state.disc), 100) / 100;
+    const e = state.extra / 100;
+    const final = p * (1 - d) * (1 - e);
+    const total = 1 - (1 - d) * (1 - e);
+    return { p, final, save: p - final, total };
+  }
+
+  function render() {
+    const { final, save, total } = compute();
+    const finalTxt = brl.format(final);
+    $("vFinal").textContent = finalTxt;
+    $("vFinal").style.fontSize = Math.min(34, 200 / finalTxt.length) + "px";
+    $("vBrl").textContent = "R$ " + brl.format(Math.round(final * 100) / 100 * DOLAR);
+    $("vRate").textContent = "US$ 1 = R$ " + brl.format(DOLAR);
+    $("vPct").textContent = total > 0 ? "−" + pct(total * 100) + "%" : "sem desconto";
+    maskArc.style.strokeDashoffset = RING_C * (1 - Math.min(Math.max(total, 0), 1));
+
+    $("vPrice").textContent = "US$ " + (state.price || "0");
+    $("vDisc").textContent = (state.disc ? state.disc + "%" : (state.field === "disc" ? "" : "—")) + (state.extra ? " + " + state.extra + "%" : "");
+    $("chipPrice").classList.toggle("active", state.field === "price");
+    $("chipDisc").classList.toggle("active", state.field === "disc");
+
+    $("vSave").innerHTML = save > 0.004
+      ? "Economia de <b>US$ " + brl.format(save) + "</b> · R$ " + brl.format(Math.round(save * 100) / 100 * DOLAR)
+      : "Digite o preço da etiqueta e escolha o desconto";
+
+    document.querySelectorAll("[data-p]").forEach((k) => k.classList.toggle("on", k.dataset.p === state.disc));
+    document.querySelectorAll("[data-extra]").forEach((k) => {
+      const on = Number(k.dataset.extra) === state.extra;
+      k.classList.toggle("on", on); k.setAttribute("aria-pressed", String(on));
+    });
+    $("kDisc").classList.toggle("on", state.field === "disc");
+  }
+
+  function append(field, ch) {
+    let s = state[field];
+    const maxInt = field === "price" ? 7 : 2;
+    const maxDec = field === "price" ? 2 : 1;
+    const [ip, dp] = s.split(",");
+    if (ch === ",") {
+      if (s.includes(",")) return;
+      state[field] = (s || "0") + ",";
+      return;
+    }
+    if (dp !== undefined) {
+      if (dp.length >= maxDec) return;
+    } else {
+      if (ip === "0") s = "";
+      if (s.length >= maxInt) return;
+    }
+    state[field] = s + ch;
+  }
+
+  function press(el) {
+    if (el.dataset.d !== undefined) {
+      if (state.field === "price" && state.fresh) { state.price = ""; state.fresh = false; }
+      for (const ch of el.dataset.d) append(state.field, ch);
+      if (state.field === "disc" && num(state.disc) >= 100) state.disc = "99";
+    } else if (el.dataset.p) {
+      state.disc = el.dataset.p; state.field = "price"; state.fresh = true;
+    } else if (el.dataset.extra !== undefined) {
+      state.extra = Number(el.dataset.extra);
+    } else {
+      switch (el.dataset.act) {
+        case "ce":
+          if (state.price && !state.fresh) { state.price = ""; }
+          else { state.price = ""; state.disc = ""; state.extra = 0; }
+          state.field = "price"; state.fresh = false; break;
+        case "back":
+          state.fresh = false;
+          state[state.field] = state[state.field].slice(0, -1); break;
+        case "field-price": state.field = "price"; state.fresh = false; break;
+        case "field-disc": state.field = "disc"; state.disc = ""; break;
+        default: return;
+      }
+    }
+    try { navigator.vibrate && navigator.vibrate(8); } catch (_) {}
+    render();
+  }
+
+  $("viewCalc").addEventListener("click", (ev) => {
+    const k = ev.target.closest("[data-d], [data-p], [data-extra], [data-act]");
+    if (k) press(k);
+  });
+
+  // Teclado físico
+  const keyMap = { Backspace: "kBack", Escape: "kCE", Delete: "kCE", ",": "kComma", ".": "kComma", "%": "kDisc" };
+  document.addEventListener("keydown", (ev) => {
+    if (ev.target.closest && ev.target.closest("input, textarea")) return;
+    if ($("viewCalc").hidden || ev.ctrlKey || ev.metaKey || ev.altKey) return;
+    const id = /^[0-9]$/.test(ev.key) ? "k" + ev.key : keyMap[ev.key];
+    if (!id) return;
+    ev.preventDefault();
+    const el = $(id);
+    el.classList.add("down");
+    setTimeout(() => el.classList.remove("down"), 90);
+    press(el);
+  });
+
+  window.outletCalc = { snapshot: () => ({ ...compute(), disc: state.disc, extra: state.extra }) };
+  render();
+})();
+</script>
+<script>
+(() => {
+  const $ = (id) => document.getElementById(id);
+  const brl = new Intl.NumberFormat("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  const DOLAR = window.OUTLET_DOLAR || 5.9;
+  const money = (n) => "US$ " + brl.format(n);
+  const reais = (n) => "R$ " + brl.format(n * DOLAR);
+  const norm = (t) => String(t || "").trim().toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/\s+/g, " ");
+  function parseMoney(t) {
+    let v = String(t || "").replace(/[^\d.,]/g, "");
+    if (v.includes(",")) v = v.replace(/\./g, "").replace(",", ".");
+    else if (!/^\d+\.\d{1,2}$/.test(v)) v = v.replace(/\./g, "");
+    const n = parseFloat(v);
+    return isFinite(n) ? Math.round(n * 100) / 100 : NaN;
+  }
+
+  /* ---------- armazenamento: conta (db) quando disponível, senão este aparelho ---------- */
+  const LS_KEY = "outlet-achados-v1";
+  const lsLoad = () => { try { return JSON.parse(localStorage.getItem(LS_KEY) || "[]"); } catch (_) { return []; } };
+  const lsSave = (arr) => { try { localStorage.setItem(LS_KEY, JSON.stringify(arr)); } catch (_) {} };
+  let items = lsLoad();
+  const local = {
+    label: "Salvo neste aparelho",
+    async add(it) { items = [...items, { ...it, id: "l" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6) }]; lsSave(items); render(); },
+    async remove(id) { items = items.filter((i) => i.id !== id); lsSave(items); render(); },
+  };
+  let store = local;
+
+  (async () => {
+    if (!window.claude || typeof window.claude.use !== "function") return;
+    try {
+      const [db, user] = await Promise.all([window.claude.use("db"), window.claude.use("user")]);
+      if (!db || !user) return;
+      const uid = await user.id();
+      if (!uid) return;
+      const col = db.collection("data/users/" + uid + "/achados");
+      const remote = {
+        label: "Salvo na sua conta",
+        add: (it) => col.add(it),
+        remove: (id) => col.doc(id).delete(),
+      };
+      let first = true;
+      const timer = setTimeout(() => { $("status").textContent = "Sem conexão · salvando neste aparelho"; }, 10000);
+      col.onSnapshot((snap) => {
+        clearTimeout(timer);
+        items = snap.docs.map((d) => ({ ...d.data(), id: d.id }));
+        store = remote;
+        if (first) {
+          first = false;
+          const pending = lsLoad();
+          if (pending.length) {
+            // Leva para a conta o que foi salvo no aparelho antes de conectar.
+            (async () => { for (const { id, ...it } of pending) { try { await col.add(it); } catch (_) { return; } } lsSave([]); })();
+          }
+        }
+        render();
+      }, () => {
+        clearTimeout(timer);
+        store = local; items = lsLoad(); render();
+      });
+    } catch (_) {}
+  })();
+
+  /* ---------- abas ---------- */
+  const views = { calcular: ["tabCalc", "viewCalc"], achados: ["tabList", "viewList"] };
+  function show(name) {
+    if (!views[name]) name = "calcular";
+    for (const [k, [tab, view]] of Object.entries(views)) {
+      $(tab).setAttribute("aria-selected", String(k === name));
+      $(view).hidden = k !== name;
+    }
+  }
+  document.querySelectorAll(".tab").forEach((t) => t.addEventListener("click", () => {
+    const v = t.dataset.view;
+    if (location.hash !== "#" + v) location.hash = v; else show(v);
+  }));
+  window.addEventListener("hashchange", () => show(location.hash.slice(1)));
+  show(location.hash.slice(1));
+
+  /* ---------- guardar a partir da calculadora ---------- */
+  let meta = null;
+  $("kSaveFind").addEventListener("click", () => {
+    const c = window.outletCalc.snapshot();
+    if (c.p > 0) {
+      $("fPreco").value = brl.format(c.final);
+      meta = c.final < c.p ? { etiqueta: Math.round(c.p * 100) / 100, desconto: Math.round(c.total * 1000) / 10 } : null;
+      $("fNote").textContent = meta ? "Etiqueta " + money(meta.etiqueta) + " com " + String(meta.desconto).replace(".", ",") + "% de desconto" : "";
+      $("fNote").hidden = !meta;
+    }
+    location.hash = "achados";
+    setTimeout(() => $("fProd").focus(), 50);
+  });
+  $("fPreco").addEventListener("input", () => { meta = null; $("fNote").hidden = true; });
+
+  $("form").addEventListener("submit", async (ev) => {
+    ev.preventDefault();
+    const produto = $("fProd").value.trim();
+    const loja = $("fLoja").value.trim();
+    const preco = parseMoney($("fPreco").value);
+    const err = !produto ? "Escreva o nome do produto." : !loja ? "Escreva o nome da loja." : !(preco > 0) ? "Escreva o preço, por exemplo 129,90." : "";
+    $("fErr").textContent = err; $("fErr").hidden = !err;
+    if (err) return;
+    const it = { produto, loja, preco, moeda: "USD", criadoEm: Date.now() };
+    if (meta) Object.assign(it, meta);
+    $("fSubmit").disabled = true;
+    try {
+      await store.add(it);
+      $("form").reset(); meta = null; $("fNote").hidden = true;
+      flash("Salvo");
+    } catch (_) {
+      $("fErr").textContent = "Não foi possível salvar. Tente de novo."; $("fErr").hidden = false;
+    } finally { $("fSubmit").disabled = false; }
+  });
+
+  function flash(text) {
+    const st = $("status");
+    st.textContent = text + " · " + store.label;
+    clearTimeout(flash.t);
+    flash.t = setTimeout(() => { st.textContent = store.label; }, 2500);
+  }
+
+  $("fBusca").addEventListener("input", render);
+
+  /* ---------- lista agrupada por produto ---------- */
+  function el(tag, cls, text) { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
+
+  function render() {
+    $("count").textContent = items.length ? String(items.length) : "";
+    $("status").textContent = store.label;
+
+    const fill = (id, vals) => {
+      const dl = $(id); dl.textContent = "";
+      [...new Map(vals.map((v) => [norm(v), v])).values()].sort().forEach((v) => { const o = document.createElement("option"); o.value = v; dl.appendChild(o); });
+    };
+    fill("dlProd", items.map((i) => i.produto));
+    fill("dlLoja", items.map((i) => i.loja));
+
+    const q = norm($("fBusca").value);
+    const groups = new Map();
+    for (const it of items) {
+      if (!it || typeof it.produto !== "string" || typeof it.preco !== "number") continue;
+      if (q && !norm(it.produto).includes(q) && !norm(it.loja).includes(q)) continue;
+      const k = norm(it.produto);
+      if (!groups.has(k)) groups.set(k, []);
+      groups.get(k).push(it);
+    }
+    const list = $("list"); list.textContent = "";
+    if (!groups.size) {
+      list.appendChild(el("p", "empty", items.length
+        ? "Nada encontrado para essa busca."
+        : "Nenhum achado guardado ainda. Calcule um preço e toque no marcador da calculadora, ou preencha o formulário acima. Repita o mesmo nome em outra loja para comparar os preços."));
+      return;
+    }
+    const sorted = [...groups.values()].sort((a, b) => Math.max(...b.map((i) => i.criadoEm || 0)) - Math.max(...a.map((i) => i.criadoEm || 0)));
+    for (const g of sorted) {
+      g.sort((a, b) => a.preco - b.preco);
+      const latest = g.reduce((a, b) => ((b.criadoEm || 0) > (a.criadoEm || 0) ? b : a));
+      const box = el("div", "group");
+      const head = el("div", "ghead");
+      head.appendChild(el("span", "gname", latest.produto));
+      const addBtn = el("button", "mini", "+ Loja");
+      addBtn.type = "button";
+      addBtn.setAttribute("aria-label", "Adicionar outra loja para " + latest.produto);
+      addBtn.addEventListener("click", () => {
+        $("fProd").value = latest.produto;
+        $("form").scrollIntoView({ behavior: "smooth", block: "start" });
+        $("fLoja").focus();
+      });
+      head.appendChild(addBtn);
+      box.appendChild(head);
+
+      const best = g[0].preco;
+      g.forEach((it, idx) => {
+        const row = el("div", "offer" + (idx === 0 && g.length > 1 ? " best" : ""));
+        const store_ = el("span", "store", it.loja);
+        if (idx === 0 && g.length > 1) store_.appendChild(el("span", "badge", "Menor"));
+        row.appendChild(store_);
+        const price = el("span", "price", money(it.preco));
+        price.appendChild(el("span", "diff", reais(it.preco)));
+        if (idx > 0) price.appendChild(el("span", "diff", "+" + money(it.preco - best)));
+        else if (it.etiqueta) price.appendChild(el("span", "diff", "etiq. " + money(it.etiqueta)));
+        row.appendChild(price);
+        const del = el("button", "mini", "×");
+        del.type = "button";
+        del.setAttribute("aria-label", "Apagar " + it.loja);
+        del.addEventListener("click", () => {
+          if (!del.classList.contains("warn")) {
+            del.classList.add("warn"); del.textContent = "Apagar?";
+            setTimeout(() => { del.classList.remove("warn"); del.textContent = "×"; }, 3000);
+            return;
+          }
+          Promise.resolve(store.remove(it.id)).catch(() => flash("Não foi possível apagar"));
+        });
+        row.appendChild(del);
+        box.appendChild(row);
+      });
+      list.appendChild(box);
+    }
+  }
+  render();
+})();
+</script>
+<style>
+.install {
+  display: flex; align-items: center; justify-content: space-between; gap: 10px;
+  max-width: 440px; margin: 0 auto 12px; padding: 10px 10px 10px 14px;
+  background: var(--surface); border: 1px solid var(--line); border-radius: 16px; font-size: 13px;
+}
+.install p { margin: 0; color: var(--muted); }
+.install p b { color: var(--ink); }
+.install .row { display: flex; gap: 6px; flex: none; }
+.install button { border: 0; border-radius: 999px; padding: 9px 14px; font-weight: 600; font-size: 13px; cursor: pointer; }
+.install .go { background: var(--cta); color: var(--on-accent); }
+.install .later { background: transparent; color: var(--muted); padding: 9px 8px; }
+</style>
+<script>
+(() => {
+  // Instalação no celular (app na tela inicial, funciona sem internet).
+  if (!("serviceWorker" in navigator) || !/^https?:$/.test(location.protocol)) return;
+  window.addEventListener("load", () => { navigator.serviceWorker.register("sw.js").catch(() => {}); });
+
+  const standalone = window.matchMedia("(display-mode: standalone)").matches || navigator.standalone === true;
+  let dismissed = false;
+  try { dismissed = localStorage.getItem("outlet-instalar") === "nao"; } catch (_) {}
+  if (standalone || dismissed) return;
+
+  function banner(html, onGo) {
+    const box = document.createElement("div");
+    box.className = "install";
+    box.innerHTML = html + '<span class="row">' + (onGo ? '<button class="go" type="button">Instalar</button>' : "") + '<button class="later" type="button" aria-label="Fechar">Agora não</button></span>';
+    document.body.insertBefore(box, document.body.firstChild);
+    box.querySelector(".later").addEventListener("click", () => {
+      box.remove();
+      try { localStorage.setItem("outlet-instalar", "nao"); } catch (_) {}
+    });
+    if (onGo) box.querySelector(".go").addEventListener("click", () => onGo(box));
+  }
+
+  // Android / Chrome: botão Instalar de verdade.
+  window.addEventListener("beforeinstallprompt", (ev) => {
+    ev.preventDefault();
+    banner("<p><b>Instale o app</b> na tela inicial.</p>", async (box) => {
+      box.remove();
+      ev.prompt();
+      try { await ev.userChoice; } catch (_) {}
+    });
+  });
+
+  // iPhone: o Safari não tem botão, então explica o caminho.
+  const ios = /iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+  if (ios) banner('<p><b>Instale no iPhone:</b> toque em Compartilhar e depois em “Adicionar à Tela de Início”.</p>', null);
+})();
+</script>
+</body>
+</html>
