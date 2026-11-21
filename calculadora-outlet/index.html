@@ -74,6 +74,16 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--accent); ou
 .label { font: 500 10px/1 var(--font-mono); letter-spacing: .14em; text-transform: uppercase; color: var(--muted); }
 
 /* ---------- Tabs ---------- */
+.top { display: flex; gap: 8px; align-items: stretch; }
+.top .tabs { flex: 1; min-width: 0; }
+.theme-btn {
+  flex: none; width: 50px; border-radius: 999px; cursor: pointer;
+  border: 1px solid var(--line); background: var(--surface-2); color: var(--accent);
+  display: grid; place-items: center; transition: transform .1s;
+}
+.theme-btn:active { transform: scale(.94); }
+.theme-btn .sun, .theme-btn[data-mode="dark"] .moon { display: none; }
+.theme-btn[data-mode="dark"] .sun { display: block; }
 .tabs {
   display: grid; grid-template-columns: 1fr 1fr; gap: 4px; padding: 4px;
   background: var(--surface-2); border: 1px solid var(--line); border-radius: 999px;
@@ -212,10 +222,16 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--accent); ou
 </head>
 <body>
 <main class="app">
+  <div class="top">
   <nav class="tabs" role="tablist" aria-label="Seções">
     <button class="tab" role="tab" id="tabCalc" data-view="calcular" aria-controls="viewCalc">Calcular</button>
     <button class="tab" role="tab" id="tabList" data-view="achados" aria-controls="viewList">Achados <span class="count" id="count"></span></button>
   </nav>
+  <button class="theme-btn" id="themeBtn" type="button" aria-label="Mudar para tema escuro">
+    <svg class="moon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z"/></svg>
+    <svg class="sun" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v2.2M12 19.3v2.2M2.5 12h2.2M19.3 12h2.2M5.3 5.3l1.6 1.6M17.1 17.1l1.6 1.6M5.3 18.7l1.6-1.6M17.1 6.9l1.6-1.6"/></svg>
+  </button>
+  </div>
 
   <div class="view" id="viewCalc" role="tabpanel" aria-labelledby="tabCalc">
     <section class="hud" aria-live="polite">
@@ -333,6 +349,32 @@ button:focus-visible, input:focus-visible { outline: 2px solid var(--accent); ou
   </div>
 </main>
 
+<script>
+(() => {
+  // Botão de tema: alterna claro/escuro e lembra a escolha neste aparelho.
+  const root = document.documentElement;
+  const btn = document.getElementById("themeBtn");
+  const mq = window.matchMedia ? window.matchMedia("(prefers-color-scheme: dark)") : null;
+  const current = () => root.getAttribute("data-theme") || (mq && mq.matches ? "dark" : "light");
+  const paint = () => {
+    const m = current();
+    btn.dataset.mode = m;
+    btn.setAttribute("aria-label", m === "dark" ? "Mudar para tema claro" : "Mudar para tema escuro");
+    const meta = document.querySelector('meta[name="theme-color"]');
+    if (meta) meta.content = m === "dark" ? "#14080d" : "#e4f0fa";
+  };
+  try { const t = localStorage.getItem("outlet-tema"); if (t === "dark" || t === "light") root.setAttribute("data-theme", t); } catch (_) {}
+  btn.addEventListener("click", () => {
+    const next = current() === "dark" ? "light" : "dark";
+    root.setAttribute("data-theme", next);
+    try { localStorage.setItem("outlet-tema", next); } catch (_) {}
+    paint();
+  });
+  if (mq && mq.addEventListener) mq.addEventListener("change", paint);
+  new MutationObserver(paint).observe(root, { attributes: true, attributeFilter: ["data-theme"] });
+  paint();
+})();
+</script>
 <script>
 (() => {
   const DOLAR = window.OUTLET_DOLAR = 5.9; // R$ por US$ 1
