@@ -48,6 +48,7 @@ body {
   -webkit-tap-highlight-color: transparent;
 }
 * { box-sizing: border-box; }
+[hidden] { display: none !important; }
 
 .device {
   width: 100%; max-width: 430px;
@@ -71,47 +72,65 @@ body {
   text-shadow: 0 0 6px rgba(242,154,31,.35);
   min-width: 0;
 }
-.chips { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
-.chip {
-  border: 1px solid var(--amber-dim);
-  border-radius: 6px;
-  padding: 5px 7px 4px;
-  display: grid; gap: 2px;
-  min-width: 0;
-  transition: background .15s, border-color .15s;
-}
-.chip .lbl { font-size: 10px; letter-spacing: .12em; color: var(--amber-mid); text-shadow: none; }
-.chip .val { font-size: 15px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-variant-numeric: tabular-nums; }
-.chip.active { border-color: var(--amber); background: rgba(242,154,31,.1); }
-.chip.active .lbl { color: var(--amber); }
-.chip.active .val::after { content: "_"; animation: blink 1s steps(1) infinite; }
-.chip.off .val { color: var(--amber-dim); text-shadow: none; }
+.inputs { display: flex; gap: 14px; align-items: baseline; font-size: 15px; color: var(--amber-mid); text-shadow: none; font-variant-numeric: tabular-nums; }
+.in { white-space: nowrap; border-bottom: 1px solid transparent; padding-bottom: 1px; }
+.in.active { color: var(--amber); border-color: var(--amber); }
+.in.active > span::after { content: "_"; animation: blink 1s steps(1) infinite; }
 @keyframes blink { 50% { opacity: 0; } }
-
-.result { display: grid; justify-items: end; gap: 2px; padding-top: 4px; }
-.result .tag { font-size: 11px; letter-spacing: .14em; color: var(--amber-mid); text-shadow: none; }
 .big {
-  font-size: clamp(38px, 13vw, 56px); line-height: 1;
-  font-variant-numeric: tabular-nums; white-space: nowrap;
-  max-width: 100%; overflow: hidden;
+  font-size: clamp(44px, 15vw, 64px); line-height: 1; text-align: right;
+  font-variant-numeric: tabular-nums; white-space: nowrap; overflow: hidden;
+  padding-block: 10px 2px;
 }
-.big small { font-size: .42em; margin-right: .2em; color: var(--amber-mid); }
-.save {
-  display: flex; justify-content: space-between; align-items: baseline; gap: 8px;
-  font-size: 14px; border-top: 1px dashed var(--amber-dim); padding-top: 8px;
-  font-variant-numeric: tabular-nums;
+.big small { font-size: .36em; margin-right: .25em; color: var(--amber-mid); text-shadow: none; }
+.save { text-align: right; font-size: 13px; color: var(--amber-mid); text-shadow: none; font-variant-numeric: tabular-nums; }
+
+/* ---------- Tabs ---------- */
+.tabs { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; background: var(--bed); padding: 5px; border-radius: 12px; }
+.tab {
+  border: 0; border-radius: 8px; padding: 11px 0 10px; cursor: pointer;
+  font: 700 13px/1 var(--font-key); letter-spacing: .14em;
+  background: var(--k-grey); color: var(--ink-light);
+  box-shadow: inset 0 2px 0 rgba(255,255,255,.2), inset 0 -3px 0 rgba(0,0,0,.3);
 }
-.save .pill {
-  border: 1px solid var(--amber); border-radius: 4px; padding: 1px 6px; font-size: 13px;
+.tab[aria-selected="true"] { background: var(--k-orange); }
+.tab:focus-visible { outline: 3px solid var(--amber); outline-offset: 1px; }
+.count:not(:empty) { display: inline-block; min-width: 1.6em; margin-left: 4px; padding: 2px 5px; border-radius: 9px; background: rgba(0,0,0,.28); font-size: 11px; letter-spacing: 0; }
+.view { display: grid; gap: 14px; }
+
+/* ---------- Achados ---------- */
+.screen { gap: 12px; }
+.form { display: grid; gap: 10px; }
+.row2 { display: grid; grid-template-columns: 1.3fr 1fr; gap: 8px; }
+.field { display: grid; gap: 4px; min-width: 0; }
+.lbl { font-size: 10px; letter-spacing: .14em; color: var(--amber-mid); text-shadow: none; }
+.field input {
+  width: 100%; min-width: 0; background: #0c0b0a; color: var(--amber);
+  border: 1px solid var(--amber-dim); border-radius: 6px; padding: 10px;
+  font: 16px var(--font-lcd); caret-color: var(--amber);
 }
-.bars { display: flex; align-items: flex-end; gap: 3px; height: 54px; padding-top: 4px; }
-.bars i {
-  flex: 1; display: block; border-radius: 1px;
-  background: var(--amber); box-shadow: 0 0 5px rgba(242,154,31,.45);
-  transition: height .25s ease, background .25s;
+.field input::placeholder { color: var(--amber-dim); }
+.field input:focus { outline: none; border-color: var(--amber); }
+.note { margin: 0; font-size: 12px; color: var(--amber-mid); text-shadow: none; }
+.err { margin: 0; font-size: 13px; color: #ff6a55; text-shadow: none; }
+.status { margin: 0; font-size: 10px; letter-spacing: .14em; color: var(--amber-dim); text-shadow: none; text-align: right; }
+.list { display: grid; gap: 14px; }
+.empty { margin: 0; font-size: 13px; line-height: 1.5; color: var(--amber-mid); text-shadow: none; }
+.group { display: grid; gap: 6px; border-top: 1px dashed var(--amber-dim); padding-top: 12px; }
+.ghead { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.gname { font-size: 16px; overflow-wrap: anywhere; min-width: 0; }
+.mini {
+  flex: none; background: none; border: 1px solid var(--amber-dim); color: var(--amber);
+  border-radius: 5px; padding: 5px 8px; font: 12px var(--font-lcd); cursor: pointer;
 }
-.bars i.dim { background: var(--amber-dim); box-shadow: none; }
-.legend { display: flex; justify-content: space-between; font-size: 10px; letter-spacing: .12em; color: var(--amber-mid); text-shadow: none; }
+.mini:focus-visible { outline: 2px solid var(--amber); }
+.mini.warn { border-color: #ff6a55; color: #ff6a55; }
+.offer { display: grid; grid-template-columns: minmax(0,1fr) auto auto; gap: 8px; align-items: center; font-size: 14px; font-variant-numeric: tabular-nums; }
+.offer .store { overflow-wrap: anywhere; color: var(--amber-mid); text-shadow: none; }
+.offer.best .store { color: var(--amber); text-shadow: inherit; }
+.offer .price { text-align: right; white-space: nowrap; }
+.offer .diff { display: block; font-size: 11px; color: var(--amber-mid); text-shadow: none; }
+.badge { display: inline-block; margin-left: 6px; padding: 1px 5px; border-radius: 3px; background: var(--amber); color: var(--lcd); font-size: 10px; letter-spacing: .1em; text-shadow: none; vertical-align: 1px; }
 
 /* ---------- Keypad ---------- */
 .pad {
@@ -138,8 +157,10 @@ body {
   box-shadow: inset 0 -3px 4px rgba(0,0,0,.22), inset 0 2px 2px rgba(255,255,255,.18), 0 -1px 2px rgba(0,0,0,.18), 0 2px 2px rgba(255,255,255,.12);
 }
 .key > span { position: relative; }
+.wide { aspect-ratio: auto; width: 100%; padding: 16px 0 15px; font-size: 15px; letter-spacing: .16em; }
+.wide::before { inset: 5px 7px; border-radius: 8px; }
 .key[data-p] { font-size: clamp(16px, 5vw, 22px); }
-.key small { display: block; font-size: .45em; letter-spacing: .08em; margin-top: 2px; opacity: .8; font-weight: 600; }
+.key small { display: block; font-size: .4em; letter-spacing: .08em; margin-top: 2px; opacity: .8; font-weight: 600; }
 .key:active, .key.down { transform: translateY(2px); box-shadow: inset 0 2px 0 rgba(255,255,255,.18), inset 0 -2px 0 rgba(0,0,0,.28), 0 0 0 rgba(0,0,0,.6); filter: brightness(.95); }
 .key:focus-visible { outline: 3px solid var(--amber); outline-offset: 1px; }
 
@@ -160,29 +181,27 @@ body {
 .hint { font: 500 12px/1.4 var(--font-key); color: #55534c; text-align: center; letter-spacing: .02em; }
 
 @media (prefers-reduced-motion: reduce) {
-  .bars i, .chip, .key { transition: none; }
-  .chip.active .val::after { animation: none; }
+  .key { transition: none; }
+  .in.active > span::after { animation: none; }
 }
 </style>
 </head>
 <body>
 <main class="device" aria-label="Calculadora de desconto do outlet">
+  <nav class="tabs" role="tablist" aria-label="Seções">
+    <button class="tab" role="tab" id="tabCalc" data-view="calcular" aria-controls="viewCalc">CALCULAR</button>
+    <button class="tab" role="tab" id="tabList" data-view="achados" aria-controls="viewList">ACHADOS <span class="count" id="count"></span></button>
+  </nav>
+
+  <div class="view" id="viewCalc" role="tabpanel" aria-labelledby="tabCalc">
   <section class="lcd" aria-live="polite">
-    <div class="chips">
-      <div class="chip" id="chipPrice"><span class="lbl">PREÇO R$</span><span class="val" id="vPrice"></span></div>
-      <div class="chip" id="chipDisc"><span class="lbl">DESCONTO</span><span class="val" id="vDisc"></span></div>
-      <div class="chip" id="chipExtra"><span class="lbl">EXTRA</span><span class="val" id="vExtra"></span></div>
+    <div class="inputs">
+      <span class="in" id="chipPrice"><span id="vPrice"></span></span>
+      <span class="in" id="chipDisc"><span id="vDisc"></span></span>
+      <span class="in" id="chipExtra"><span id="vExtra"></span></span>
     </div>
-    <div class="result">
-      <span class="tag">VOCÊ PAGA</span>
-      <div class="big" id="vFinal"></div>
-    </div>
-    <div class="save">
-      <span>ECONOMIA <span id="vSave"></span></span>
-      <span class="pill" id="vTotal"></span>
-    </div>
-    <div class="bars" id="bars" aria-hidden="true"></div>
-    <div class="legend" aria-hidden="true"><span>▮ PAGA</span><span>▯ ECONOMIZA</span></div>
+    <div class="big" id="vFinal"></div>
+    <div class="save"><span id="vSave"></span></div>
   </section>
 
   <div class="pad" id="pad">
@@ -198,51 +217,76 @@ body {
     <button class="key" id="k8" data-d="8"><span>8</span></button>
     <button class="key" id="k9" data-d="9"><span>9</span></button>
     <button class="key cream" id="p10" data-p="10"><span>10%</span></button>
-    <button class="key orange" id="p50" data-p="50"><span>50%</span></button>
+    <button class="key orange" id="p30" data-p="30"><span>30%</span></button>
 
     <button class="key" id="k4" data-d="4"><span>4</span></button>
     <button class="key" id="k5" data-d="5"><span>5</span></button>
     <button class="key" id="k6" data-d="6"><span>6</span></button>
-    <button class="key cream" id="p20" data-p="20"><span>20%</span></button>
-    <button class="key orange" id="p60" data-p="60"><span>60%</span></button>
+    <button class="key cream" id="p15" data-p="15"><span>15%</span></button>
+    <button class="key orange" id="p40" data-p="40"><span>40%</span></button>
 
     <button class="key" id="k1" data-d="1"><span>1</span></button>
     <button class="key" id="k2" data-d="2"><span>2</span></button>
     <button class="key" id="k3" data-d="3"><span>3</span></button>
-    <button class="key cream" id="p30" data-p="30"><span>30%</span></button>
-    <button class="key orange" id="p70" data-p="70"><span>70%</span></button>
+    <button class="key cream" id="p20" data-p="20"><span>20%</span></button>
+    <button class="key orange" id="p50" data-p="50"><span>50%</span></button>
 
     <button class="key" id="k00" data-d="00"><span>00</span></button>
     <button class="key" id="k0" data-d="0"><span>0</span></button>
     <button class="key" id="kComma" data-d=","><span>,</span></button>
-    <button class="key cream" id="p40" data-p="40"><span>40%</span></button>
-    <button class="key orange" id="p80" data-p="80"><span>80%</span></button>
+    <button class="key cream" id="p25" data-p="25"><span>25%</span></button>
+    <button class="key orange" id="kSaveFind" aria-label="Guardar achado"><span><svg width="20" height="24" viewBox="0 0 20 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linejoin="round"><path d="M3 2h14v20l-7-5-7 5z"/></svg><small>GUARDAR</small></span></button>
   </div>
 
-  <p class="hint">Digite o preço da etiqueta e toque no desconto. O próximo número já começa um produto novo com o mesmo desconto. <b>+%</b> soma o desconto extra do caixa (10, 15 ou 20%).</p>
+  <p class="hint">Digite o preço e toque no desconto. <b>+%</b> soma o extra do caixa. O marcador guarda o achado para comparar lojas.</p>
+  </div>
+
+  <div class="view" id="viewList" role="tabpanel" aria-labelledby="tabList" hidden>
+    <section class="lcd screen">
+      <form class="form" id="form" autocomplete="off" novalidate>
+        <div class="field">
+          <label class="lbl" for="fProd">PRODUTO</label>
+          <input id="fProd" list="dlProd" placeholder="ex.: Tênis corrida azul 42" maxlength="80">
+        </div>
+        <div class="row2">
+          <div class="field">
+            <label class="lbl" for="fLoja">LOJA</label>
+            <input id="fLoja" list="dlLoja" placeholder="ex.: Loja A" maxlength="40">
+          </div>
+          <div class="field">
+            <label class="lbl" for="fPreco">PREÇO R$</label>
+            <input id="fPreco" inputmode="decimal" placeholder="0,00" maxlength="12">
+          </div>
+        </div>
+        <p class="note" id="fNote" hidden></p>
+        <button class="key wide orange" id="fSubmit" type="submit"><span>SALVAR</span></button>
+        <p class="err" id="fErr" role="alert" hidden></p>
+      </form>
+      <datalist id="dlProd"></datalist>
+      <datalist id="dlLoja"></datalist>
+    </section>
+
+    <section class="lcd screen">
+      <div class="field">
+        <label class="lbl" for="fBusca">BUSCAR</label>
+        <input id="fBusca" type="search" placeholder="produto ou loja">
+      </div>
+      <div id="list" class="list"></div>
+      <p class="status" id="status">SALVO NESTE APARELHO</p>
+    </section>
+  </div>
 </main>
 
 <script>
 (() => {
   const EXTRA_STEPS = [0, 10, 15, 20];
-  const N_BARS = 34;
   // Exemplo inicial: etiqueta de R$ 199,90 com 30% + 10% no caixa.
-  const state = { price: "199,90", disc: "30", extra: 10, field: "price", fresh: true };
+  const state = window.outletState = { price: "199,90", disc: "30", extra: 10, field: "price", fresh: true };
 
   const $ = (id) => document.getElementById(id);
   const brl = new Intl.NumberFormat("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   const pct = (n) => (Math.round(n * 10) / 10).toString().replace(".", ",");
   const num = (s) => { const v = parseFloat((s || "").replace(",", ".")); return isFinite(v) ? v : 0; };
-
-  // Bar heights: a soft two-hump curve, like a spectrum readout.
-  const shape = Array.from({ length: N_BARS }, (_, i) => {
-    const x = i / (N_BARS - 1);
-    const a = Math.exp(-((x - 0.3) ** 2) / 0.02), b = Math.exp(-((x - 0.68) ** 2) / 0.03);
-    return 0.18 + 0.82 * Math.max(a * 0.8, b);
-  });
-  const barsEl = $("bars");
-  shape.forEach(() => barsEl.appendChild(document.createElement("i")));
-  const bars = [...barsEl.children];
 
   function compute() {
     const p = num(state.price);
@@ -255,23 +299,15 @@ body {
 
   function render() {
     const { p, final, save, total } = compute();
-    $("vPrice").textContent = state.price || "—";
-    $("vDisc").textContent = state.disc ? state.disc + "%" : "—";
-    $("vExtra").textContent = state.extra ? "+" + state.extra + "%" : "OFF";
+    $("vPrice").textContent = "R$ " + (state.price || "—");
+    $("vDisc").textContent = "−" + (state.disc || "—") + "%";
+    $("vExtra").textContent = state.extra ? "+" + state.extra + "%" : "";
     $("chipPrice").classList.toggle("active", state.field === "price");
     $("chipDisc").classList.toggle("active", state.field === "disc");
-    $("chipExtra").classList.toggle("off", !state.extra);
+    $("chipExtra").hidden = !state.extra;
 
     $("vFinal").innerHTML = "<small>R$</small>" + brl.format(final);
-    $("vSave").textContent = "R$ " + brl.format(save);
-    $("vTotal").textContent = "−" + pct(total * 100) + "% TOTAL";
-
-    const paidShare = p > 0 ? final / p : 1;
-    const lit = Math.round(paidShare * N_BARS);
-    bars.forEach((b, i) => {
-      b.style.height = Math.round(shape[i] * 100) + "%";
-      b.classList.toggle("dim", i >= lit);
-    });
+    $("vSave").textContent = save > 0 ? "economia R$ " + brl.format(save) + " · " + pct(total * 100) + "%" : "sem desconto";
 
     document.querySelectorAll("[data-p]").forEach((k) => k.classList.toggle("sel", k.dataset.p === state.disc));
     $("kExtra").classList.toggle("sel", state.extra > 0);
@@ -332,6 +368,8 @@ body {
   // Teclado físico
   const keyMap = { Backspace: "kBack", Escape: "kCE", Delete: "kCE", ",": "kComma", ".": "kComma", "%": "kDisc", "+": "kExtra" };
   document.addEventListener("keydown", (ev) => {
+    if (ev.target.closest && ev.target.closest("input, textarea")) return;
+    if ($("viewCalc").hidden || ev.ctrlKey || ev.metaKey || ev.altKey) return;
     const id = /^[0-9]$/.test(ev.key) ? "k" + ev.key : keyMap[ev.key];
     if (!id) return;
     ev.preventDefault();
@@ -341,6 +379,206 @@ body {
     press(el);
   });
 
+  window.outletCalc = { snapshot: () => ({ ...compute(), disc: state.disc, extra: state.extra }) };
+  render();
+})();
+</script>
+<script>
+(() => {
+  const $ = (id) => document.getElementById(id);
+  const brl = new Intl.NumberFormat("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  const money = (n) => "R$ " + brl.format(n);
+  const norm = (t) => String(t || "").trim().toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/\s+/g, " ");
+  function parseMoney(t) {
+    let v = String(t || "").replace(/[^\d.,]/g, "");
+    if (v.includes(",")) v = v.replace(/\./g, "").replace(",", ".");
+    else if (!/^\d+\.\d{1,2}$/.test(v)) v = v.replace(/\./g, "");
+    const n = parseFloat(v);
+    return isFinite(n) ? Math.round(n * 100) / 100 : NaN;
+  }
+
+  /* ---------- armazenamento: conta (db) quando disponível, senão este aparelho ---------- */
+  const LS_KEY = "outlet-achados-v1";
+  const lsLoad = () => { try { return JSON.parse(localStorage.getItem(LS_KEY) || "[]"); } catch (_) { return []; } };
+  const lsSave = (arr) => { try { localStorage.setItem(LS_KEY, JSON.stringify(arr)); } catch (_) {} };
+  let items = lsLoad();
+  const local = {
+    label: "SALVO NESTE APARELHO",
+    async add(it) { items = [...items, { ...it, id: "l" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6) }]; lsSave(items); render(); },
+    async remove(id) { items = items.filter((i) => i.id !== id); lsSave(items); render(); },
+  };
+  let store = local;
+
+  (async () => {
+    if (!window.claude || typeof window.claude.use !== "function") return;
+    try {
+      const [db, user] = await Promise.all([window.claude.use("db"), window.claude.use("user")]);
+      if (!db || !user) return;
+      const uid = await user.id();
+      if (!uid) return;
+      const col = db.collection("data/users/" + uid + "/achados");
+      const remote = {
+        label: "SALVO NA SUA CONTA",
+        add: (it) => col.add(it),
+        remove: (id) => col.doc(id).delete(),
+      };
+      let first = true;
+      const timer = setTimeout(() => { $("status").textContent = "SEM CONEXÃO · SALVANDO NESTE APARELHO"; }, 10000);
+      col.onSnapshot((snap) => {
+        clearTimeout(timer);
+        items = snap.docs.map((d) => ({ ...d.data(), id: d.id }));
+        store = remote;
+        if (first) {
+          first = false;
+          const pending = lsLoad();
+          if (pending.length) {
+            // Leva para a conta o que foi salvo no aparelho antes de conectar.
+            (async () => { for (const { id, ...it } of pending) { try { await col.add(it); } catch (_) { return; } } lsSave([]); })();
+          }
+        }
+        render();
+      }, () => {
+        clearTimeout(timer);
+        store = local; items = lsLoad(); render();
+      });
+    } catch (_) {}
+  })();
+
+  /* ---------- abas ---------- */
+  const views = { calcular: ["tabCalc", "viewCalc"], achados: ["tabList", "viewList"] };
+  function show(name) {
+    if (!views[name]) name = "calcular";
+    for (const [k, [tab, view]] of Object.entries(views)) {
+      $(tab).setAttribute("aria-selected", String(k === name));
+      $(view).hidden = k !== name;
+    }
+  }
+  document.querySelectorAll(".tab").forEach((t) => t.addEventListener("click", () => {
+    const v = t.dataset.view;
+    if (location.hash !== "#" + v) location.hash = v; else show(v);
+  }));
+  window.addEventListener("hashchange", () => show(location.hash.slice(1)));
+  show(location.hash.slice(1));
+
+  /* ---------- guardar a partir da calculadora ---------- */
+  let meta = null;
+  $("kSaveFind").addEventListener("click", () => {
+    const c = window.outletCalc.snapshot();
+    if (c.p > 0) {
+      $("fPreco").value = brl.format(c.final);
+      meta = c.final < c.p ? { etiqueta: Math.round(c.p * 100) / 100, desconto: Math.round(c.total * 1000) / 10 } : null;
+      $("fNote").textContent = meta ? "Etiqueta " + money(meta.etiqueta) + " com " + String(meta.desconto).replace(".", ",") + "% de desconto" : "";
+      $("fNote").hidden = !meta;
+    }
+    location.hash = "achados";
+    setTimeout(() => $("fProd").focus(), 50);
+  });
+  $("fPreco").addEventListener("input", () => { meta = null; $("fNote").hidden = true; });
+
+  $("form").addEventListener("submit", async (ev) => {
+    ev.preventDefault();
+    const produto = $("fProd").value.trim();
+    const loja = $("fLoja").value.trim();
+    const preco = parseMoney($("fPreco").value);
+    const err = !produto ? "Escreva o nome do produto." : !loja ? "Escreva o nome da loja." : !(preco > 0) ? "Escreva o preço, por exemplo 129,90." : "";
+    $("fErr").textContent = err; $("fErr").hidden = !err;
+    if (err) return;
+    const it = { produto, loja, preco, criadoEm: Date.now() };
+    if (meta) Object.assign(it, meta);
+    $("fSubmit").disabled = true;
+    try {
+      await store.add(it);
+      $("form").reset(); meta = null; $("fNote").hidden = true;
+      flash("SALVO");
+    } catch (_) {
+      $("fErr").textContent = "Não foi possível salvar. Tente de novo."; $("fErr").hidden = false;
+    } finally { $("fSubmit").disabled = false; }
+  });
+
+  function flash(text) {
+    const st = $("status");
+    st.textContent = text + " · " + store.label;
+    clearTimeout(flash.t);
+    flash.t = setTimeout(() => { st.textContent = store.label; }, 2500);
+  }
+
+  $("fBusca").addEventListener("input", render);
+
+  /* ---------- lista agrupada por produto ---------- */
+  function el(tag, cls, text) { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
+
+  function render() {
+    $("count").textContent = items.length ? String(items.length) : "";
+    $("status").textContent = store.label;
+
+    const fill = (id, vals) => {
+      const dl = $(id); dl.textContent = "";
+      [...new Map(vals.map((v) => [norm(v), v])).values()].sort().forEach((v) => { const o = document.createElement("option"); o.value = v; dl.appendChild(o); });
+    };
+    fill("dlProd", items.map((i) => i.produto));
+    fill("dlLoja", items.map((i) => i.loja));
+
+    const q = norm($("fBusca").value);
+    const groups = new Map();
+    for (const it of items) {
+      if (!it || typeof it.produto !== "string" || typeof it.preco !== "number") continue;
+      if (q && !norm(it.produto).includes(q) && !norm(it.loja).includes(q)) continue;
+      const k = norm(it.produto);
+      if (!groups.has(k)) groups.set(k, []);
+      groups.get(k).push(it);
+    }
+    const list = $("list"); list.textContent = "";
+    if (!groups.size) {
+      list.appendChild(el("p", "empty", items.length
+        ? "Nada encontrado para essa busca."
+        : "Nenhum achado guardado ainda. Calcule um preço e toque no marcador da calculadora, ou preencha o formulário acima. Repita o mesmo nome em outra loja para comparar os preços."));
+      return;
+    }
+    const sorted = [...groups.values()].sort((a, b) => Math.max(...b.map((i) => i.criadoEm || 0)) - Math.max(...a.map((i) => i.criadoEm || 0)));
+    for (const g of sorted) {
+      g.sort((a, b) => a.preco - b.preco);
+      const latest = g.reduce((a, b) => ((b.criadoEm || 0) > (a.criadoEm || 0) ? b : a));
+      const box = el("div", "group");
+      const head = el("div", "ghead");
+      head.appendChild(el("span", "gname", latest.produto));
+      const addBtn = el("button", "mini", "+ LOJA");
+      addBtn.type = "button";
+      addBtn.setAttribute("aria-label", "Adicionar outra loja para " + latest.produto);
+      addBtn.addEventListener("click", () => {
+        $("fProd").value = latest.produto;
+        $("form").scrollIntoView({ behavior: "smooth", block: "start" });
+        $("fLoja").focus();
+      });
+      head.appendChild(addBtn);
+      box.appendChild(head);
+
+      const best = g[0].preco;
+      g.forEach((it, idx) => {
+        const row = el("div", "offer" + (idx === 0 && g.length > 1 ? " best" : ""));
+        const store_ = el("span", "store", it.loja);
+        if (idx === 0 && g.length > 1) store_.appendChild(el("span", "badge", "MENOR"));
+        row.appendChild(store_);
+        const price = el("span", "price", money(it.preco));
+        if (idx > 0) price.appendChild(el("span", "diff", "+" + money(it.preco - best)));
+        else if (it.etiqueta) price.appendChild(el("span", "diff", "etiq. " + money(it.etiqueta)));
+        row.appendChild(price);
+        const del = el("button", "mini", "×");
+        del.type = "button";
+        del.setAttribute("aria-label", "Apagar " + it.loja);
+        del.addEventListener("click", () => {
+          if (!del.classList.contains("warn")) {
+            del.classList.add("warn"); del.textContent = "APAGAR?";
+            setTimeout(() => { del.classList.remove("warn"); del.textContent = "×"; }, 3000);
+            return;
+          }
+          Promise.resolve(store.remove(it.id)).catch(() => flash("NÃO FOI POSSÍVEL APAGAR"));
+        });
+        row.appendChild(del);
+        box.appendChild(row);
+      });
+      list.appendChild(box);
+    }
+  }
   render();
 })();
 </script>
