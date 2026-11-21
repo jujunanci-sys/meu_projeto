@@ -180,6 +180,15 @@ form.add{position:relative;margin-top:6px}
 .nm{flex:1;min-width:0;overflow-wrap:anywhere;font-weight:500;transition:color .2s}
 .done .nm{color:var(--ink2);text-decoration:line-through;text-decoration-color:var(--hot);text-decoration-thickness:2px}
 .nm .addr{display:inline-block;width:100%;font-size:13px;font-weight:400;color:var(--ink2);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-decoration:none}
+.nm .vd{font-weight:700}
+.vd.ok,.vd.low{color:var(--ok)}
+.vd.high{color:var(--red)}
+.vd.na{color:var(--ink2)}
+#shPaidBox[hidden]{display:none}
+.paid-vd{margin:0;padding:2px 16px 14px;font-size:14px;line-height:1.35}
+.paid-vd:empty{display:none}
+.paid-vd b{font-weight:800}
+.rc-line .vd{font-weight:800}
 .price{flex:0 0 auto;font-weight:800;font-size:15px;font-variant-numeric:tabular-nums}
 .done .price{color:var(--ink2)}
 .lnk{flex:0 0 auto;color:var(--ink);display:grid;place-items:center;width:30px;height:30px;border-radius:50%;border:1.5px solid var(--ink)}
@@ -407,7 +416,7 @@ dialog.sheet::backdrop{background:rgba(22,22,26,.42)}
     <p class="foot" id="dataMsg">Use antes de apagar o ícone do app ou para passar sua lista para outro celular. A cópia inclui fotos, preços, lugares e lojas.</p>
     <input type="file" id="importFile" accept="application/json,.json" hidden>
   </section>
-  <p class="foot center"><span class="ver">Versão 22</span></p>
+  <p class="foot center"><span class="ver">Versão 23</span></p>
 </main>
 <main class="app" id="tabLugares" hidden>
   <header>
@@ -495,6 +504,10 @@ dialog.sheet::backdrop{background:rgba(22,22,26,.42)}
   <div class="ph" id="shPh"></div>
   <div class="sh-info"><label class="sh-name"><input id="shName" maxlength="200" enterkeyhint="done" aria-label="Nome do produto (toque para editar)"><span class="pen" aria-hidden="true">✎</span></label><p id="shStore"></p></div>
   <div class="card sh-acts" style="margin-bottom:16px"><div class="row"><label for="shPrice">Preço</label><span class="w-in">US$ <input id="shPrice" type="text" inputmode="decimal" placeholder="0,00" maxlength="12"></span></div></div>
+  <div class="card sh-acts" id="shPaidBox" style="margin-bottom:16px" hidden>
+    <div class="row"><label for="shPaid">Paguei <span style="font-weight:400;color:var(--ink2)">(com imposto)</span></label><span class="w-in">US$ <input id="shPaid" type="text" inputmode="decimal" placeholder="0,00" maxlength="12"></span></div>
+    <p class="paid-vd" id="shPaidVd" aria-live="polite"></p>
+  </div>
   <div class="card sh-acts">
     <button class="row act" type="button" id="shFetch">Buscar foto e preço pelo link</button>
     <a class="row act" id="shWeb" target="_blank" rel="noopener noreferrer">Procurar foto na web</a>
@@ -544,6 +557,17 @@ function parseMoney(v){
   const n=Number(t); return isFinite(n)&&n>=0?Math.round(n*100)/100:null;
 }
 const numBR=(n,d=2)=>n.toLocaleString("pt-BR",{minimumFractionDigits:d,maximumFractionDigits:d});
+/* quanto foi pago comparado ao esperado (preço da etiqueta + imposto da carteira) */
+const taxRate=()=>((typeof wallet!=="undefined"&&wallet.tax)||0)/100;
+const expectedPaid=i=>i.p>0?i.p*(1+taxRate()):null;
+function verdict(i,short=false){
+  if(!(i.pa>0))return null;
+  const e=expectedPaid(i), x=short?"":" do esperado";
+  if(e==null)return {k:"na",t:short?"sem preço esperado":"sem preço esperado para comparar"};
+  const d=Math.round((i.pa-e)*100)/100, tol=Math.max(.5,e*.01);
+  if(Math.abs(d)<=tol)return {k:"ok",t:short?"\u2713 no esperado":"\u2713 dentro do esperado",d};
+  return d<0?{k:"low",t:`\u25BC ${USD.format(-d)} abaixo${x}`,d}:{k:"high",t:`\u25B2 ${USD.format(d)} acima${x}`,d};
+}
 /* lombadas da estante: uma cor por loja, na ordem em que as lojas aparecem */
 const SPINES=[["#F49AC1","#16161A"],["#C9C03A","#16161A"],["#A3182A","#FFFDF8"],["#FF8A1F","#16161A"],["#2D5BD8","#FFFDF8"],
   ["#1F7A4D","#FFFDF8"],["#B9A6F2","#16161A"],["#FFD53D","#16161A"],["#3FB8C9","#16161A"],["#EFE3CC","#16161A"],["#5B2A86","#FFFDF8"]];
@@ -578,8 +602,8 @@ function render(){
       <div class="swipe" data-id="${i.id}"><div class="bg" aria-hidden="true">Apagar</div>
         <div class="fg${i.d?" done":""}" tabindex="0" role="listitem" aria-label="${esc(i.n)}${i.p?", "+USD.format(i.p):""}. Toque para ver a foto e o preço. Deslize para a esquerda ou aperte Delete para apagar.">
           <button class="chk" type="button" aria-pressed="${i.d}" aria-label="Marcar ${esc(i.n)} como comprado">${CHECK}</button>
-          <span class="nm">${esc(i.n)}</span>
-          ${i.p?`<span class="price">${USD.format(i.p)}</span>`:""}
+          <span class="nm">${esc(i.n)}${i.d&&verdict(i,true)?`<span class="addr vd ${verdict(i,true).k}">${verdict(i,true).t}</span>`:""}</span>
+          ${i.d&&i.pa>0?`<span class="price">${USD.format(i.pa)}</span>`:i.p?`<span class="price">${USD.format(i.p)}</span>`:""}
           ${photos[i.id]?`<img class="thumb" src="${photos[i.id]}" alt="">`:loading.has(i.id)?`<span class="thumb ld" aria-label="Buscando foto"></span>`:""}
           ${i.u&&isUrl(i.u)?`<a class="lnk" href="${esc(i.u)}" target="_blank" rel="noopener noreferrer" aria-label="Abrir link de ${esc(i.n)}">${LINK}</a>`:""}
           ${CHEV}
@@ -694,6 +718,7 @@ $("groups").addEventListener("click",e=>{
   it.d=!it.d; save();
   b.closest(".fg").classList.toggle("done",it.d); b.setAttribute("aria-pressed",it.d);
   if(it.d&&items.filter(i=>i.s===it.s).every(i=>i.d))confetti(b);
+  if(it.d&&!(it.pa>0))showUndo("Comprado! Quanto você pagou?",()=>{ openSheet(it.id); setTimeout(()=>$("shPaid").focus(),380) },null,"Anotar");
   clearTimeout(b._t); b._t=setTimeout(render,450);
   const total=items.length, done=items.filter(i=>i.d).length;
   $("bar").style.width=(done/total*100)+"%";
@@ -702,9 +727,9 @@ $("groups").addEventListener("click",e=>{
 /* apagar com desfazer */
 let pending=null,toastT=null;
 function settle(){ if(pending&&pending.done)pending.done(); pending=null; }
-function showUndo(msg,undo,done){
+function showUndo(msg,undo,done,label="Desfazer"){
   settle(); pending={undo,done};
-  $("toastMsg").textContent=msg; $("toast").classList.add("show");
+  $("toastMsg").textContent=msg; $("undo").textContent=label; $("toast").classList.add("show");
   clearTimeout(toastT); toastT=setTimeout(()=>{$("toast").classList.remove("show");settle()},5000);
 }
 $("undo").addEventListener("click",()=>{
@@ -879,6 +904,9 @@ function fillSheet(){
     :busy?`<div class="ph-empty"><span class="spin" aria-hidden="true"></span><b>Buscando foto e preço…</b><span>Lendo a página do produto.</span></div>`
     :`<div class="ph-empty">${PHOTO}<b>Sem foto</b><span>${hasLink?"Toque em \u201CBuscar foto e preço pelo link\u201D para pegar a imagem e o preço da página do produto.":"Procure a foto na web, copie a imagem e toque em \u201CColar foto copiada\u201D."}</span></div>`;
   if(document.activeElement!==$("shName"))$("shName").value=it.n;
+  $("shPaidBox").hidden=!it.d;
+  if(document.activeElement!==$("shPaid"))$("shPaid").value=it.pa>0?numBR(it.pa):"";
+  paidVerdict(it);
   if(document.activeElement!==$("shPrice"))$("shPrice").value=it.p?numBR(it.p):"";
   $("shStore").textContent=it.s+(it.d?" \u00B7 Comprado":"");
   $("shFetch").hidden=!hasLink; $("shFetch").disabled=busy;
@@ -906,9 +934,22 @@ $("shName").addEventListener("input",()=>{ const it=items.find(i=>i.id===cur); c
 $("shName").addEventListener("change",()=>{ const it=items.find(i=>i.id===cur); if(it){ $("shName").value=it.n; render(); fillSheet() } });
 $("shName").addEventListener("keydown",e=>{ if(e.key==="Enter"){ e.preventDefault(); $("shName").blur() } });
 function savePrice(){ const it=items.find(i=>i.id===cur); if(!it)return; const v=parseMoney($("shPrice").value);
-  if(v)it.p=v; else delete it.p; delete it.pAuto; save(); render(); }
+  if(v)it.p=v; else delete it.p; delete it.pAuto; save(); render(); paidVerdict(it); }
 $("shPrice").addEventListener("change",savePrice);
 $("shPrice").addEventListener("keydown",e=>{ if(e.key==="Enter"){e.preventDefault(); $("shPrice").blur()} });
+function paidVerdict(it){
+  const e=expectedPaid(it), v=verdict(it);
+  $("shPaidVd").innerHTML=!it.d?"":v?`<span class="vd ${v.k}">${v.t}</span>${e!=null?`<br><span style="color:var(--ink2)">Esperado: ${USD.format(e)} (${USD.format(it.p)} + ${numBR(taxRate()*100,1)}% de imposto)</span>`:""}`
+    :e!=null?`<span style="color:var(--ink2)">Esperado com imposto: <b>${USD.format(e)}</b>. Anote quanto você pagou para comparar.</span>`
+    :`<span style="color:var(--ink2)">Anote quanto você pagou. Coloque também o preço esperado para comparar.</span>`;
+}
+function savePaid(){ const it=items.find(i=>i.id===cur); if(!it)return; const v=parseMoney($("shPaid").value);
+  if(v)it.pa=v; else delete it.pa; save(); render(); paidVerdict(it); }
+$("shPaid").addEventListener("input",()=>{ const it=items.find(i=>i.id===cur); if(!it)return; const v=parseMoney($("shPaid").value);
+  paidVerdict({...it,pa:v||undefined}) });
+$("shPaid").addEventListener("change",savePaid);
+$("shPaid").addEventListener("keydown",e=>{ if(e.key==="Enter"){e.preventDefault(); $("shPaid").blur()} });
+$("shPaid").addEventListener("blur",()=>{ const it=items.find(i=>i.id===cur); if(it)$("shPaid").value=it.pa>0?numBR(it.pa):"" });
 $("shPrice").addEventListener("blur",()=>{ const it=items.find(i=>i.id===cur); if(it)$("shPrice").value=it.p?numBR(it.p):"" });
 $("shFetch").addEventListener("click",()=>{if(cur)photoFromLink(cur)});
 $("shFile").addEventListener("change",e=>{const f=e.target.files[0]; e.target.value=""; if(f&&cur)setPhoto(cur,f)});
@@ -944,25 +985,32 @@ try{const j=JSON.parse(localStorage.getItem(W_KEY)||"null"); if(j)wallet={...wal
 function saveWallet(){try{localStorage.setItem(W_KEY,JSON.stringify(wallet))}catch(e){}}
 $("fx").value=wallet.fx?numBR(wallet.fx):""; $("tax").value=numBR(wallet.tax,wallet.tax%1?1:0);
 function renderWallet(){
-  const priced=items.filter(i=>i.p>0), missing=items.length-priced.length;
-  const total=priced.reduce((t,i)=>t+i.p,0), bought=priced.filter(i=>i.d).reduce((t,i)=>t+i.p,0);
+  const priced=items.filter(i=>i.p>0), missing=items.filter(i=>!(i.p>0)&&!(i.d&&i.pa>0)).length;
+  const total=priced.reduce((t,i)=>t+i.p,0);
   const rate=(wallet.tax||0)/100, withTax=total*(1+rate);
+  const spent=items.filter(i=>i.d).reduce((t,i)=>t+(i.pa>0?i.pa:(i.p>0?i.p*(1+rate):0)),0);
+  const toBuy=priced.filter(i=>!i.d).reduce((t,i)=>t+i.p*(1+rate),0);
+  const cmp=items.filter(i=>i.d&&i.pa>0&&i.p>0), cmpPaid=cmp.reduce((t,i)=>t+i.pa,0), cmpExp=cmp.reduce((t,i)=>t+i.p*(1+rate),0);
+  const cmpD=Math.round((cmpPaid-cmpExp)*100)/100, cmpTol=Math.max(.5,cmpExp*.01);
+  const cmpTxt=!cmp.length?"":Math.abs(cmpD)<0.01?`<span class="vd ok">\u2713 igual ao esperado</span>`
+    :cmpD<0?`<span class="vd low">\u25BC ${USD.format(-cmpD)} a menos</span>`:`<span class="vd ${cmpD<=cmpTol?"ok":"high"}">\u25B2 ${USD.format(cmpD)} a mais</span>`;
   $("wSub").textContent=items.length?`${priced.length} de ${items.length} ${items.length===1?"item tem":"itens têm"} preço`:"Nenhum item na lista";
-  navTitles.carteira=USD.format(withTax); setNavTitle();
+  navTitles.carteira=USD.format(spent+toBuy); setNavTitle();
   if(!items.length){ $("receipt").innerHTML=`<p class="rc-h">Carteira da viagem</p><p class="rc-empty">Adicione itens com preço na aba Compras e o total aparece aqui.</p>`; return }
-  const brl=wallet.fx?`<b>\u2248 ${BRL.format(withTax*wallet.fx)}</b>`:`<button type="button" id="askFx">Informe a cotação</button> para ver em reais`;
+  const brl=wallet.fx?`<b>\u2248 ${BRL.format((spent+toBuy)*wallet.fx)}</b>`:`<button type="button" id="askFx">Informe a cotação</button> para ver em reais`;
   const stores=storeList().map(s=>{const l=priced.filter(i=>i.s===s); return {s,sum:l.reduce((t,i)=>t+i.p,0)}}).filter(x=>x.sum>0).sort((a,b)=>b.sum-a.sum);
   const max=Math.max(...stores.map(x=>x.sum),1);
   $("receipt").innerHTML=`<p class="rc-h">Carteira da viagem</p>
-    <p class="rc-total">${USD.format(withTax)}</p>
+    <p class="rc-total">${USD.format(spent+toBuy)}</p>
     <p class="rc-brl">${brl}</p>
     <hr class="rc-cut">
     <div class="rc-line"><span class="k">Produtos</span><span>${USD.format(total)}</span></div>
     <div class="rc-line"><span class="k">Imposto (${numBR(wallet.tax||0,(wallet.tax||0)%1?1:0)}%)</span><span>${USD.format(total*rate)}</span></div>
-    <div class="rc-line big"><span>Total</span><span>${USD.format(withTax)}</span></div>
+    <div class="rc-line big"><span>Total esperado</span><span>${USD.format(withTax)}</span></div>
     <hr class="rc-cut">
-    <div class="rc-line"><span class="k">Já comprado</span><span>${USD.format(bought*(1+rate))}</span></div>
-    <div class="rc-line"><span class="k">Falta comprar</span><span>${USD.format((total-bought)*(1+rate))}</span></div>
+    <div class="rc-line"><span class="k">Já gasto</span><span>${USD.format(spent)}</span></div>
+    <div class="rc-line"><span class="k">Falta comprar</span><span>${USD.format(toBuy)}</span></div>
+    ${cmp.length?`<div class="rc-line"><span class="k">Pago vs esperado (${cmp.length} ${cmp.length===1?"item":"itens"})</span>${cmpTxt}</div>`:""}
     ${stores.length?`<hr class="rc-cut">`+stores.map(x=>{const [c]=storeColor(x.s); return `<div class="rc-store" style="--c:${c}"><div class="rc-line"><span><span class="sw" aria-hidden="true"></span>${esc(x.s)}</span><span>${USD.format(x.sum)}</span></div><div class="rc-meter" aria-hidden="true"><i style="width:${x.sum/max*100}%"></i></div></div>`}).join(""):""}
     ${missing?`<p class="rc-miss">${missing} ${missing===1?"item está":"itens estão"} sem preço e não ${missing===1?"entra":"entram"} na conta. <button type="button" id="goPrices">Colocar preços</button></p>`:""}`;
 }
@@ -971,7 +1019,8 @@ $("receipt").addEventListener("click",e=>{
   if(e.target.id==="goPrices"){ shelfSel=""; showTab("compras"); render(); const i=items.find(i=>!(i.p>0)); if(i)openSheet(i.id) }
 });
 $("fx").addEventListener("input",()=>{ wallet.fx=parseMoney($("fx").value); saveWallet(); renderWallet() });
-$("tax").addEventListener("input",()=>{ const v=parseMoney($("tax").value); wallet.tax=v==null?0:Math.min(v,25); saveWallet(); renderWallet() });
+$("tax").addEventListener("input",()=>{ const v=parseMoney($("tax").value); wallet.tax=v==null?0:Math.min(v,25); saveWallet(); renderWallet(); clearTimeout(taxT); taxT=setTimeout(render,400) });
+let taxT=null;
 $("fx").addEventListener("blur",()=>{ $("fx").value=wallet.fx?numBR(wallet.fx):"" });
 $("tax").addEventListener("blur",()=>{ $("tax").value=numBR(wallet.tax,wallet.tax%1?1:0) });
 
